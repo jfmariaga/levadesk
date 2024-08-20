@@ -11,11 +11,11 @@ class NuevoComentario extends Notification
 {
     use Queueable;
 
-    protected $ticket;
+    protected $comentario;
 
-    public function __construct($ticket)
+    public function __construct($comentario)
     {
-        $this->ticket = $ticket;
+        $this->comentario = $comentario;
     }
 
     public function via($notifiable)
@@ -25,25 +25,20 @@ class NuevoComentario extends Notification
 
     public function toMail($notifiable)
     {
-        $ultimoComentario = $this->ticket->comentarios->last();
-
         return (new MailMessage)
-            ->subject('Nuevo comentario para el ticket ' . $this->ticket->nomenclatura)
-            ->line($ultimoComentario->user->name . ' hizo el siguiente comentario:')
-            ->line($ultimoComentario->comentario)
-            ->action('Ver Ticket', url('/tickets/' . $this->ticket->id));
+            ->subject('Nuevo comentario para el ticket ' . $this->comentario->ticket->nomenclatura)
+            ->line($this->comentario->user->name . ' hizo el siguiente comentario:')
+            ->line($this->comentario->comentario)
+            ->action('Ver Ticket', url('/tickets/' . $this->comentario->ticket->id));
     }
-
 
     public function toArray($notifiable)
     {
-        $ultimoComentario = $this->ticket->comentarios->last();
-
         return [
-            'ticket_id' => $this->ticket->id,
-            'nomenclatura' => $this->ticket->nomenclatura,
-            'comentario' => $ultimoComentario->comentario,
-            'usuario' => $ultimoComentario->user->name,
+            'ticket_id' => $this->comentario->ticket->id,
+            'nomenclatura' => $this->comentario->ticket->nomenclatura,
+            'comentario' => $this->comentario->comentario,
+            'usuario' => $this->comentario->user->name,
         ];
     }
 }
