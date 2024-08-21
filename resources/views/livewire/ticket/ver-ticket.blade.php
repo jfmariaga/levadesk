@@ -1,141 +1,537 @@
 <div>
     <style>
+        .card {
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-header {
+            border-bottom: 1px solid #eee;
+            background-color: #f8f9fa;
+        }
+
+        .card-body {
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+
+        h5 {
+            font-size: 1.25rem;
+            color: #333;
+        }
+
+        p {
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .solicitud-badge {
+            display: inline-block;
+            padding: 0.25em 0.6em;
+            font-size: 0.85rem;
+            font-weight: 700;
+            line-height: 1;
+            text-align: center;
+            white-space: nowrap;
+            vertical-align: baseline;
+            border-radius: 0.375rem;
+            background-color: #6e6997;
+            color: #ffffff;
+        }
+
+        .text-right {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+        }
+
+        .text-right .solicitud-badge {
+            margin-left: 8px;
+        }
+
         .timeline-horizontal {
             display: flex;
             overflow-x: auto;
-            padding: 20px;
+            padding: 10px 20px;
+            /* Reducir el padding para menos espacio */
             white-space: nowrap;
+            transition: all 0.3s ease;
         }
 
         .timeline-item {
             display: inline-block;
             background: #f4f4f4;
-            border-radius: 10px;
-            margin: 5px 20px;
-            padding: 10px 20px;
-            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            /* Esquinas menos redondeadas */
+            margin: 5px 10px;
+            /* Menor separación entre items */
+            padding: 8px 16px;
+            /* Padding interno más pequeño */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             position: relative;
+            font-size: 0.8rem;
+            /* Texto más pequeño */
         }
 
         .timeline-icon {
-            width: 30px;
-            height: 30px;
+            width: 20px;
+            /* Icono más pequeño */
+            height: 20px;
             background-color: #777;
             border-radius: 50%;
             position: absolute;
-            left: -15px;
-            /* Adjust this value if needed */
+            left: -10px;
+            /* Ajustar posición a la izquierda */
             top: 10px;
+            /* Centrar respecto al contenido */
         }
 
         .timeline-content {
-            padding-left: 40px;
-            /* Adjust based on the size of the timeline-icon */
+            padding-left: 35px;
+            /* Ajustar para el icono más pequeño */
         }
 
         .timeline-content h2 {
-            font-size: 16px;
-            font-weight: bold;
+            font-size: 0.85rem;
+            /* Tamaño de texto reducido para fecha/hora */
             color: #555;
         }
 
         .timeline-content p {
-            font-size: 14px;
+            font-size: 0.75rem;
+            /* Tamaño de texto reducido para detalles */
             color: #666;
         }
+
+        .hidden {
+            display: none;
+        }
+
+        .btn-flecha {
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-flecha-gestion {
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .list-group-item {
+            display: flex;
+            align-items: center;
+            /* Alinea verticalmente los elementos */
+            justify-content: start;
+            /* Alinea horizontalmente al inicio */
+            background-color: transparent;
+            border: none;
+            padding: 5px 10px;
+        }
+
+        .comentario {
+            border-color: #333;
+        }
+
+        .btn-color-azul {
+            background: #6790e7;
+            color: #eee
+        }
+
+        .card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        .card-body {
+            background-color: #fff;
+        }
+
+        textarea {
+            resize: none;
+            padding: 10px;
+            border-radius: 0;
+            font-size: 14px;
+        }
+
+        .input-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .input-group-prepend {
+            margin-right: 10px;
+        }
+
+        .input-group-prepend i {
+            font-size: 1.5rem;
+            /* Tamaño del ícono */
+            color: gray;
+            cursor: pointer;
+        }
+
+        .icono-notificacion {
+            font-size: 1.2rem;
+            /* Tamaño del ícono */
+            color: rgb(235, 105, 105);
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+
+        .icono-colaborador {
+            font-size: 1.2rem;
+            /* Tamaño del ícono */
+            color: rgb(107, 179, 137);
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+
+        .icono-todo {
+            font-size: 1.2rem;
+            /* Tamaño del ícono */
+            color: rgb(86, 200, 253);
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+
+        .btn {
+            margin-left: auto;
+        }
+
+        .border-file {
+            border: 1px solid #ddd;
+        }
+
+        .p-2 {
+            padding: 0.5rem;
+        }
+
+        .rounded-file {
+            border-radius: 4px;
+        }
+
+        .text-success-file {
+            color: #28a745;
+        }
+
+        .text-muted-file {
+            color: #6c757d;
+        }
+
+        .btn-link-file {
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-link-file:hover {
+            text-decoration: none;
+        }
+
+        .text-danger-file {
+            color: #dc3545;
+        }
+
+        .flex-grow-1-file {
+            flex-grow: 1;
+        }
+
+        .contar-recordatorios {
+            color: black;
+            border-top-left-radius: 3px;
+            border: #333;
+            margin-left: -7px;
+            margin-bottom: 15px;
+            font-size: 12px;
+        }
+
+        .contar-tareas {
+            color: black;
+            border-top-left-radius: 3px;
+            border: #333;
+            margin-left: -5px;
+            margin-bottom: 15px;
+            font-size: 12px;
+        }
     </style>
-    <div class="modal-dialog modal-xl">
-        <div class="modal-content">
-            @if ($ticket_old)
-                <div class="modal-header">
-                    <h4 class="modal-title">Ticket {{ $ticket_old->nomenclatura }}</h4>
-                    <button type="button" class="close" data-dismiss="modal" wire:click="resetForm">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <div class="row">
-                        <!-- Cuadro 1: Timeline del Ticket -->
-                        <div class="col-lg-4 col-md-12">
-                            <h5>Timeline del Ticket</h5>
-                            <div class="timeline">
-                                @foreach ($historial as $evento)
-                                    <div class="timeline-item">
-                                        <div class="timeline-icon"></div>
-                                        <div class="timeline-content">
-                                            <h2>{{ $evento->created_at }}</h2>
-                                            <p>{{ $evento->detalle }}</p>
-                                        </div>
-                                    </div>
-                                @endforeach
+    @if ($ticket)
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-lg-9">
+                    <div class="card">
+                        <div class="card-header col-md-12">
+                            <div class="mb-1 d-flex  align-items-center" style="background-color: #eeeeee">
+                                <div class="col-md-7 mt-2">
+                                    <p><strong>{{ $ticket->estado->nombre }}</strong>
+                                        @if ($ticket->solucion())
+                                            <span wire:ignore class="alert alert-success color-verde-claro">
+                                                Solución indicada en el comentario
+                                                #{{ $ticket->comentarios->search($ticket->solucion()) + 1 }}.
+                                            </span>
+                                        @endif
+                                    </p>
+                                </div>
+                                <div class="col-md-5">
+                                    <p class="text-right mt-2">
+                                        <span class="solicitud-badge  font-weight-bold">{{ $ticket->nomenclatura }}</span>
+                                    </p>
+                                </div>
+                            </div>
+                            <h5>
+                                {{ $ticket->titulo }}, {{ $ticket->descripcion }}
+                            </h5>
+                            <p><i class="text-muted">{{ $ticket->sociedad->nombre }}>>{{ $ticket->tipoSolicitud->nombre }}>>{{ $ticket->categoria->nombre }}>>
+                                    {{ $ticket->subcategoria->nombre }}</i></p>
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <p><strong>Urgencia:</strong> {{ $ticket->urgencia->nombre }}</p>
+                                </div>
+                                <div class="col-md-3">
+                                    @if ($ticket->impacto)
+                                        <!-- Verifica si existe un impacto asignado -->
+                                        <p><strong>Impacto:</strong> {{ $ticket->impacto->nombre }}</p>
+                                    @endif
+                                </div>
+                                <div class="col-md-3">
+                                    @if ($prioridad != 'NULL')
+                                        <p><strong>Prioridad:</strong> {{ $ticket->prioridad }}</p>
+                                    @endif
+                                </div>
+                                <div class="col-md-3">
+                                    @foreach ($ticket->archivos as $archivo)
+                                        @if ($archivo->comentario_id == null)
+                                            <li>
+                                                <a href="{{ Storage::url($archivo->ruta) }}"
+                                                    target="_blank">Adjunto</a>
+                                            </li>
+                                        @endif
+                                    @endforeach
+                                </div>
+
                             </div>
                         </div>
-
-                        <!-- Cuadro 2: Información del Ticket -->
-                        <div class="col-lg-4 col-md-12">
-                            <h5>Detalles del Ticket</h5>
-                            <p><strong>Título:</strong> {{ $ticket_old->titulo }}</p>
-                            <p><strong>Descripción:</strong> {{ $ticket_old->descripcion }}</p>
-                            <p><strong>Sociedad:</strong> {{ $ticket_old->sociedad->nombre }}</p>
-                            <p><strong>Tipo de Solicitud:</strong> {{ $ticket_old->tipoSolicitud->nombre }}</p>
-                            <p><strong>Categoría:</strong> {{ $ticket_old->categoria->nombre }}</p>
-                            <p><strong>Subcategoría:</strong> {{ $ticket_old->subcategoria->nombre }}</p>
-                            <p><strong>Estado:</strong> {{ $ticket_old->estado->nombre }}</p>
-                            <p><strong>Urgencia:</strong> {{ $ticket_old->urgencia->nombre }}</p>
-                            <p><strong>Asignado a :</strong> {{ $ticket_old->asignado->name }}</p>
-                        </div>
-
-                        <!-- Cuadro 3: Gestión de Comentarios y Archivos -->
-                        <div class="col-lg-4 col-md-12">
-                            <h5>Comentarios</h5>
-                            <div class="direct-chat-messages">
-                                @foreach ($ticket_old->comentarios as $comentario)
-                                    <div
-                                        class="direct-chat-msg {{ $comentario->user_id == Auth::id() ? 'right' : '' }}">
-                                        <div class="direct-chat-infos clearfix">
-                                            <span
-                                                class="direct-chat-name {{ $comentario->user_id == Auth::id() ? 'float-right' : 'float-left' }}">{{ $comentario->user->name ?? 'Anónimo' }}</span>
-                                            <span
-                                                class="direct-chat-timestamp {{ $comentario->user_id == Auth::id() ? 'float-left' : 'float-right' }}">{{ $comentario->created_at->format('d M Y h:i a') }}</span>
-                                        </div>
-                                        <div class="direct-chat-text">
-                                            {{ $comentario->comentario }}
-                                        </div>
-                                    </div>
-                                @endforeach
+                        <div class="card-body bg-light">
+                            <div class="row">
+                                <h5>Timeline</h5>
+                                <button wire:click="toggleTimelineTicket" class="btn-flecha">
+                                    <i class="fas {{ $showTimeline ? 'fa-chevron-up' : 'fa-chevron-down' }}"></i>
+                                </button>
                             </div>
-                            <form wire:submit.prevent="addComment">
-                                <div class="input-group">
-                                    <input type="text" placeholder="Escribe un comentario ..." class="form-control"
-                                        wire:model="newComment">
-                                    <span class="input-group-append">
-                                        <button type="submit" class="btn btn-primary">Enviar</button>
-                                    </span>
+                            <div class="row">
+                                <div class=" col-md-12">
+                                    @if ($showTimeline)
+                                        <div class="timeline-horizontal">
+                                            @foreach ($historial as $evento)
+                                                <div class="timeline-item">
+                                                    <div class="timeline-icon"></div>
+                                                    <div class="timeline-content">
+                                                        <h2>{{ $evento->created_at }}</h2>
+                                                        <p>{{ $evento->detalle }}</p>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    @endif
                                 </div>
-                            </form>
-                            <form wire:submit.prevent="addFile">
-                                <div class="input-group mt-3">
-                                    <input type="file" class="form-control" wire:model="newFile">
-                                    <span class="input-group-append">
-                                        <button type="submit" class="btn btn-primary">Subir</button>
-                                    </span>
+                                <hr>
+                            </div>
+                            <div class="row">
+                                <div class="col-12 comentario">
+                                    @if ($ticket->estado_id != 1)
+                                        <div>
+                                            @foreach ($ticket->comentarios as $comentario)
+                                                <div class="card">
+                                                    <div class="direct-chat-infos clearfix mt-1">
+                                                        <span
+                                                            class="direct-chat-name float-left ml-2">{{ $comentario->user->name ?? 'Anónimo' }}</span>
+                                                        <span
+                                                            class="direct-chat-timestamp float-left ml-2">{{ $comentario->created_at->format('d M Y h:i a') }}</span>
+                                                        @if ($comentario->tipo == 2)
+                                                            <span
+                                                                class="badge color-verde-claro mr-2 float-right">Solución
+                                                                {{ $ticket->comentario += 1 }}
+                                                            </span>
+                                                        @else
+                                                            <span
+                                                                class="badge color-respuesta-azul mr-2 float-right">Respuesta
+                                                                {{ $comentario->tipo == 1 ? 'Privada' : '' }}
+                                                                {{ $ticket->comentario += 1 }}
+                                                            </span>
+                                                        @endif
+                                                    </div>
+                                                    <div
+                                                        class="direct-chat-text mr-2 mb-2 {{ $comentario->tipo == 2 ? 'color-verde-claro' : 'bg-light' }} ">
+                                                        {!! $comentario->comentario !!}
+                                                        @if ($comentario->archivos->count())
+                                                            <strong>Archivos:</strong>
+                                                            <ul class="list-unstyled">
+                                                                @foreach ($comentario->archivos as $archivo)
+                                                                    <li>
+                                                                        <a href="{{ Storage::url($archivo->ruta) }}"
+                                                                            target="_blank">Adjunto</a>
+                                                                    </li>
+                                                                @endforeach
+                                                            </ul>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                        <div>
+                                            <div class="card">
+                                                <div class="card-body p-0">
+                                                    <div class="d-flex align-items-start">
+                                                        <div wire:ignore class="w-100">
+                                                            <textarea name="editor" id="editor" class="form-control border-0" cols="30" rows="5"
+                                                                placeholder="Escribe tu mensaje aquí..."></textarea>
+                                                        </div>
+                                                        @error('newComment')
+                                                            <span class="text-danger">{{ $message }}</span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                                <div class="card-footer d-flex justify-content-between align-items-center"
+                                                    style="background-color: #eeeeee">
+                                                    <div class="input-group d-flex justify-content-between">
+                                                        <div class="d-flex align-items-center">
+                                                            <span class="input-group-prepend">
+                                                                <a href="#">
+                                                                    <i class="fa fa-paperclip" onclick="abrir()"></i>
+                                                                </a>
+                                                            </span>
+                                                        </div>
+                                                        <div class="input-group-append">
+                                                            <button wire:click="addComment"
+                                                                class="btn btn-outline-info btn-sm">Responder
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <input type="file" id="file" name="file" class="d-none"
+                                                wire:model="newFile">
+                                        </div>
+                                        <div class="col-12 d-flex justify-content-center">
+                                            <div wire:loading wire:target="newFile" class="" role="alert">
+                                                <div class="spinner-border text-primary" role="status">
+                                                    <span class="text-center"></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        @if ($newFile)
+                                            <div class="d-flex align-items-center border-file p-2 rounded-file">
+                                                <div class="mr-2">
+                                                    <i class="fa fa-check-circle text-success-file"></i>
+                                                </div>
+                                                <div class="flex-grow-1-file">
+                                                    <span>{{ $newFile->getClientOriginalName() }}</span>
+                                                </div>
+                                                <div class="text-muted-file">
+                                                    Subida completa
+                                                </div>
+                                                <div class="ml-2">
+                                                    <button class="btn btn-link-file text-danger-file p-0"
+                                                        wire:click="removeFile">
+                                                        <i class="fa fa-times"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        @endif
+                                    @endif
                                 </div>
-                            </form>
-                            <h5 class="mt-3">Archivos Adjuntos</h5>
-                            <ul>
-                                @foreach ($ticket_old->archivos as $archivo)
-                                    <li><a href="{{ Storage::url($archivo->ruta) }}"
-                                            target="_blank">{{ $archivo->ruta }}</a></li>
-                                @endforeach
-                            </ul>
+                            </div>
                         </div>
                     </div>
                 </div>
-            @else
-                <div class="overlay dark">
-                    <i class="fas fa-2x fa-sync-alt fa-spin"></i>
+                <div class="col-lg-3">
+                    <div class="card">
+                        <div class="card-header col-md-12">
+                            <div class="d-flex  align-items-center" style="background-color: #eeeeee">
+                                <div class="col-md-6">
+                                    <h5>Participantes</h5>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Usuario :</strong> {{ $ticket->usuario->name }}</p>
+                            <p><strong>Agente TI :</strong> {{ $ticket->asignado->name }}</p>
+                            @if ($ticket->Colaboradors)
+                                @foreach ($ticket->colaboradors as $colaborador)
+                                    <p><strong>Colaborador :</strong> {{ $colaborador->user->name }}</p>
+                                @endforeach
+                            @endif
+                        </div>
+                    </div>
                 </div>
-            @endif
+            </div>
         </div>
-    </div>
+    @else
+        <div class="overlay dark">
+            <i class="fas fa-2x fa-sync-alt fa-spin"></i>
+        </div>
+    @endif
+
+    @push('js')
+        <script>
+            document.addEventListener('livewire:load', function() {
+                function initializeSelect2() {
+                    $('.select2').select2();
+                }
+
+                function initializeEditor() {
+                    ClassicEditor
+                        .create(document.querySelector('#editor'))
+                        .then(function(editor) {
+                            editorInstance = editor; // Guardamos la instancia del editor
+                            editor.model.document.on('change:data', () => {
+                                @this.set('newComment', editor.getData());
+                            });
+                        })
+                        .catch(error => {
+                            console.log(error);
+                        });
+                }
+
+                initializeSelect2();
+                initializeEditor();
+
+                // Reinitialize after Livewire updates the DOM
+                Livewire.hook('message.processed', (message, component) => {
+                    initializeSelect2();
+                });
+
+                Livewire.on('editorVisible', () => {
+                    initializeEditor();
+                });
+
+                $('#tipoComentario').on('change', function() {
+                    @this.set('commentType', $(this).val());
+                });
+
+                Livewire.on('resetearEditor', i => {
+                    if (editorInstance) { // Verificar si editorInstance está definido
+                        editorInstance.setData(''); // Reseteamos el contenido del editor
+                    } else {
+                        console.error("Editor instance is not defined.");
+                    }
+                });
+
+                Livewire.on('showToast', (data) => {
+                    toastRight(data.type, data.message);
+                });
+            });
+
+            function abrir() {
+                var file = document.getElementById("file").click();
+            }
+        </script>
+    @endpush
 </div>

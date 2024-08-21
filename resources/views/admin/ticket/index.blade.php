@@ -7,11 +7,6 @@
 @section('content_body')
     <div class="container-fluid">
         <div class="row mt-3">
-            {{-- <div class="col-md-6">
-                <div class="card">
-                    @livewire('ticket.form-tickets')
-                </div>
-            </div> --}}
             <div class="col-md-12">
                 <div class="card">
                     @livewire('ticket.index')
@@ -23,5 +18,4 @@
 
 @section('modals')
     @include('admin.ticket.modal_add_ticket')
-    @include('admin.ticket.modal_ver_ticket')
 @endsection

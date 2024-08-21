@@ -26,6 +26,7 @@
                     <thead>
                         <tr>
                             <th>Fecha</th>
+                            <th>Ticket</th>
                             <th>Título</th>
                             <th>Categoría</th>
                             <th>Estado</th>
@@ -119,7 +120,8 @@
                             categoria,
                             subcategoria,
                             estado,
-                            asignado
+                            asignado,
+                            nomenclatura,
                         } = element;
 
                         // Formatear la fecha
@@ -131,15 +133,14 @@
 
                         body.append(`<tr id="tr_${id}">
                             <td class="pointer">${fechaFormateada}</td>
+                            <td class="pointer">${nomenclatura}</td>
                             <td class="pointer">${titulo}</td>
                             <td class="pointer">${categoria ? categoria.nombre : ''}</td>
                             <td class="pointer">${estado ? estado.nombre : ''}</td>
                             <td class="pointer">${asignado ? asignado.name : ''}</td>
                             <td>
                                 <div class="d-flex">
-                                    <button  onclick="editar(${id})" class="btn btn-xs btn-default text-primary mx-1 shadow" title="Edit">
-                                         <i class="far fa-eye"></i>
-                                     </button>
+                                    <a href="verTicket?ticket_id=${id}" class="btn btn-xs btn-default text-primary mx-1 shadow" title="Edit"><i class="far fa-eye"></i></a>
                                 </div>
                             </td>
                         </tr>`);
@@ -154,11 +155,6 @@
                 } else {
                     $('.buttons-pdf').click();
                 }
-            }
-
-            function editar(id) {
-                $('#btn_ver_ticket').click();
-                Livewire.emit('verTicket', id);
             }
         </script>
     @endpush

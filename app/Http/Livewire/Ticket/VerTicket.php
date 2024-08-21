@@ -5,6 +5,7 @@ namespace App\Http\Livewire\Ticket;
 use App\Models\Historial;
 use App\Models\Ticket;
 use App\Models\User;
+use App\Notifications\NuevoComentario;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Illuminate\Support\Str;
@@ -28,48 +29,85 @@ class VerTicket extends Component
     public $nomenclatura;
     public $ans_id;
     public $estado_id;
-    public $ticket_old;
+    public $ticket;
     public $urgencia;
     public $usuarioId;
     public $newComment;
     public $newFile;
     public $usuarios;
     public $modalId;
+    public $prioridad;
+    public $showTimeline = false;
+    public $impacto;
+    public $ticket_id;
+
+
 
     protected $listeners = ['verTicket'];
 
+    protected $queryString = ['ticket_id'];
+
+
+    public function toggleTimelineTicket()
+    {
+        $this->showTimeline = !$this->showTimeline;
+    }
+
     public function mount()
     {
+        $this->verTicket();
         $this->usuarios = User::all();
     }
 
-    public function verTicket($id)
+    public function verTicket()
     {
-        $this->modalId = $id;
-        $this->ticket_old = Ticket::with('historial')->find($id);
-        $this->nomenclatura = $this->ticket_old->nomenclatura;
-        $this->sociedad_id = $this->ticket_old->sociedad_id;
-        $this->tipo_solicitud_id = $this->ticket_old->tipo_solicitud_id;
-        $this->categoria_id = $this->ticket_old->categoria_id;
-        $this->subcategoria_id = $this->ticket_old->subcategoria_id;
-        $this->titulo = $this->ticket_old->titulo;
-        $this->descripcion = $this->ticket_old->descripcion ? $this->ticket_old->descripcion : '';
-        $this->estado_id = $this->ticket_old->estado_id;
+        $this->ticket = Ticket::with(['categoria', 'subcategoria'])->find($this->ticket_id);
+        if (!$this->ticket) {
+            abort(404, 'Ticket no encontrado.');
+        }
+        $this->nomenclatura = $this->ticket->nomenclatura;
+        $this->sociedad_id = $this->ticket->sociedad_id;
+        $this->tipo_solicitud_id = $this->ticket->tipo_solicitud_id;
+        $this->categoria_id = $this->ticket->categoria_id;
+        $this->subcategoria_id = $this->ticket->subcategoria_id;
+        $this->titulo = $this->ticket->titulo;
+        $this->descripcion = $this->ticket->descripcion ? $this->ticket->descripcion : '';
+        $this->estado_id = $this->ticket->estado_id;
+        $this->prioridad = $this->ticket->prioridad_id;
+        $this->impacto = $this->ticket->impacto_id;
     }
 
 
     public function addComment()
     {
-        $this->validate(['newComment' => 'required|string|max:255']);
-        $this->ticket_old->comentarios()->create([
+        $this->validate(['newComment' => 'required|string']);
+
+        // Crear el comentario y guardarlo en la variable $comentario
+        $comentario = $this->ticket->comentarios()->create([
             'user_id' => auth()->id(),
             'comentario' => $this->newComment,
+            'tipo' => 0,
         ]);
+
+        // Asocia el archivo con el comentario recién creado si existe
+        if ($this->newFile) {
+            $this->addFile($comentario->id);
+        }
+
+        $this->ticket->asignado->notify(new NuevoComentario($comentario));
+        if ($this->ticket->colaboradors) {
+            foreach ($this->ticket->colaboradors as $colaborador) {
+                $colaborador->user->notify(new NuevoComentario($comentario));
+            }
+        }
+
+        // Limpiar el estado después de agregar el comentario
         $this->newComment = '';
-        $this->verTicket($this->ticket_old->id); // Refresh ticket data
+        $this->verTicket('comentarios'); // Refresca los datos del ticket
+        $this->emit('resetearEditor');
     }
 
-    public function addFile()
+    public function addFile($comentario_id = null)
     {
         $this->validate(['newFile' => 'required|file|max:10240']);
         $nombre_original = $this->newFile->getClientOriginalName();
@@ -78,16 +116,18 @@ class VerTicket extends Component
         $nombre_db = Str::slug($nombre_sin_extension);
         $nombre_a_guardar = $nombre_db . '.' . $extension;
         $path = $this->newFile->storeAs('public/tickets', $nombre_a_guardar);
-        $this->ticket_old->archivos()->create([
+        // Guardar el archivo con la referencia al comentario (si existe) y al ticket
+        $this->ticket->archivos()->create([
             'ruta' => $path,
+            'comentario_id' => $comentario_id,
         ]);
         $this->newFile = null;
-        $this->verTicket($this->ticket_old->id); // Refresh ticket data
+        $this->verTicket($this->ticket->id); // Refresh ticket data
     }
-
-    public function resetForm()
+    public function removeFile()
     {
-        $this->reset(['newComment', 'newFile']);
+        // Remover el archivo temporal
+        $this->reset('newFile');
     }
 
     public function render()
