@@ -6,56 +6,41 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Illuminate\Support\HtmlString;
 
 class NuevoComentarioSolucion extends Notification
 {
     use Queueable;
 
-    /**
-     * Create a new notification instance.
-     *
-     * @return void
-     */
-    public function __construct()
+    protected $comentario;
+
+    public function __construct($comentario)
     {
-        //
+        $this->comentario = $comentario;
     }
 
-    /**
-     * Get the notification's delivery channels.
-     *
-     * @param  mixed  $notifiable
-     * @return array
-     */
     public function via($notifiable)
     {
-        return ['mail'];
+        return ['mail', 'database']; // Puedes agregar otros canales como SMS, Slack, etc.
     }
 
-    /**
-     * Get the mail representation of the notification.
-     *
-     * @param  mixed  $notifiable
-     * @return \Illuminate\Notifications\Messages\MailMessage
-     */
     public function toMail($notifiable)
     {
         return (new MailMessage)
-                    ->line('The introduction to the notification.')
-                    ->action('Notification Action', url('/'))
-                    ->line('Thank you for using our application!');
+            ->subject('Solución ' . $this->comentario->ticket->nomenclatura)
+            ->line($this->comentario->user->name . ' Ha marcado la siguiente respuesta como solución: ')
+            ->line(new HtmlString($this->comentario->comentario))
+            ->line('Por favor ingresa al sistema de tickets para confirmar o rechazar la solución')
+            ->action('Ver Ticket', url('/tickets/' . $this->comentario->ticket->id));
     }
 
-    /**
-     * Get the array representation of the notification.
-     *
-     * @param  mixed  $notifiable
-     * @return array
-     */
     public function toArray($notifiable)
     {
         return [
-            //
+            'ticket_id' => $this->comentario->ticket->id,
+            'nomenclatura' => $this->comentario->ticket->nomenclatura,
+            'comentario' => $this->comentario->comentario,
+            'usuario' => $this->comentario->user->name,
         ];
     }
 }

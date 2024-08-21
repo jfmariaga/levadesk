@@ -12,6 +12,7 @@ use App\Models\Recordatorio;
 use App\Models\Tarea;
 use App\Models\TipoSolicitud;
 use App\Models\User;
+use App\Notifications\CambioEstado;
 use App\Notifications\NuevoComentario;
 use App\Notifications\NuevoComentarioPrivado;
 use App\Notifications\NuevoComentarioSolucion;
@@ -321,15 +322,13 @@ class Show extends Component
                 'ticket_id' => $this->ticket_id,
                 'user_id' => Auth::id(),
                 'accion' => 'Recategorizado y Asignado',
-                'detalle' => "Ticket recategorizado y asignado a {$nuevoUsuario->name} en el grupo {$nuevoGrupo->nombre}.",
+                'detalle' => "Ticket recategorizado y reasignado de {$usuarioAsignado->name} a {$nuevoUsuario->name} en el grupo {$nuevoGrupo->nombre}.",
             ]);
         }
 
         // Recargar los datos del ticket para reflejar los cambios
         $this->loadTicket();
     }
-
-
 
 
     public function actualizarImpacto()
@@ -382,6 +381,8 @@ class Show extends Component
             'detalle' =>  'El sistema cambio el estado del ticket a: En atención',
         ]);
 
+        $this->ticket->usuario->notify(new CambioEstado($this->ticket));
+
         $this->loadTicket();
         $this->emit('editorVisible');
         $this->impacto = false;
@@ -420,6 +421,10 @@ class Show extends Component
         } else {
             $this->ticket->update(['estado_id' => 3]);
 
+            $this->ticket->update([
+                'estado_id' => 6
+            ]);
+
             Historial::create([
                 'ticket_id' => $this->ticket->id,
                 'user_id' => Auth::id(),
@@ -441,9 +446,6 @@ class Show extends Component
         $this->loadTicket('comentarios'); // Refresca los datos del ticket
         $this->emit('resetearEditor');
     }
-
-
-
 
     public function addFile($comentario_id = null)
     {

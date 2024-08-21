@@ -511,30 +511,34 @@
                                                         </label>
                                                     </div>
                                                 @endif
-                                                @if ($ticket->categoria->id == 8 || $ticket->categoria->nombre == 'GESTION DE ACCESOS')
-                                                    <p class="ml-2">Gestionar acceso</p>
+                                                @if ($ticket->estado_id != 6)
+                                                    @if ($ticket->categoria->id == 8 || $ticket->categoria->nombre == 'GESTION DE ACCESOS')
+                                                        <p class="ml-2">Gestionar acceso</p>
+                                                        <div class="float-right">
+                                                            <label class="switch"
+                                                                style="margin-left:10px; margin-top: 5px">
+                                                                <input type="checkbox" wire:model="acceso">
+                                                                <span class="slider round"></span>
+                                                            </label>
+                                                        </div>
+                                                    @endif
+                                                    <p class="ml-2">¿Escalar a consultoría?</p>
                                                     <div class="float-right">
                                                         <label class="switch"
                                                             style="margin-left:10px; margin-top: 5px">
-                                                            <input type="checkbox" wire:model="acceso">
+                                                            <input type="checkbox" wire:model="escalar">
+                                                            <span class="slider round"></span>
+                                                        </label>
+                                                    </div>
+                                                    <p class="ml-2">¿Requiere cambio?</p>
+                                                    <div class="float-right">
+                                                        <label class="switch"
+                                                            style="margin-left:10px; margin-top: 5px">
+                                                            <input type="checkbox" wire:model="cambio">
                                                             <span class="slider round"></span>
                                                         </label>
                                                     </div>
                                                 @endif
-                                                <p class="ml-2">¿Escalar a consultoría?</p>
-                                                <div class="float-right">
-                                                    <label class="switch" style="margin-left:10px; margin-top: 5px">
-                                                        <input type="checkbox" wire:model="escalar">
-                                                        <span class="slider round"></span>
-                                                    </label>
-                                                </div>
-                                                <p class="ml-2">¿Requiere cambio?</p>
-                                                <div class="float-right">
-                                                    <label class="switch" style="margin-left:10px; margin-top: 5px">
-                                                        <input type="checkbox" wire:model="cambio">
-                                                        <span class="slider round"></span>
-                                                    </label>
-                                                </div>
                                             </li>
                                             @if ($recategorizar)
                                                 <div class="row select-categorias">
@@ -648,7 +652,8 @@
                                                             </span>
                                                         @else
                                                             <span
-                                                                class="badge color-respuesta-azul mr-2 float-right">Respuesta {{$comentario->tipo == 1 ? 'Privada': ''}}
+                                                                class="badge color-respuesta-azul mr-2 float-right">Respuesta
+                                                                {{ $comentario->tipo == 1 ? 'Privada' : '' }}
                                                                 {{ $ticket->comentario += 1 }}
                                                             </span>
                                                         @endif
