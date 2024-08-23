@@ -93,11 +93,29 @@
                     <div class="card-body">
                         <ul class="list-group">
                             @foreach ($ticketsSolucionados as $ticket)
-                                <li class="list-group-item">
-                                    <strong>{{ $ticket->titulo }}</strong>
-                                    <p>{{ $ticket->usuario->name }} - {{ $ticket->created_at->format('d M, Y') }} <span
-                                            class="badge solucionado-badge  float-right">Solucionado</span></p>
-
+                                @php
+                                    $comentarioCalificado = $ticket
+                                        ->comentarios()
+                                        ->whereNotNull('calificacion')
+                                        ->first();
+                                @endphp
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong class="badge solucionado-badge">{{$ticket->nomenclatura}}</strong>
+                                        <p>{{ $ticket->usuario->name }} - {{ $ticket->created_at->format('d M, Y') }}
+                                        </p>
+                                    </div>
+                                    @if ($comentarioCalificado)
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-star" style="color: gold;"></i>
+                                            <span class="ml-1">{{ $comentarioCalificado->calificacion }}/5</span>
+                                        </div>
+                                    @else
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-star text-muted"></i>
+                                            <span class="ml-1">0/5</span>
+                                        </div>
+                                    @endif
                                 </li>
                             @endforeach
                         </ul>

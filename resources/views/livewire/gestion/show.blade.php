@@ -641,21 +641,27 @@
                                             @foreach ($ticket->comentarios as $comentario)
                                                 <div class="card">
                                                     <div class="direct-chat-infos clearfix mt-1">
-                                                        <span
-                                                            class="direct-chat-name {{ $comentario->user_id == Auth::id() ? 'float-left' : 'float-right' }} ml-2">{{ $comentario->user->name ?? 'Anónimo' }}</span>
-                                                        <span
-                                                            class="direct-chat-timestamp {{ $comentario->user_id == Auth::id() ? 'float-left' : 'float-right' }} ml-2">{{ $comentario->created_at->format('d M Y h:i a') }}</span>
+                                                        <span class="direct-chat-name float-left ml-2">{{ $comentario->user->name ?? 'Anónimo' }}</span>
+                                                        <span class="direct-chat-timestamp float-left ml-2">{{ $comentario->created_at->format('d M Y h:i a') }}</span>
                                                         @if ($comentario->tipo == 2)
                                                             <span
                                                                 class="badge color-verde-claro mr-2 float-right">Solución
                                                                 {{ $ticket->comentario += 1 }}
                                                             </span>
                                                         @else
-                                                            <span
-                                                                class="badge color-respuesta-azul mr-2 float-right">Respuesta
-                                                                {{ $comentario->tipo == 1 ? 'Privada' : '' }}
-                                                                {{ $ticket->comentario += 1 }}
-                                                            </span>
+                                                            @if ($comentario->tipo == 3)
+                                                                <span
+                                                                    class="badge estado-por-iniciar mr-2 float-right">Solución
+                                                                    no aceptada
+                                                                    {{ $ticket->comentario += 1 }}
+                                                                </span>
+                                                            @else
+                                                                <span
+                                                                    class="badge color-respuesta-azul mr-2 float-right">Respuesta
+                                                                    {{ $comentario->tipo == 1 ? 'Privada' : '' }}
+                                                                    {{ $ticket->comentario += 1 }}
+                                                                </span>
+                                                            @endif
                                                         @endif
                                                     </div>
                                                     <div

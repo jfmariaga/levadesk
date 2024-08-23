@@ -259,27 +259,91 @@
             margin-bottom: 15px;
             font-size: 12px;
         }
+
+        .rating i {
+            font-size: 2rem;
+            color: #ddd;
+            cursor: pointer;
+        }
+
+        .rating i.selected,
+        .rating i:hover,
+        .rating i:hover~i {
+            color: gold;
+        }
     </style>
     @if ($ticket)
         <div class="container-fluid">
             <div class="row">
                 <div class="col-lg-9">
                     <div class="card">
+                        <div class="col-12 mt-1 mr-2">
+                            @if ($ticket->solucion() && $ticket->estado_id != 4)
+                                <span wire:ignore class="alert alert-success color-verde-claro float-right">
+                                    Solución indicada en el comentario
+                                    #{{ $ticket->comentarios->search($ticket->solucion()) + 1 }}.
+                                </span>
+                            @endif
+                            <div class="col-12 mt-1 mr-2">
+                                @php
+                                    $comentarioCalificado = $ticket
+                                        ->comentarios()
+                                        ->whereNotNull('calificacion')
+                                        ->first();
+                                @endphp
+
+                                @if ($ticket->estado_id == 4)
+                                    @if ($comentarioCalificado)
+                                        <div
+                                            class="alert alert-light d-flex justify-content-between align-items-center shadow-sm p-3 mb-3 rounded">
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-check-circle text-success mr-2"
+                                                    style="font-size: 24px;"></i>
+                                                <div>
+                                                    <strong>El usuario aceptó la solución.</strong>
+                                                    <p class="mb-0 text-muted">
+                                                        {{ $comentarioCalificado->comentario_calificacion ? $comentarioCalificado->comentario_calificacion : 'Sin comentarios.' }}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div class="rating">
+                                                @for ($i = 1; $i <= 5; $i++)
+                                                    <i class="fas fa-star {{ $i <= $comentarioCalificado->calificacion ? 'text-warning' : 'text-muted' }}"
+                                                        style="font-size: 24px;"></i>
+                                                @endfor
+                                            </div>
+                                        </div>
+                                    @else
+                                        <div
+                                            class="alert alert-light d-flex justify-content-between align-items-center shadow-sm p-3 mb-3 rounded">
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-check-circle text-success mr-2"
+                                                    style="font-size: 24px;"></i>
+                                                <div>
+                                                    <strong>Sistema aceptó la solución por expiración.</strong>
+                                                    <p class="mb-0 text-muted">Sin comentarios.</p>
+                                                </div>
+                                            </div>
+                                            <div class="rating">
+                                                @for ($i = 1; $i <= 5; $i++)
+                                                    <i class="fas fa-star text-muted" style="font-size: 24px;"></i>
+                                                @endfor
+                                            </div>
+                                        </div>
+                                    @endif
+                                @endif
+                            </div>
+
+                        </div>
                         <div class="card-header col-md-12">
                             <div class="mb-1 d-flex  align-items-center" style="background-color: #eeeeee">
                                 <div class="col-md-7 mt-2">
-                                    <p><strong>{{ $ticket->estado->nombre }}</strong>
-                                        @if ($ticket->solucion())
-                                            <span wire:ignore class="alert alert-success color-verde-claro">
-                                                Solución indicada en el comentario
-                                                #{{ $ticket->comentarios->search($ticket->solucion()) + 1 }}.
-                                            </span>
-                                        @endif
-                                    </p>
+                                    <p><strong>{{ $ticket->estado->nombre }}</strong></p>
                                 </div>
                                 <div class="col-md-5">
                                     <p class="text-right mt-2">
-                                        <span class="solicitud-badge  font-weight-bold">{{ $ticket->nomenclatura }}</span>
+                                        <span
+                                            class="solicitud-badge  font-weight-bold">{{ $ticket->nomenclatura }}</span>
                                     </p>
                                 </div>
                             </div>
@@ -320,12 +384,12 @@
                             <div class="row">
                                 <h5>Timeline</h5>
                                 <button wire:click="toggleTimelineTicket" class="btn-flecha">
-                                    <i class="fas {{ $showTimeline ? 'fa-chevron-up' : 'fa-chevron-down' }}"></i>
+                                    <i class="fas {{ $showTimelineTicket ? 'fa-chevron-up' : 'fa-chevron-down' }}"></i>
                                 </button>
                             </div>
                             <div class="row">
                                 <div class=" col-md-12">
-                                    @if ($showTimeline)
+                                    @if ($showTimelineTicket)
                                         <div class="timeline-horizontal">
                                             @foreach ($historial as $evento)
                                                 <div class="timeline-item">
@@ -353,16 +417,38 @@
                                                         <span
                                                             class="direct-chat-timestamp float-left ml-2">{{ $comentario->created_at->format('d M Y h:i a') }}</span>
                                                         @if ($comentario->tipo == 2)
+                                                            @if ($ticket->estado_id != 4)
+                                                                <div class="d-flex justify-content-end row mr-2 mb-2">
+                                                                    <button
+                                                                        wire:click="aceptarSolucion({{ $comentario->id }})"
+                                                                        class="btn btn-outline-info btn-sm">
+                                                                        <i class="fas fa-check-circle"></i>
+                                                                    </button>
+                                                                    <button
+                                                                        wire:click="rechazarSolucion({{ $comentario->id }})"
+                                                                        class="btn btn-outline-danger btn-sm ml-2">
+                                                                        <i class="fas fa-times-circle"></i>
+                                                                    </button>
+                                                                </div>
+                                                            @endif
                                                             <span
                                                                 class="badge color-verde-claro mr-2 float-right">Solución
                                                                 {{ $ticket->comentario += 1 }}
                                                             </span>
                                                         @else
-                                                            <span
-                                                                class="badge color-respuesta-azul mr-2 float-right">Respuesta
-                                                                {{ $comentario->tipo == 1 ? 'Privada' : '' }}
-                                                                {{ $ticket->comentario += 1 }}
-                                                            </span>
+                                                            @if ($comentario->tipo == 3)
+                                                                <span
+                                                                    class="badge estado-por-iniciar mr-2 float-right">Solución
+                                                                    no aceptada
+                                                                    {{ $ticket->comentario += 1 }}
+                                                                </span>
+                                                            @else
+                                                                <span
+                                                                    class="badge color-respuesta-azul mr-2 float-right">Respuesta
+                                                                    {{ $comentario->tipo == 1 ? 'Privada' : '' }}
+                                                                    {{ $ticket->comentario += 1 }}
+                                                                </span>
+                                                            @endif
                                                         @endif
                                                     </div>
                                                     <div
@@ -383,38 +469,41 @@
                                                 </div>
                                             @endforeach
                                         </div>
-                                        <div>
-                                            <div class="card">
-                                                <div class="card-body p-0">
-                                                    <div class="d-flex align-items-start">
-                                                        <div wire:ignore class="w-100">
-                                                            <textarea name="editor" id="editor" class="form-control border-0" cols="30" rows="5"
-                                                                placeholder="Escribe tu mensaje aquí..."></textarea>
+                                        @if ($ticket->estado_id != 4)
+                                            <div>
+                                                <div class="card">
+                                                    <div class="card-body p-0">
+                                                        <div class="d-flex align-items-start">
+                                                            <div wire:ignore class="w-100">
+                                                                <textarea name="editor" id="editor" class="form-control border-0" cols="30" rows="5"
+                                                                    placeholder="Escribe tu mensaje aquí..."></textarea>
+                                                            </div>
+                                                            @error('newComment')
+                                                                <span class="text-danger">{{ $message }}</span>
+                                                            @enderror
                                                         </div>
-                                                        @error('newComment')
-                                                            <span class="text-danger">{{ $message }}</span>
-                                                        @enderror
                                                     </div>
-                                                </div>
-                                                <div class="card-footer d-flex justify-content-between align-items-center"
-                                                    style="background-color: #eeeeee">
-                                                    <div class="input-group d-flex justify-content-between">
-                                                        <div class="d-flex align-items-center">
-                                                            <span class="input-group-prepend">
-                                                                <a href="#">
-                                                                    <i class="fa fa-paperclip" onclick="abrir()"></i>
-                                                                </a>
-                                                            </span>
-                                                        </div>
-                                                        <div class="input-group-append">
-                                                            <button wire:click="addComment"
-                                                                class="btn btn-outline-info btn-sm">Responder
-                                                            </button>
+                                                    <div class="card-footer d-flex justify-content-between align-items-center"
+                                                        style="background-color: #eeeeee">
+                                                        <div class="input-group d-flex justify-content-between">
+                                                            <div class="d-flex align-items-center">
+                                                                <span class="input-group-prepend">
+                                                                    <a href="#">
+                                                                        <i class="fa fa-paperclip"
+                                                                            onclick="abrir()"></i>
+                                                                    </a>
+                                                                </span>
+                                                            </div>
+                                                            <div class="input-group-append">
+                                                                <button wire:click="addComment"
+                                                                    class="btn btn-outline-info btn-sm">Responder
+                                                                </button>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
+                                        @endif
                                         <div>
                                             <input type="file" id="file" name="file" class="d-none"
                                                 wire:model="newFile">
@@ -482,6 +571,80 @@
     @push('js')
         <script>
             document.addEventListener('livewire:load', function() {
+
+                Livewire.on('mostrarSistemaCalificacion', (comentarioId) => {
+                    let currentRating = 0;
+
+                    Swal.fire({
+                        title: 'Califica el Ticket',
+                        html: `
+            <div>
+                <label>Calificación:</label>
+                <div id="rating-stars" class="rating">
+                    <i class="fas fa-star" data-value="1"></i>
+                    <i class="fas fa-star" data-value="2"></i>
+                    <i class="fas fa-star" data-value="3"></i>
+                    <i class="fas fa-star" data-value="4"></i>
+                    <i class="fas fa-star" data-value="5"></i>
+                </div>
+                <textarea id="calificacionComentario" class="swal2-textarea" placeholder="Escribe un comentario (opcional)"></textarea>
+            </div>
+            `,
+                        showCancelButton: true,
+                        confirmButtonText: 'Enviar Calificación',
+                        preConfirm: () => {
+                            const rating = currentRating;
+                            const comentario = document.getElementById('calificacionComentario')
+                                .value;
+
+                            if (!rating) {
+                                Swal.showValidationMessage(
+                                    'Por favor, selecciona una calificación.');
+                                return false;
+                            }
+
+                            return {
+                                rating: rating,
+                                comentario: comentario
+                            };
+                        }
+                    }).then((result) => {
+                        // Llamamos a la función de Livewire para guardar la calificación
+                        @this.guardarCalificacion(comentarioId, result.value.rating, result.value
+                            .comentario);
+                    }).catch((error) => {
+                        console.error('Error en Swal:', error);
+                    });
+
+                    const stars = document.querySelectorAll('#rating-stars .fa-star');
+                    stars.forEach(star => {
+                        star.addEventListener('click', function() {
+                            const ratingValue = parseInt(this.getAttribute('data-value'));
+                            currentRating = ratingValue;
+
+                            stars.forEach(s => s.classList.remove('selected'));
+
+                            this.classList.add('selected');
+                            let previousSibling = this.previousElementSibling;
+                            while (previousSibling) {
+                                previousSibling.classList.add('selected');
+                                previousSibling = previousSibling.previousElementSibling;
+                            }
+                        });
+
+                        star.addEventListener('mouseover', function() {
+                            stars.forEach(s => s.classList.remove('selected'));
+                            this.classList.add('selected');
+                            let previousSibling = this.previousElementSibling;
+                            while (previousSibling) {
+                                previousSibling.classList.add('selected');
+                                previousSibling = previousSibling.previousElementSibling;
+                            }
+                        });
+                    });
+                });
+
+
                 function initializeSelect2() {
                     $('.select2').select2();
                 }
@@ -526,6 +689,17 @@
 
                 Livewire.on('showToast', (data) => {
                     toastRight(data.type, data.message);
+                });
+
+
+                Livewire.on('confirmarReapertura', i => {
+                    alertClickCallback('¿Estás seguro?',
+                        `El ticket será reabierto.`,
+                        'warning',
+                        'Si, confirmar', 'Cancelar',
+                        function() {
+                            @this.reabrirTicket();
+                        });
                 });
             });
 

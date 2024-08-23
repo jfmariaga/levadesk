@@ -2,6 +2,7 @@
 
 namespace App\Http\Livewire\Ticket;
 
+use App\Models\Comentario;
 use App\Models\Historial;
 use App\Models\Ticket;
 use App\Models\User;
@@ -37,21 +38,12 @@ class VerTicket extends Component
     public $usuarios;
     public $modalId;
     public $prioridad;
-    public $showTimeline = false;
+    public $showTimelineTicket = false;
     public $impacto;
     public $ticket_id;
-
-
-
-    protected $listeners = ['verTicket'];
+    public $idcomentario;
 
     protected $queryString = ['ticket_id'];
-
-
-    public function toggleTimelineTicket()
-    {
-        $this->showTimeline = !$this->showTimeline;
-    }
 
     public function mount()
     {
@@ -59,6 +51,10 @@ class VerTicket extends Component
         $this->usuarios = User::all();
     }
 
+    public function toggleTimelineTicket()
+    {
+        $this->showTimelineTicket = !$this->showTimelineTicket;
+    }
     public function verTicket()
     {
         $this->ticket = Ticket::with(['categoria', 'subcategoria'])->find($this->ticket_id);
@@ -76,6 +72,61 @@ class VerTicket extends Component
         $this->prioridad = $this->ticket->prioridad_id;
         $this->impacto = $this->ticket->impacto_id;
     }
+
+    public function aceptarSolucion($comentarioId)
+    {
+        $this->emit('mostrarSistemaCalificacion', $comentarioId);
+    }
+
+    public function guardarCalificacion($comentarioId, $rating, $comentario)
+    {
+        $comentarioModel = Comentario::find($comentarioId);
+        $comentarioModel->calificacion = $rating;
+        $comentarioModel->comentario_calificacion = $comentario;
+        $comentarioModel->save();
+        // dd($comentarioModel);
+
+        $this->ticket->estado_id = 4;  // Cambia el estado a "Cerrado" o el estado final que corresponda
+        $this->ticket->save();
+
+        Historial::create([
+            'ticket_id' => $this->ticket->id,
+            'user_id' => auth()->id(),
+            'accion' => 'Calificación de solución',
+            'detalle' => "El usuario calificó la solución con $rating estrellas.",
+        ]);
+
+        $this->emit('showToast', ['type' => 'success', 'message' => 'Gracias por tu calificación.']);
+        $this->verTicket();
+    }
+
+
+    public function rechazarSolucion($comentarioId)
+    {
+        $this->idcomentario = $comentarioId;
+        // Emitir un evento para mostrar el SweetAlert de confirmación
+        $this->emit('confirmarReapertura', ['comentarioId' => $comentarioId]);
+    }
+
+    public function reabrirTicket()
+    {
+        // dd($comentarioId);
+        $comentario = Comentario::find($this->idcomentario);
+        $comentario->tipo = 3;
+        $comentario->save();
+
+        // Lógica para reabrir el ticket
+        $this->ticket->update(['estado_id' => 7]);  // Estado "Reabierto"
+        Historial::create([
+            'ticket_id' => $this->ticket->id,
+            'user_id' => auth()->id(),
+            'accion' => 'No aceptacion',
+            'detalle' => 'El usuario no aceptó la solución.',
+        ]);
+        $this->emit('showToast', ['type' => 'success', 'message' => 'Ticket reabierto con éxito']);
+        $this->verTicket();
+    }
+
 
 
     public function addComment()
@@ -132,8 +183,7 @@ class VerTicket extends Component
 
     public function render()
     {
-        $historial = Historial::where('ticket_id', $this->modalId)->orderBy('created_at', 'Asc')->get();
-
+        $historial = Historial::where('ticket_id', $this->ticket_id)->orderBy('created_at', 'Asc')->get();
         return view('livewire.ticket.ver-ticket', compact('historial'));
     }
 }

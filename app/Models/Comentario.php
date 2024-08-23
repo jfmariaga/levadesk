@@ -11,7 +11,14 @@ class Comentario extends Model
 
     protected $table = 'comentarios';
 
-    protected $fillable = ['ticket_id', 'user_id', 'comentario','tipo'];
+    protected $fillable = [
+        'ticket_id',
+        'user_id',
+        'comentario',
+        'tipo',
+        'calificacion',
+        'comentario_calificacion'
+    ];
 
     public function ticket()
     {
@@ -23,7 +30,8 @@ class Comentario extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function archivos(){
+    public function archivos()
+    {
         return $this->hasMany(Archivo::class);
     }
 }
