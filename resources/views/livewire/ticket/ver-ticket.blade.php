@@ -439,7 +439,7 @@
                                                             @if ($comentario->tipo == 3)
                                                                 <span
                                                                     class="badge estado-por-iniciar mr-2 float-right">Solución
-                                                                    no aceptada
+                                                                    no aceptada. Respuesta
                                                                     {{ $ticket->comentario += 1 }}
                                                                 </span>
                                                             @else

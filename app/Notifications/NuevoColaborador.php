@@ -7,7 +7,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class CambioEstado extends Notification implements ShouldQueue
+class NuevoColaborador extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -26,9 +26,13 @@ class CambioEstado extends Notification implements ShouldQueue
     public function toMail($notifiable)
     {
         return (new MailMessage)
-            ->subject('Nuevo estado para el ticket '. $this->ticket->nomenclatura)
-            ->line('El ticket '. $this->ticket->nomenclatura . ' paso de estado Asignado a En atención'  )
-            ->action('Ver Ticket', url('/tickets/' . $this->ticket->id));
+                    ->subject('Colaborador')
+                    ->line('Se le ha asignado el rol de colaborador. ')
+                    ->line('Código del Ticket: ' . $this->ticket->nomenclatura)
+                    ->line('Estado: ' . $this->ticket->estado->nombre)
+                    ->line('Urgencia: ' . $this->ticket->urgencia->nombre)
+                    ->line('Titulo: ' . $this->ticket->titulo)
+                    ->action('Ver Ticket', url('/tickets/' . $this->ticket->id));
     }
 
     public function toArray($notifiable)
@@ -37,6 +41,8 @@ class CambioEstado extends Notification implements ShouldQueue
             'ticket_id' => $this->ticket->id,
             'nomenclatura' => $this->ticket->nomenclatura,
             'estado' => $this->ticket->estado->nombre,
+            'urgencia' => $this->ticket->urgencia->nombre,
+            'titulo' => $this->ticket->titulo,
         ];
     }
 }

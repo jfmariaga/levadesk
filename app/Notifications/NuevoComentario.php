@@ -8,7 +8,7 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\HtmlString;
 
-class NuevoComentario extends Notification
+class NuevoComentario extends Notification implements ShouldQueue
 {
     use Queueable;
 

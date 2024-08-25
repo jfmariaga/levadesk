@@ -6,6 +6,8 @@ use App\Models\Comentario;
 use App\Models\Historial;
 use App\Models\Ticket;
 use App\Models\User;
+use App\Notifications\Finalizado;
+use App\Notifications\NoSolucion;
 use App\Notifications\NuevoComentario;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -96,6 +98,13 @@ class VerTicket extends Component
             'detalle' => "El usuario calificó la solución con $rating estrellas.",
         ]);
 
+        $this->ticket->asignado->notify(new Finalizado($comentarioModel));
+        if ($this->ticket->colaboradors) {
+            foreach ($this->ticket->colaboradors as $colaborador) {
+                $colaborador->user->notify(new Finalizado($comentarioModel));
+            }
+        }
+
         $this->emit('showToast', ['type' => 'success', 'message' => 'Gracias por tu calificación.']);
         $this->verTicket();
     }
@@ -123,7 +132,15 @@ class VerTicket extends Component
             'accion' => 'No aceptacion',
             'detalle' => 'El usuario no aceptó la solución.',
         ]);
+
+        $this->ticket->asignado->notify(new NoSolucion($comentario));
+        if ($this->ticket->colaboradors) {
+            foreach ($this->ticket->colaboradors as $colaborador) {
+                $colaborador->user->notify(new NoSolucion($comentario));
+            }
+        }
         $this->emit('showToast', ['type' => 'success', 'message' => 'Ticket reabierto con éxito']);
+
         $this->verTicket();
     }
 

@@ -13,6 +13,8 @@ use App\Models\Tarea;
 use App\Models\TipoSolicitud;
 use App\Models\User;
 use App\Notifications\CambioEstado;
+use App\Notifications\NuevaTarea;
+use App\Notifications\NuevoColaborador;
 use App\Notifications\NuevoComentario;
 use App\Notifications\NuevoComentarioPrivado;
 use App\Notifications\NuevoComentarioSolucion;
@@ -86,13 +88,18 @@ class Show extends Component
         ]);
 
 
-        Tarea::create([
+        $tarea = Tarea::create([
             'titulo' => $this->titulo,
             'descripcion' => $this->descripcion,
             'user_id' => $this->asignado_a ? $this->asignado_a : auth()->id(),
             'fecha_cumplimiento' => $this->fecha_cumplimiento,
             'ticket_id' => $this->ticket->id,
         ]);
+
+        if ($this->asignado_a) {
+            $usuario = User::find($this->asignado_a);
+            $usuario->notify(new NuevaTarea($tarea, $this->ticket));
+        }
 
         $this->titulo = '';
         $this->descripcion = '';
@@ -139,6 +146,7 @@ class Show extends Component
             'detalle' => "Se agregó a {$usuarioColaborador->name}. Con el rol de colaborador.",
         ]);
 
+        $usuario->notify(new NuevoColaborador($this->ticket));
         // Limpiar el campo seleccionado
         $this->selectedUser = '';
         $this->participante = false;
