@@ -27,7 +27,7 @@ class CambioEstado extends Notification implements ShouldQueue
     {
         return (new MailMessage)
             ->subject('Nuevo estado para el ticket '. $this->ticket->nomenclatura)
-            ->line('El ticket '. $this->ticket->nomenclatura . ' paso de estado Asignado a En atención'  )
+            ->line('El ticket '. $this->ticket->nomenclatura . ' ahora esta en estado: '. $this->ticket->estado->nombre  )
             ->action('Ver Ticket', url('/tickets/' . $this->ticket->id));
     }
 

@@ -511,9 +511,9 @@
                                                         </label>
                                                     </div>
                                                 @endif
-                                                @if ($ticket->estado_id != 6)
+                                                @if ($ticket->estado_id != 6 && $ticket->estado_id != 1 )
                                                     @if ($ticket->categoria->id == 8 || $ticket->categoria->nombre == 'GESTION DE ACCESOS')
-                                                        <p class="ml-2">Gestionar acceso</p>
+                                                        <p class="ml-2">¿Gestionar acceso?</p>
                                                         <div class="float-right">
                                                             <label class="switch"
                                                                 style="margin-left:10px; margin-top: 5px">
@@ -618,7 +618,48 @@
                                                 <hr>
                                             @endif
                                             @if ($acceso)
-                                                <p>Aqui va la logica para gestionar accesos 😎</p>
+                                                <h5>Armar flujo de aprobación</h5>
+                                                <div class="row">
+                                                    <div class="form-group col-5">
+                                                        <p><strong>Líder funcional</strong><b style="color: red"> *</b>
+                                                        </p>
+                                                        <div wire:ignore>
+                                                            <select class="select2" id="aprobadorFuncional"
+                                                                wire:model="selectedFuncional">
+                                                                <option value="">Seleccionar...</option>
+                                                                @foreach ($usuarios as $usuario)
+                                                                    <option value="{{ $usuario->id }}">
+                                                                        {{ $usuario->name }}</option>
+                                                                @endforeach
+                                                            </select>
+                                                        </div>
+                                                        @error('selectedFuncional')
+                                                            <span class="invalid-feedback">{{ $message }}</span>
+                                                        @enderror
+                                                    </div>
+                                                    <div class="form-group col-5">
+                                                        <p><strong>Aprobador TI</strong><b style="color: red"> *</b>
+                                                        </p>
+                                                        <div wire:ignore>
+                                                            <select class="select2" id="aprobadorTi"
+                                                                wire:model="selectedTi">
+                                                                <option value="">Seleccionar...</option>
+                                                                @foreach ($usuarios as $usuario)
+                                                                    <option value="{{ $usuario->id }}">
+                                                                        {{ $usuario->name }}</option>
+                                                                @endforeach
+                                                            </select>
+                                                        </div>
+                                                        @error('selectedTi')
+                                                            <span class="invalid-feedback">{{ $message }}</span>
+                                                        @enderror
+                                                    </div>
+                                                    <div
+                                                        class="form-group col-2 d-flex align-items-center justify-content-end">
+                                                        <input type="submit" class="btn btn-outline-info btn-sm mt-4"
+                                                            value="Iniciar Flujo" wire:click="flujoAprobacion">
+                                                    </div>
+                                                </div>
                                                 <hr>
                                             @endif
                                             @if ($escalar)
@@ -641,8 +682,10 @@
                                             @foreach ($ticket->comentarios as $comentario)
                                                 <div class="card">
                                                     <div class="direct-chat-infos clearfix mt-1">
-                                                        <span class="direct-chat-name float-left ml-2">{{ $comentario->user->name ?? 'Anónimo' }}</span>
-                                                        <span class="direct-chat-timestamp float-left ml-2">{{ $comentario->created_at->format('d M Y h:i a') }}</span>
+                                                        <span
+                                                            class="direct-chat-name float-left ml-2">{{ $comentario->user->name ?? 'Anónimo' }}</span>
+                                                        <span
+                                                            class="direct-chat-timestamp float-left ml-2">{{ $comentario->created_at->format('d M Y h:i a') }}</span>
                                                         @if ($comentario->tipo == 2)
                                                             <span
                                                                 class="badge color-verde-claro mr-2 float-right">Solución
@@ -820,8 +863,15 @@
             document.addEventListener('livewire:load', function() {
                 function initializeSelect2() {
                     $('.select2').select2();
+
                     $('#colaborador').on('change', function() {
                         @this.set('selectedUser', $(this).val());
+                    });
+                    $('#aprobadorFuncional').on('change', function() {
+                        @this.set('selectedFuncional', $(this).val());
+                    });
+                    $('#aprobadorTi').on('change', function() {
+                        @this.set('selectedTi', $(this).val());
                     });
                 }
 
@@ -897,8 +947,8 @@
             });
 
             function abrir() {
-                var file = document.getElementById("file").click();
-            }
+                    var file = document.getElementById("file").click();
+                }
         </script>
     @endpush
 </div>

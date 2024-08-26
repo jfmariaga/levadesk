@@ -2,6 +2,7 @@
 
 namespace App\Http\Livewire\Gestion;
 
+use App\Models\Aprobacion;
 use App\Models\Ticket;
 use App\Models\Categoria;
 use App\Models\Colaborador;
@@ -13,11 +14,14 @@ use App\Models\Tarea;
 use App\Models\TipoSolicitud;
 use App\Models\User;
 use App\Notifications\CambioEstado;
+use App\Notifications\FlujoAcceso;
+use App\Notifications\NotificacionAprobacion;
 use App\Notifications\NuevaTarea;
 use App\Notifications\NuevoColaborador;
 use App\Notifications\NuevoComentario;
 use App\Notifications\NuevoComentarioPrivado;
 use App\Notifications\NuevoComentarioSolucion;
+use App\Notifications\Reasignado;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Illuminate\Support\Str;
@@ -57,6 +61,8 @@ class Show extends Component
     public $commentType = 0; // Valor por defecto es 'Público'
     public $usuarios = [];
     public $selectedUser;
+    public $selectedFuncional;
+    public $selectedTi;
 
     public $titulo;
     public $descripcion;
@@ -107,6 +113,49 @@ class Show extends Component
         $this->fecha_cumplimiento = '';
         $this->loadTicket();
         $this->emit('tareaCreada');
+    }
+
+    public function flujoAprobacion()
+    {
+        $this->validate([
+            'selectedFuncional' => 'required|exists:users,id',
+            'selectedTi' => 'required|exists:users,id',
+        ]);
+
+        $aprobacion = Aprobacion::create([
+            'ticket_id' => $this->ticket->id,
+            'aprobador_funcional_id' => $this->selectedFuncional,
+            'aprobador_ti_id' => $this->selectedTi,
+            'estado' => 'pendiente',
+        ]);
+
+        $this->ticket->update([
+            'estado_id' => 8
+        ]);
+
+        Historial::create([
+            'ticket_id' => $this->ticket_id,
+            'user_id' => Auth::id(),
+            'accion' => 'Inicio de flujo',
+            'detalle' => "Se inicio el flujo de aprobación de acceso.",
+        ]);
+
+        Historial::create([
+            'ticket_id' => $this->ticket_id,
+            'user_id' => Auth::id(),
+            'accion' => 'cambio de estado ticket',
+            'detalle' => "El nuevo estado del ticket es: En espera.",
+        ]);
+
+        // Notificar al líder funcional
+        $aprobacion->aprobadorFuncional->notify(new NotificacionAprobacion($aprobacion, $this->ticket));
+        $this->ticket->usuario->notify(new CambioEstado($this->ticket));
+
+
+        $this->emit('showToast', ['type' => 'success', 'message' => 'Se inicio el flujo correctamente']);
+        $this->selectedTi = "";
+        $this->selectedFuncional = "";
+        $this->loadTicket();
     }
 
 
@@ -333,6 +382,8 @@ class Show extends Component
                 'detalle' => "Ticket recategorizado y reasignado de {$usuarioAsignado->name} a {$nuevoUsuario->name} en el grupo {$nuevoGrupo->nombre}.",
             ]);
         }
+
+        $nuevoUsuario->notify(new Reasignado($usuarioAsignado, $this->ticket));
 
         // Recargar los datos del ticket para reflejar los cambios
         $this->loadTicket();
