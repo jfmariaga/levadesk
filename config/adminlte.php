@@ -309,6 +309,11 @@ return [
             'route' => 'gestion',
             'icon' => 'fas fa-edit',
         ],
+        [
+            'text' => 'Aprobaciones',
+            'route' => 'aprobacion',
+            'icon' => 'fas fa-calendar-check',
+        ],
         ['header' => 'ADMINISTRADOR'],
         [
             'text' => 'Sociedades',

@@ -265,17 +265,85 @@
             <div class="row">
                 <div class="col-lg-9">
                     <div class="card">
+                        <div class="col-12 mt-1 mr-2">
+                            @if ($ticket->solucion() && $ticket->estado_id != 4)
+                                <span wire:ignore class="alert alert-success color-verde-claro float-right">
+                                    Solución indicada en el comentario
+                                    #{{ $ticket->comentarios->search($ticket->solucion()) + 1 }}.
+                                </span>
+                            @endif
+                            <div class="col-12 mt-1 mr-2">
+                                @php
+                                    $comentarioCalificado = $ticket
+                                        ->comentarios()
+                                        ->whereNotNull('calificacion')
+                                        ->first();
+                                @endphp
+
+                                @if ($ticket->estado_id == 4)
+                                    @if ($comentarioCalificado)
+                                        <div
+                                            class="alert alert-light d-flex justify-content-between align-items-center shadow-sm p-3 mb-3 rounded">
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-check-circle text-success mr-2"
+                                                    style="font-size: 24px;"></i>
+                                                <div>
+                                                    <strong>El usuario aceptó la solución.</strong>
+                                                    <p class="mb-0 text-muted">
+                                                        {{ $comentarioCalificado->comentario_calificacion ? $comentarioCalificado->comentario_calificacion : 'Sin comentarios.' }}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div class="rating">
+                                                @for ($i = 1; $i <= 5; $i++)
+                                                    <i class="fas fa-star {{ $i <= $comentarioCalificado->calificacion ? 'text-warning' : 'text-muted' }}"
+                                                        style="font-size: 24px;"></i>
+                                                @endfor
+                                            </div>
+                                        </div>
+                                    @else
+                                        <div
+                                            class="alert alert-light d-flex justify-content-between align-items-center shadow-sm p-3 mb-3 rounded">
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-check-circle text-success mr-2"
+                                                    style="font-size: 24px;"></i>
+                                                <div>
+                                                    <strong>Sistema aceptó la solución por expiración.</strong>
+                                                    <p class="mb-0 text-muted">Sin comentarios.</p>
+                                                </div>
+                                            </div>
+                                            <div class="rating">
+                                                @for ($i = 1; $i <= 5; $i++)
+                                                    <i class="fas fa-star text-muted" style="font-size: 24px;"></i>
+                                                @endfor
+                                            </div>
+                                        </div>
+                                    @endif
+                                @elseif ($ticket->estado_id === 5)
+                                    <div
+                                        class="alert alert-light d-flex justify-content-between align-items-center shadow-sm p-3 mb-3 rounded">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-check-circle text-success mr-2"
+                                                style="font-size: 24px;"></i>
+                                            <div>
+                                                <strong>Ticket calificado por el sistema.</strong>
+                                                <p class="mb-0 text-muted">Sin comentarios.</p>
+                                            </div>
+                                        </div>
+                                        <div class="rating">
+                                            @for ($i = 1; $i <= 5; $i++)
+                                                <i class="fas fa-star {{ $i <= $comentarioCalificado->calificacion ? 'text-warning' : 'text-muted' }}"
+                                                    style="font-size: 24px;"></i>
+                                            @endfor
+                                        </div>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
                         <div class="card-header col-md-12">
                             <div class="mb-1 d-flex  align-items-center" style="background-color: #eeeeee">
                                 <div class="col-md-7 mt-2">
-                                    <p><strong>{{ $ticket->estado->nombre }}</strong>
-                                        @if ($ticket->solucion())
-                                            <span wire:ignore class="alert alert-success color-verde-claro">
-                                                Solución indicada en el comentario
-                                                #{{ $ticket->comentarios->search($ticket->solucion()) + 1 }}.
-                                            </span>
-                                        @endif
-                                    </p>
+                                    <p><strong>{{ $ticket->estado->nombre }}</strong></p>
                                 </div>
                                 <div class="col-md-5">
                                     <p class="text-right mt-2">
@@ -301,24 +369,26 @@
                             <div class="form-row align-items-start mt-2 mb-1">
                                 @if ($recordatorio)
                                     <!-- Tarjeta de creación de nuevo recordatorio -->
-                                    <div class="col-md-4">
-                                        <div class="card">
-                                            <div class="card-body">
-                                                <p><strong>Nuevo recordatorio</strong></p>
-                                                <input type="datetime-local" id="reminder_at" name="reminder_at"
-                                                    class="form-control" value="" wire:model="reminder_at">
-                                                @error('reminder_at')
-                                                    <span class="text-danger">{{ $message }}</span>
-                                                @enderror
-                                                <textarea name="detalle" class="form-control mt-1" cols="30" rows="3" wire:model="desDetalle"
-                                                    placeholder="Descripción del recordatorio (opcional)"></textarea>
-                                                <button wire:click="guardarRecordatorio"
-                                                    class="btn btn-outline-info btn-sm float-right mt-1">
-                                                    Guardar
-                                                </button>
+                                    @if ($ticket->estado_id != 4 && $ticket->estado_id != 5)
+                                        <div class="col-md-4">
+                                            <div class="card">
+                                                <div class="card-body">
+                                                    <p><strong>Nuevo recordatorio</strong></p>
+                                                    <input type="datetime-local" id="reminder_at" name="reminder_at"
+                                                        class="form-control" value="" wire:model="reminder_at">
+                                                    @error('reminder_at')
+                                                        <span class="text-danger">{{ $message }}</span>
+                                                    @enderror
+                                                    <textarea name="detalle" class="form-control mt-1" cols="30" rows="3" wire:model="desDetalle"
+                                                        placeholder="Descripción del recordatorio (opcional)"></textarea>
+                                                    <button wire:click="guardarRecordatorio"
+                                                        class="btn btn-outline-info btn-sm float-right mt-1">
+                                                        Guardar
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    @endif
 
                                     <!-- Tarjeta de visualización de recordatorios -->
                                     <div class="col-md-8">
@@ -362,40 +432,42 @@
                             <div class="form-row align-items-start mt-2 mb-1">
                                 @if ($tarea)
                                     <!-- Tarjeta de creación de nueva tarea -->
-                                    <div class="col-md-4">
-                                        <div class="card">
-                                            <div class="card-body">
-                                                <p><strong>Nueva tarea</strong></p>
-                                                <input type="text" class="form-control" wire:model="titulo"
-                                                    placeholder="Título de la tarea" required>
-                                                @error('titulo')
-                                                    <span class="text-danger">{{ $message }}</span>
-                                                @enderror
-                                                <br>
-                                                <textarea wire:model="descripcion" class="form-control" placeholder="Descripción"></textarea>
-                                                <br>
-                                                <p><strong>Fecha límite para esta tarea:</strong></p>
-                                                <input type="datetime-local" wire:model="fecha_cumplimiento"
-                                                    class="form-control">
-                                                @error('fecha_cumplimiento')
-                                                    <span class="text-danger">{{ $message }}</span>
-                                                @enderror
-                                                <br>
-                                                <select wire:model="asignado_a" class="form-control">
-                                                    <option value="">No asignado</option>
-                                                    @foreach ($ticket->colaboradores as $colaborador)
-                                                        <option value="{{ $colaborador->id }}">
-                                                            {{ $colaborador->name }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                                <button wire:click="crearTarea"
-                                                    class="btn btn-outline-info btn-sm float-right mt-1">
-                                                    Guardar
-                                                </button>
+                                    @if ($ticket->estado_id != 4 && $ticket->estado_id != 5)
+                                        <div class="col-md-4">
+                                            <div class="card">
+                                                <div class="card-body">
+                                                    <p><strong>Nueva tarea</strong></p>
+                                                    <input type="text" class="form-control" wire:model="titulo"
+                                                        placeholder="Título de la tarea" required>
+                                                    @error('titulo')
+                                                        <span class="text-danger">{{ $message }}</span>
+                                                    @enderror
+                                                    <br>
+                                                    <textarea wire:model="descripcion" class="form-control" placeholder="Descripción"></textarea>
+                                                    <br>
+                                                    <p><strong>Fecha límite para esta tarea:</strong></p>
+                                                    <input type="datetime-local" wire:model="fecha_cumplimiento"
+                                                        class="form-control">
+                                                    @error('fecha_cumplimiento')
+                                                        <span class="text-danger">{{ $message }}</span>
+                                                    @enderror
+                                                    <br>
+                                                    <select wire:model="asignado_a" class="form-control">
+                                                        <option value="">No asignado</option>
+                                                        @foreach ($ticket->colaboradores as $colaborador)
+                                                            <option value="{{ $colaborador->id }}">
+                                                                {{ $colaborador->name }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                    <button wire:click="crearTarea"
+                                                        class="btn btn-outline-info btn-sm float-right mt-1">
+                                                        Guardar
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    @endif
 
                                     <!-- Tarjeta de visualización de tareas -->
                                     <div class="col-md-8">
@@ -511,7 +583,7 @@
                                                         </label>
                                                     </div>
                                                 @endif
-                                                @if ($ticket->estado_id != 6 && $ticket->estado_id != 1 )
+                                                @if ($ticket->estado_id != 1)
                                                     @if ($ticket->categoria->id == 8 || $ticket->categoria->nombre == 'GESTION DE ACCESOS')
                                                         <p class="ml-2">¿Gestionar acceso?</p>
                                                         <div class="float-right">
@@ -522,22 +594,24 @@
                                                             </label>
                                                         </div>
                                                     @endif
-                                                    <p class="ml-2">¿Escalar a consultoría?</p>
-                                                    <div class="float-right">
-                                                        <label class="switch"
-                                                            style="margin-left:10px; margin-top: 5px">
-                                                            <input type="checkbox" wire:model="escalar">
-                                                            <span class="slider round"></span>
-                                                        </label>
-                                                    </div>
-                                                    <p class="ml-2">¿Requiere cambio?</p>
-                                                    <div class="float-right">
-                                                        <label class="switch"
-                                                            style="margin-left:10px; margin-top: 5px">
-                                                            <input type="checkbox" wire:model="cambio">
-                                                            <span class="slider round"></span>
-                                                        </label>
-                                                    </div>
+                                                    @if ($ticket->estado_id != 4 && $ticket->estado_id != 5 && $ticket->estado_id != 6)
+                                                        <p class="ml-2">¿Escalar a consultoría?</p>
+                                                        <div class="float-right">
+                                                            <label class="switch"
+                                                                style="margin-left:10px; margin-top: 5px">
+                                                                <input type="checkbox" wire:model="escalar">
+                                                                <span class="slider round"></span>
+                                                            </label>
+                                                        </div>
+                                                        <p class="ml-2">¿Requiere cambio?</p>
+                                                        <div class="float-right">
+                                                            <label class="switch"
+                                                                style="margin-left:10px; margin-top: 5px">
+                                                                <input type="checkbox" wire:model="cambio">
+                                                                <span class="slider round"></span>
+                                                            </label>
+                                                        </div>
+                                                    @endif
                                                 @endif
                                             </li>
                                             @if ($recategorizar)
@@ -618,50 +692,91 @@
                                                 <hr>
                                             @endif
                                             @if ($acceso)
-                                                <h5>Armar flujo de aprobación</h5>
-                                                <div class="row">
-                                                    <div class="form-group col-5">
-                                                        <p><strong>Líder funcional</strong><b style="color: red"> *</b>
+                                                @if ($ticket->estado_id == 4 && !$ticket->aprobacion)
+                                                    <h5>No se ejecutó el flujo de Aprobación</h5>
+                                                    <p>El ticket ha sido finalizado sin ejecutar un flujo de aprobación.
+                                                    </p>
+                                                    <hr>
+                                                @elseif ($ticket->aprobacion)
+                                                    @if (
+                                                        $ticket->aprobacion->estado === 'pendiente' ||
+                                                            $ticket->aprobacion->estado === 'aprobado_funcional' ||
+                                                            $ticket->aprobacion->estado === 'rechazado_ti')
+                                                        <h5>Flujo de Aprobación en Proceso</h5>
+                                                        <p>El flujo de aprobación fue lanzado el
+                                                            <strong>{{ $ticket->aprobacion->created_at->format('d/m/Y H:i') }}</strong>.
                                                         </p>
-                                                        <div wire:ignore>
-                                                            <select class="select2" id="aprobadorFuncional"
-                                                                wire:model="selectedFuncional">
-                                                                <option value="">Seleccionar...</option>
-                                                                @foreach ($usuarios as $usuario)
-                                                                    <option value="{{ $usuario->id }}">
-                                                                        {{ $usuario->name }}</option>
-                                                                @endforeach
-                                                            </select>
-                                                        </div>
-                                                        @error('selectedFuncional')
-                                                            <span class="invalid-feedback">{{ $message }}</span>
-                                                        @enderror
-                                                    </div>
-                                                    <div class="form-group col-5">
-                                                        <p><strong>Aprobador TI</strong><b style="color: red"> *</b>
+                                                        <p><strong>Líder funcional:</strong>
+                                                            {{ $ticket->aprobacion->aprobadorFuncional->name }}</p>
+                                                        <p><strong>Aprobador TI:</strong>
+                                                            {{ $ticket->aprobacion->aprobadorTi->name }}</p>
+                                                        <p>Para ver el estado del flujo, observa el timeline del ticket.
                                                         </p>
-                                                        <div wire:ignore>
-                                                            <select class="select2" id="aprobadorTi"
-                                                                wire:model="selectedTi">
-                                                                <option value="">Seleccionar...</option>
-                                                                @foreach ($usuarios as $usuario)
-                                                                    <option value="{{ $usuario->id }}">
-                                                                        {{ $usuario->name }}</option>
-                                                                @endforeach
-                                                            </select>
+                                                        <hr>
+                                                    @elseif ($ticket->aprobacion->estado === 'rechazado_funcional')
+                                                        <h5>Flujo de Aprobación Cerrado</h5>
+                                                        <p>El flujo de aprobación fue rechazado. Motivo:</p>
+                                                        <p><strong>{{ $ticket->aprobacion->comentarios_funcional ?? $ticket->aprobacion->comentarios_ti }}</strong>
+                                                        </p>
+                                                        <hr>
+                                                    @elseif ($ticket->aprobacion->estado === 'aprobado')
+                                                        <h5>Flujo de Aprobación Completado</h5>
+                                                        <p>El flujo de aprobación ha sido completado y aprobado. Por
+                                                            favor ejecuta el requerimiento del usuario.</p>
+                                                            <p><strong>Líder funcional:</strong>
+                                                                {{ $ticket->aprobacion->aprobadorFuncional->name }}</p>
+                                                            <p><strong>Aprobador TI:</strong>
+                                                                {{ $ticket->aprobacion->aprobadorTi->name }}</p>
+                                                        <hr>
+                                                    @endif
+                                                @else
+                                                    <h5>Armar flujo de aprobación</h5>
+                                                    <div class="row">
+                                                        <div class="form-group col-5">
+                                                            <p><strong>Líder funcional</strong><b style="color: red">
+                                                                    *</b></p>
+                                                            <div wire:ignore>
+                                                                <select class="select2" id="aprobadorFuncional"
+                                                                    wire:model="selectedFuncional">
+                                                                    <option value="">Seleccionar...</option>
+                                                                    @foreach ($usuarios as $usuario)
+                                                                        <option value="{{ $usuario->id }}">
+                                                                            {{ $usuario->name }}</option>
+                                                                    @endforeach
+                                                                </select>
+                                                            </div>
+                                                            @error('selectedFuncional')
+                                                                <span class="invalid-feedback">{{ $message }}</span>
+                                                            @enderror
                                                         </div>
-                                                        @error('selectedTi')
-                                                            <span class="invalid-feedback">{{ $message }}</span>
-                                                        @enderror
+                                                        <div class="form-group col-5">
+                                                            <p><strong>Aprobador TI</strong><b style="color: red">
+                                                                    *</b></p>
+                                                            <div wire:ignore>
+                                                                <select class="select2" id="aprobadorTi"
+                                                                    wire:model="selectedTi">
+                                                                    <option value="">Seleccionar...</option>
+                                                                    @foreach ($usuarios as $usuario)
+                                                                        <option value="{{ $usuario->id }}">
+                                                                            {{ $usuario->name }}</option>
+                                                                    @endforeach
+                                                                </select>
+                                                            </div>
+                                                            @error('selectedTi')
+                                                                <span class="invalid-feedback">{{ $message }}</span>
+                                                            @enderror
+                                                        </div>
+                                                        <div
+                                                            class="form-group col-2 d-flex align-items-center justify-content-end">
+                                                            <input type="submit"
+                                                                class="btn btn-outline-info btn-sm mt-4"
+                                                                value="Iniciar Flujo" wire:click="flujoAprobacion">
+                                                        </div>
                                                     </div>
-                                                    <div
-                                                        class="form-group col-2 d-flex align-items-center justify-content-end">
-                                                        <input type="submit" class="btn btn-outline-info btn-sm mt-4"
-                                                            value="Iniciar Flujo" wire:click="flujoAprobacion">
-                                                    </div>
-                                                </div>
-                                                <hr>
+                                                    <hr>
+                                                @endif
                                             @endif
+
                                             @if ($escalar)
                                                 <p>Aqui va la logica para escalar tickets 😎</p>
                                                 <hr>
@@ -726,44 +841,47 @@
                                             @endforeach
                                         </div>
                                         <div>
-                                            <div class="card">
-                                                <div class="card-body p-0">
-                                                    <div class="d-flex align-items-start">
-                                                        <div wire:ignore class="w-100">
-                                                            <textarea name="editor" id="editor" class="form-control border-0" cols="30" rows="5"
-                                                                placeholder="Escribe tu mensaje aquí..."></textarea>
-                                                        </div>
-                                                        @error('newComment')
-                                                            <span class="text-danger">{{ $message }}</span>
-                                                        @enderror
-                                                    </div>
-                                                </div>
-                                                <div class="card-footer d-flex justify-content-between align-items-center"
-                                                    style="background-color: #eeeeee">
-                                                    <div class="input-group d-flex justify-content-between">
-                                                        <div class="d-flex align-items-center">
-                                                            <span class="input-group-prepend">
-                                                                <a href="#">
-                                                                    <i class="fa fa-paperclip" onclick="abrir()"></i>
-                                                                </a>
-                                                            </span>
-                                                        </div>
-                                                        <div class="input-group-append">
-                                                            <select wire:model="commentType" id="tipoComentario"
-                                                                class="form-control form-control-sm">
-                                                                <option value="0">Público</option>
-                                                                <option value="1">Privado</option>
-                                                                @if (!$ticket->solucion())
-                                                                    <option value="2">Solución</option>
-                                                                @endif
-                                                            </select>
-                                                            <button wire:click="addComment"
-                                                                class="btn btn-outline-info btn-sm">Responder
-                                                            </button>
+                                            @if ($ticket->estado_id != 4 && $ticket->estado_id != 5)
+                                                <div class="card">
+                                                    <div class="card-body p-0">
+                                                        <div class="d-flex align-items-start">
+                                                            <div wire:ignore class="w-100">
+                                                                <textarea name="editor" id="editor" class="form-control border-0" cols="30" rows="5"
+                                                                    placeholder="Escribe tu mensaje aquí..."></textarea>
+                                                            </div>
+                                                            @error('newComment')
+                                                                <span class="text-danger">{{ $message }}</span>
+                                                            @enderror
                                                         </div>
                                                     </div>
+                                                    <div class="card-footer d-flex justify-content-between align-items-center"
+                                                        style="background-color: #eeeeee">
+                                                        <div class="input-group d-flex justify-content-between">
+                                                            <div class="d-flex align-items-center">
+                                                                <span class="input-group-prepend">
+                                                                    <a href="#">
+                                                                        <i class="fa fa-paperclip"
+                                                                            onclick="abrir()"></i>
+                                                                    </a>
+                                                                </span>
+                                                            </div>
+                                                            <div class="input-group-append">
+                                                                <select wire:model="commentType" id="tipoComentario"
+                                                                    class="form-control form-control-sm">
+                                                                    <option value="0">Público</option>
+                                                                    <option value="1">Privado</option>
+                                                                    @if (!$ticket->solucion())
+                                                                        <option value="2">Solución</option>
+                                                                    @endif
+                                                                </select>
+                                                                <button wire:click="addComment"
+                                                                    class="btn btn-outline-info btn-sm">Responder
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                            </div>
+                                            @endif
                                         </div>
                                         <div>
                                             <input type="file" id="file" name="file" class="d-none"
@@ -809,10 +927,12 @@
                                     <h5>Participantes</h5>
                                 </div>
                                 <div class="col-md-6">
-                                    <button wire:click="participantes"
-                                        class="ml-1  {{ $participante ? 'icono-notificacion' : 'icono-colaborador' }} float-right">
-                                        <i class="fas {{ $participante ? 'fa-minus' : 'fa-plus-square' }}"></i>
-                                    </button>
+                                    @if ($ticket->estado_id != 4 && $ticket->estado_id != 5)
+                                        <button wire:click="participantes"
+                                            class="ml-1  {{ $participante ? 'icono-notificacion' : 'icono-colaborador' }} float-right">
+                                            <i class="fas {{ $participante ? 'fa-minus' : 'fa-plus-square' }}"></i>
+                                        </button>
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -947,8 +1067,8 @@
             });
 
             function abrir() {
-                    var file = document.getElementById("file").click();
-                }
+                var file = document.getElementById("file").click();
+            }
         </script>
     @endpush
 </div>

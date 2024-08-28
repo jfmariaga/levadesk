@@ -122,4 +122,9 @@ class Ticket extends Model
     {
         return $this->hasMany(Tarea::class);
     }
+
+    public function aprobacion()
+    {
+        return $this->hasOne(Aprobacion::class);
+    }
 }

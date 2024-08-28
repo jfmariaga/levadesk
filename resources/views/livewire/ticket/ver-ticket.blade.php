@@ -331,9 +331,26 @@
                                             </div>
                                         </div>
                                     @endif
+                                @elseif ($ticket->estado_id === 5)
+                                    <div
+                                        class="alert alert-light d-flex justify-content-between align-items-center shadow-sm p-3 mb-3 rounded">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-check-circle text-success mr-2"
+                                                style="font-size: 24px;"></i>
+                                            <div>
+                                                <strong>Ticket calificado por el sistema.</strong>
+                                                <p class="mb-0 text-muted">Sin comentarios.</p>
+                                            </div>
+                                        </div>
+                                        <div class="rating">
+                                            @for ($i = 1; $i <= 5; $i++)
+                                                <i class="fas fa-star {{ $i <= $comentarioCalificado->calificacion ? 'text-warning' : 'text-muted' }}"
+                                                    style="font-size: 24px;"></i>
+                                            @endfor
+                                        </div>
+                                    </div>
                                 @endif
                             </div>
-
                         </div>
                         <div class="card-header col-md-12">
                             <div class="mb-1 d-flex  align-items-center" style="background-color: #eeeeee">
@@ -469,7 +486,7 @@
                                                 </div>
                                             @endforeach
                                         </div>
-                                        @if ($ticket->estado_id != 4)
+                                        @if ($ticket->estado_id != 4 && $ticket->estado_id != 5)
                                             <div>
                                                 <div class="card">
                                                     <div class="card-body p-0">

@@ -30,6 +30,8 @@ Route::view('impacto', 'admin.impacto.index')->name('impacto');
 Route::view('gestion', 'admin.gestion.index')->name('gestion');
 Route::view('gestionar', 'admin.gestionar.index')->name('gestionar');
 Route::view('verTicket', 'admin.ticket.verTicket')->name('verTicket');
+Route::view('aprobacion', 'admin.aprobacion.index')->name('aprobacion');
+Route::view('aprobar', 'admin.aprobacion.aprobar')->name('aprobar');
 
 
 // Route::get('/search-users', function (Request $request) {
