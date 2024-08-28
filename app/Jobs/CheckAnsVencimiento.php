@@ -18,7 +18,7 @@ class CheckAnsVencimiento implements ShouldQueue
     public function handle()
     {
         // Obtener todos los tickets que no están en estado 'Cumplido' (o el estado que uses)
-        $tickets = Ticket::whereNotIn('estado_id', [4, 5])->get();
+        $tickets = Ticket::where('estado_id', 1)->get();
 
 
         foreach ($tickets as $ticket) {

@@ -2,6 +2,7 @@
 
 namespace App\Http\Livewire\Gestion;
 
+use App\Models\ANS;
 use App\Models\Aprobacion;
 use App\Models\Ticket;
 use App\Models\Categoria;
@@ -65,7 +66,6 @@ class Show extends Component
     public $selectedFuncional;
     public $selectedTi;
     public $tiempoRestante;
-
     public $titulo;
     public $descripcion;
     public $asignado_a;
@@ -91,11 +91,42 @@ class Show extends Component
     {
         $ans = $this->ticket->ans;
 
-        // Suponiendo que $this->ticket->created_at es el tiempo de creación del ticket
-        $creacion = $this->ticket->created_at;
-        $tiempoPasado = now()->diffInSeconds($creacion);
-        $this->tiempoRestante = $ans->t_asignacion_segundos - $tiempoPasado;
+        // Verificamos si estamos calculando para el ANS inicial o el de solución
+        $tiempoInicio = $this->ticket->impacto_id ? $this->ticket->updated_at : $this->ticket->created_at;
+
+        $tiempoPasado = now()->diffInSeconds($tiempoInicio);
+
+        if ($this->ticket->prioridad === null) {
+            // ANS inicial
+            $this->tiempoRestante = $ans->t_asignacion_segundos - $tiempoPasado;
+        } else {
+            // ANS de solución
+            $this->tiempoRestante = $ans->t_resolucion_segundos - $tiempoPasado;
+        }
     }
+
+    public function formatTiempoRestante($segundos)
+    {
+        $dias = floor($segundos / 86400); // 86400 segundos en un día
+        $horas = floor(($segundos % 86400) / 3600); // 3600 segundos en una hora
+        $minutos = floor(($segundos % 3600) / 60); // 60 segundos en un minuto
+        $segundos = $segundos % 60;
+
+        $tiempoFormateado = '';
+        if ($dias > 0) {
+            $tiempoFormateado .= $dias . 'd ';
+        }
+        if ($horas > 0 || $dias > 0) {
+            $tiempoFormateado .= $horas . 'h ';
+        }
+        if ($minutos > 0 || $horas > 0 || $dias > 0) {
+            $tiempoFormateado .= $minutos . 'm ';
+        }
+        $tiempoFormateado .= $segundos . 's';
+
+        return $tiempoFormateado;
+    }
+
 
     public function crearTarea()
     {
@@ -443,7 +474,9 @@ class Show extends Component
             }
 
             // Obtener el nuevo ANS basado en la prioridad
-            $nuevoAns = $this->ticket->tipoSolicitud->ans()->where('nivel', $prioridadCategoria)->first();
+            $nuevoAns = ANS::where('solicitud_id', $this->ticket->tipo_solicitud_id)
+                ->where('nivel', $prioridadCategoria)
+                ->first();
 
             // Actualizar el ticket con la nueva prioridad y ANS
             $this->ticket->update([
@@ -451,6 +484,11 @@ class Show extends Component
                 'estado_id' => 3,
                 'ans_id' => $nuevoAns ? $nuevoAns->id : $this->ticket->ans_id,  // Actualizar el ANS
             ]);
+
+            // Recalcular el tiempo restante en base al nuevo ANS
+            $this->calcularTiempoRestante();
+
+
         }
 
         Historial::create([

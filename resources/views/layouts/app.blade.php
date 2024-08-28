@@ -378,6 +378,7 @@
     <!-- CDN Alpine.js -->
     <script src="/js/alpine.min.js" defer></script>
 
+
     <script type="text/javascript" language="javascript"
         src="https://cdn.datatables.net/buttons/1.5.2/js/dataTables.buttons.min.js"></script>
     <script type="text/javascript" language="javascript"
