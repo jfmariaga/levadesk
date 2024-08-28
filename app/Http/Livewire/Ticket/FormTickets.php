@@ -121,6 +121,11 @@ class FormTickets extends Component
             return;
         }
 
+        // Obtenemos el ANS inicial asociado al tipo de solicitud
+        $ansInicial = ANS::where('solicitud_id', $this->tipo_solicitud_id)
+            ->where('nivel', 'INICIAL')
+            ->first();
+
 
         $ticket = Ticket::create([
             'titulo' => $this->titulo,
@@ -136,6 +141,7 @@ class FormTickets extends Component
             'usuario_id' => Auth::id(),
             'grupo_id' => $grupo->id,
             'urgencia_id' => $this->urgencia,
+            'ans_id' => $ansInicial ? $ansInicial->id : null,  // Asignar ANS inicial
         ]);
 
         if ($this->archivos) {
@@ -157,8 +163,8 @@ class FormTickets extends Component
         $ticket->usuario->notify(new TicketCreado($ticket));
         $usuario->notify(new TicketAsignado($ticket));
 
-         // Registrar en el historial
-         Historial::create([
+        // Registrar en el historial
+        Historial::create([
             'ticket_id' => $ticket->id,
             'user_id' => Auth::id(),
             'accion' => 'Nuevo',
@@ -169,7 +175,7 @@ class FormTickets extends Component
             'ticket_id' => $ticket->id,
             'user_id' => Auth::id(),
             'accion' => 'Asignado',
-            'detalle' => 'Ticket asignado por el sistema a '. $usuario->name,
+            'detalle' => 'Ticket asignado por el sistema a ' . $usuario->name,
         ]);
 
         $this->emit('cargarTickets');

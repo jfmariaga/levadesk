@@ -24,7 +24,8 @@ class Ticket extends Model
         'impacto_id',
         'urgencia_id',
         'nomenclatura',
-        'prioridad'
+        'prioridad',
+        'notificado'
     ];
 
     public function usuario()

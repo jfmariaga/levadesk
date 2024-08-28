@@ -13,6 +13,7 @@ use App\Models\Recordatorio;
 use App\Models\Tarea;
 use App\Models\TipoSolicitud;
 use App\Models\User;
+use App\Notifications\AnsCercaDeVencer;
 use App\Notifications\CambioEstado;
 use App\Notifications\FlujoAcceso;
 use App\Notifications\NotificacionAprobacion;
@@ -63,6 +64,7 @@ class Show extends Component
     public $selectedUser;
     public $selectedFuncional;
     public $selectedTi;
+    public $tiempoRestante;
 
     public $titulo;
     public $descripcion;
@@ -82,6 +84,17 @@ class Show extends Component
     {
         $this->loadTicket();
         $this->usuarios = User::all();  // Obtener todos los usuarios
+        $this->calcularTiempoRestante();
+    }
+
+    public function calcularTiempoRestante()
+    {
+        $ans = $this->ticket->ans;
+
+        // Suponiendo que $this->ticket->created_at es el tiempo de creación del ticket
+        $creacion = $this->ticket->created_at;
+        $tiempoPasado = now()->diffInSeconds($creacion);
+        $this->tiempoRestante = $ans->t_asignacion_segundos - $tiempoPasado;
     }
 
     public function crearTarea()
@@ -402,6 +415,15 @@ class Show extends Component
 
         $this->ticket->load('impacto');
 
+        $ansCumplido = $this->tiempoRestante > 0;
+
+        Historial::create([
+            'ticket_id' => $this->ticket->id,
+            'user_id' => Auth::id(),
+            'accion' => 'Impacto',
+            'detalle' => 'Se actualizó el impacto y el ANS Inical ' . ($ansCumplido ? 'se cumplió' : 'no se cumplió'),
+        ]);
+
         // Calculando la prioridad
         $urgencia = $this->ticket->urgencia->puntuacion;
         $impacto = $this->ticket->impacto->puntuacion;
@@ -420,9 +442,14 @@ class Show extends Component
                 $prioridadCategoria = 'BAJA';
             }
 
+            // Obtener el nuevo ANS basado en la prioridad
+            $nuevoAns = $this->ticket->tipoSolicitud->ans()->where('nivel', $prioridadCategoria)->first();
+
+            // Actualizar el ticket con la nueva prioridad y ANS
             $this->ticket->update([
                 'prioridad' => $prioridadCategoria,
-                'estado_id' => 3
+                'estado_id' => 3,
+                'ans_id' => $nuevoAns ? $nuevoAns->id : $this->ticket->ans_id,  // Actualizar el ANS
             ]);
         }
 

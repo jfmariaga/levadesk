@@ -342,14 +342,43 @@
                         </div>
                         <div class="card-header col-md-12">
                             <div class="mb-1 d-flex  align-items-center" style="background-color: #eeeeee">
-                                <div class="col-md-7 mt-2">
+                                <div class="col-md-4 mt-2">
                                     <p><strong>{{ $ticket->estado->nombre }}</strong></p>
                                 </div>
-                                <div class="col-md-5">
+                                <div class="col-md-8" wire:poll.1000ms="calcularTiempoRestante">
                                     <p class="text-right mt-2">
+                                        @if ($tiempoRestante > 900)
+                                            {{-- Más de 15 minutos --}}
+                                            <span
+                                                style="background-color: #4CAF50; color: white; padding: 5px 10px; border-radius: 3px; font-weight: bold;">
+                                                <i class="fas fa-check-circle"></i> Tiempo restante ANS inicial:
+                                                {{ gmdate('i:s', $tiempoRestante) }}
+                                            </span>
+                                        @elseif ($tiempoRestante <= 900 && $tiempoRestante > 300)
+                                            {{-- Entre 5 y 15 minutos --}}
+                                            <span
+                                                style="background-color: #FF5722; color: white; padding: 5px 10px; border-radius: 3px; font-weight: bold;">
+                                                <i class="fas fa-exclamation-circle"></i> Tiempo restante ANS inicial:
+                                                {{ gmdate('i:s', $tiempoRestante) }}
+                                            </span>
+                                        @elseif ($tiempoRestante > 0)
+                                            {{-- Menos de 5 minutos --}}
+                                            <span
+                                                style="background-color:#eb2e20; color: white; padding: 5px 10px; border-radius: 3px; font-weight: bold;">
+                                                <i class="fas fa-times-circle"></i> Tiempo restante ANS inicial:
+                                                {{ gmdate('i:s', $tiempoRestante) }}
+                                            </span>
+                                        @else
+                                            {{-- ANS no cumplido --}}
+                                            <span
+                                                style="background-color: #ec3022; color: white; padding: 5px 10px; border-radius: 3px; font-weight: bold;">
+                                                <i class="fas fa-times-circle"></i> No cumpliste con el ANS inicial
+                                            </span>
+                                        @endif
+
+
                                         <span class="solicitud-badge  font-weight-bold">{{ $ticket->nomenclatura }}
                                         </span>
-
                                         <button wire:click="recordatorios" class="ml-1  icono-notificacion">
                                             <i class="fas fa-bell"></i>
                                         </button>
@@ -723,10 +752,10 @@
                                                         <h5>Flujo de Aprobación Completado</h5>
                                                         <p>El flujo de aprobación ha sido completado y aprobado. Por
                                                             favor ejecuta el requerimiento del usuario.</p>
-                                                            <p><strong>Líder funcional:</strong>
-                                                                {{ $ticket->aprobacion->aprobadorFuncional->name }}</p>
-                                                            <p><strong>Aprobador TI:</strong>
-                                                                {{ $ticket->aprobacion->aprobadorTi->name }}</p>
+                                                        <p><strong>Líder funcional:</strong>
+                                                            {{ $ticket->aprobacion->aprobadorFuncional->name }}</p>
+                                                        <p><strong>Aprobador TI:</strong>
+                                                            {{ $ticket->aprobacion->aprobadorTi->name }}</p>
                                                         <hr>
                                                     @endif
                                                 @else
