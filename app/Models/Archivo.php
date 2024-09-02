@@ -9,7 +9,7 @@ class Archivo extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['ticket_id', 'ruta', 'tipo','comentario_id'];
+    protected $fillable = ['ticket_id', 'ruta', 'tipo','comentario_id','cambio_id'];
 
     public function ticket()
     {
@@ -19,5 +19,9 @@ class Archivo extends Model
     public function comentario()
     {
         return $this->belongsTo(Comentario::class);
+    }
+
+    public function cambio(){
+        return $this->belongsTo(Cambios::class);
     }
 }

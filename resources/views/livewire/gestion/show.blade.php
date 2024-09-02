@@ -345,7 +345,7 @@
                                 <div class="col-md-4 mt-2">
                                     <p><strong>{{ $ticket->estado->nombre }}</strong></p>
                                 </div>
-                                <div class="col-md-8" wire:poll.100000ms="calcularTiempoRestante">
+                                <div class="col-md-8">
                                     <p class="text-right mt-2">
                                         @if ($tiempoRestante > 900)
                                             {{-- Más de 15 minutos --}}
@@ -762,7 +762,7 @@
                                                         <hr>
                                                     @endif
                                                 @else
-                                                    <h5>Armar flujo de aprobación</h5>
+                                                    <h5>Crear flujo de aprobación</h5>
                                                     <div class="row">
                                                         <div class="form-group col-5">
                                                             <p><strong>Líder funcional</strong><b style="color: red">
@@ -810,12 +810,158 @@
                                             @endif
 
                                             @if ($escalar)
-                                                <p>Aqui va la logica para escalar tickets 😎</p>
-                                                <hr>
+                                                @if ($ticket->escalar == false)
+                                                    <p>Se cambiará el estado del ticket por: <strong>Escalado a
+                                                            consultoría</strong></p>
+                                                    <p>Recuerda mantener informado al usuario sobre cualquier novedad
+                                                        (Nombre de la consultoría,# del caso y cambio de estados), lo
+                                                        puedes
+                                                        hacer mediante la caja de comentarios, si es necesario
+                                                        adjunta evidencias.
+                                                    </p>
+                                                    <p>Durante el tiempo que este el estado en: <strong>Escalado a
+                                                            consultoría</strong>. No podras marcar respuestas como
+                                                        sulución,
+                                                        hasta que cambies manualmente el estado a: <strong>En
+                                                            atención</strong></p>
+                                                    <div class="d-flex">
+                                                        <button wire:click="consultoria"
+                                                            class="float-right btn btn-sm btn-outline-info">Confirmar</button>
+                                                    </div>
+                                                    <hr>
+                                                @elseif ($ticket->escalar == true && $ticket->estado_id == 9)
+                                                    <p>Cambiar estado a: <strong>En atención</strong></p>
+                                                    <p><i>Si cambias el estado, se entendera que la consultoría ya
+                                                            proporcionó una solución</i></p>
+                                                    <div class="d-flex">
+                                                        <button wire:click="consultoriaCambio"
+                                                            class="float-right btn btn-sm btn-outline-info">Cambiar
+                                                            estado</button>
+                                                    </div>
+                                                    <hr>
+                                                @else
+                                                    <div class="justify-content-center align-items-center">
+                                                        <p>¿Volver a escalar?</p>
+                                                        <button wire:click="consultoria"
+                                                            class=" btn btn-sm btn-outline-info">Confirmar</button>
+                                                    </div>
+                                                    <hr>
+                                                @endif
                                             @endif
                                             @if ($cambio)
-                                                <p>Aqui va la logica para los cambios 😎</p>
-                                                <hr>
+                                                @if ($ticket->cambio)
+                                                    @if (
+                                                        $ticket->cambio->estado === 'pendiente' ||
+                                                            $ticket->cambio->estado === 'aprobado_funcional' ||
+                                                            $ticket->cambio->estado === 'rechazado_ti')
+                                                        <h5>Flujo de cambio en Proceso</h5>
+                                                        <p>El flujo de cambio fue lanzado el
+                                                            <strong>{{ $ticket->cambio->created_at->format('d/m/Y H:i') }}</strong>.
+                                                        </p>
+                                                        <p><strong>Líder funcional:</strong>
+                                                            {{ $ticket->cambio->aprobadorFuncional->name }}</p>
+                                                        <p><strong>Aprobador TI:</strong>
+                                                            {{ $ticket->cambio->aprobadorTi->name }}</p>
+                                                        <p>Para ver el estado del flujo, observa el timeline del ticket.
+                                                        </p>
+                                                        <hr>
+                                                    @elseif ($ticket->cambio->estado === 'rechazado_funcional')
+                                                        <h5>Flujo de Aprobación Cerrado</h5>
+                                                        <p>El flujo de aprobación fue rechazado. Motivo:</p>
+                                                        <p><strong>{{ $ticket->cambio->comentarios_funcional ?? $ticket->cambio->comentarios_ti }}</strong>
+                                                        </p>
+                                                        <hr>
+                                                    @elseif ($ticket->cambio->estado === 'aprobado')
+                                                        <h5>Flujo de Aprobación Completado</h5>
+                                                        <p>El flujo de aprobación ha sido completado y aprobado. Por
+                                                            favor ejecuta el requerimiento del usuario.</p>
+                                                        <p><strong>Líder funcional:</strong>
+                                                            {{ $ticket->cambio->aprobadorFuncional->name }}</p>
+                                                        <p><strong>Aprobador TI:</strong>
+                                                            {{ $ticket->cambio->aprobadorTi->name }}</p>
+                                                        <hr>
+                                                    @endif
+                                                @else
+                                                    <h5>Crear flujo de cambio</h5>
+                                                    <div class="row">
+                                                        <div class="form-group col-5">
+                                                            <div wire:ignore>
+                                                                <select class="select2" id="aprobadorFuncional"
+                                                                    wire:model="selectedFuncional">
+                                                                    <option value="">Líder funcional</option>
+                                                                    @foreach ($usuarios as $usuario)
+                                                                        <option value="{{ $usuario->id }}">
+                                                                            {{ $usuario->name }}</option>
+                                                                    @endforeach
+                                                                </select>
+                                                            </div>
+                                                            @error('selectedFuncional')
+                                                                <span class="invalid-feedback">{{ $message }}</span>
+                                                            @enderror
+                                                        </div>
+                                                        <div class="form-group col-3">
+                                                            <div wire:ignore>
+                                                                <select class="select2" id="aprobadorTi"
+                                                                    wire:model="selectedTi">
+                                                                    <option value="">Aprobador TI</option>
+                                                                    @foreach ($usuarios as $usuario)
+                                                                        <option value="{{ $usuario->id }}">
+                                                                            {{ $usuario->name }}</option>
+                                                                    @endforeach
+                                                                </select>
+                                                            </div>
+                                                            @error('selectedTi')
+                                                                <span class="invalid-feedback">{{ $message }}</span>
+                                                            @enderror
+                                                        </div>
+                                                        <div class="form-group col-3">
+                                                           <p> <span class="input-group-prepend">
+                                                                <label for="fileCambio" class="custom-file-upload">
+                                                                    <i class="fa fa-paperclip"></i>
+                                                                </label>
+                                                                <input type="file" id="fileCambio" name="file"
+                                                                    class="d-none" wire:model="newFileCambio">
+                                                            </span>
+                                                        </p>
+                                                        </div>
+                                                        @if ($newFileCambio)
+                                                        <div
+                                                            class="d-flex ml-1 col-12 align-items-center border-file p-2 rounded-file">
+                                                            <div class="mr-2">
+                                                                <i
+                                                                    class="fa fa-check-circle text-success-file"></i>
+                                                            </div>
+                                                            <div class="flex-grow-1-file">
+                                                                <span>{{ $newFileCambio->getClientOriginalName() }}</span>
+                                                            </div>
+                                                            <div class="text-muted-file">
+                                                                Subida completa
+                                                            </div>
+                                                            <div class="ml-2">
+                                                                <button
+                                                                    class="btn btn-link-file text-danger-file p-0"
+                                                                    wire:click="removeFileCambio">
+                                                                    <i class="fa fa-times"></i>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    @endif
+                                                        <div class="form-group col-3">
+                                                            <input type="submit"class="btn btn-outline-info btn-sm mt-4"
+                                                                value="Iniciar Flujo" wire:click="flujoCambio">
+                                                        </div>
+                                                        <div class="col-12 d-flex justify-content-center">
+                                                            <div wire:loading wire:target="newFileCambio"
+                                                                class="" role="alert">
+                                                                <div class="spinner-border text-primary"
+                                                                    role="status">
+                                                                    <span class="text-center"></span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <hr>
+                                                @endif
                                             @endif
                                         </div>
                                     @endif
@@ -891,10 +1037,12 @@
                                                         <div class="input-group d-flex justify-content-between">
                                                             <div class="d-flex align-items-center">
                                                                 <span class="input-group-prepend">
-                                                                    <a href="#">
-                                                                        <i class="fa fa-paperclip"
-                                                                            onclick="abrir()"></i>
-                                                                    </a>
+                                                                    <label for="file" class="custom-file-upload">
+                                                                        <i class="fa fa-paperclip"></i>
+                                                                    </label>
+                                                                    <input type="file" id="file"
+                                                                        name="file" class="d-none"
+                                                                        wire:model="newFile">
                                                                 </span>
                                                             </div>
                                                             <div class="input-group-append">
@@ -902,8 +1050,10 @@
                                                                     class="form-control form-control-sm">
                                                                     <option value="0">Público</option>
                                                                     <option value="1">Privado</option>
-                                                                    @if (!$ticket->solucion())
-                                                                        <option value="2">Solución</option>
+                                                                    @if ($ticket->estado_id != 9)
+                                                                        @if (!$ticket->solucion())
+                                                                            <option value="2">Solución</option>
+                                                                        @endif
                                                                     @endif
                                                                 </select>
                                                                 <button wire:click="addComment"
@@ -914,10 +1064,6 @@
                                                     </div>
                                                 </div>
                                             @endif
-                                        </div>
-                                        <div>
-                                            <input type="file" id="file" name="file" class="d-none"
-                                                wire:model="newFile">
                                         </div>
                                         <div class="col-12 d-flex justify-content-center">
                                             <div wire:loading wire:target="newFile" class="" role="alert">
@@ -1097,10 +1243,6 @@
                     toastRight(data.type, data.message);
                 });
             });
-
-            function abrir() {
-                var file = document.getElementById("file").click();
-            }
         </script>
     @endpush
 </div>

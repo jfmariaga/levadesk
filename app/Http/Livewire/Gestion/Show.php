@@ -4,6 +4,7 @@ namespace App\Http\Livewire\Gestion;
 
 use App\Models\ANS;
 use App\Models\Aprobacion;
+use App\Models\Cambios;
 use App\Models\Ticket;
 use App\Models\Categoria;
 use App\Models\Colaborador;
@@ -60,6 +61,7 @@ class Show extends Component
     public $reminder_at;
     public $desDetalle;
     public $newFile;
+    public $newFileCambio;
     public $commentType = 0; // Valor por defecto es 'Público'
     public $usuarios = [];
     public $selectedUser;
@@ -200,6 +202,72 @@ class Show extends Component
         $this->selectedTi = "";
         $this->selectedFuncional = "";
         $this->loadTicket();
+    }
+
+    public function flujoCambio(){
+        $this->validate([
+            'selectedFuncional' => 'required|exists:users,id',
+            'selectedTi' => 'required|exists:users,id',
+        ]);
+
+        $cambio = Cambios::create([
+            'ticket_id' => $this->ticket->id,
+            'aprobador_funcional_id' => $this->selectedFuncional,
+            'aprobador_ti_id' => $this->selectedTi,
+            'estado' => 'pendiente',
+        ]);
+
+        $this->ticket->update([
+            'estado_id' => 8
+        ]);
+
+        // Asocia el archivo con el comentario recién creado si existe
+        if ($this->newFileCambio) {
+            $this->addFileCambio($cambio->id);
+        }
+
+        Historial::create([
+            'ticket_id' => $this->ticket_id,
+            'user_id' => Auth::id(),
+            'accion' => 'Inicio de flujo',
+            'detalle' => "Se inicio el flujo de aprobación de cambios.",
+        ]);
+
+        Historial::create([
+            'ticket_id' => $this->ticket_id,
+            'user_id' => Auth::id(),
+            'accion' => 'cambio de estado ticket',
+            'detalle' => "El nuevo estado del ticket es: En espera.",
+        ]);
+
+        // Notificar al líder funcional
+        $cambio->aprobadorFuncional->notify(new NotificacionAprobacion($cambio, $this->ticket));
+        $this->ticket->usuario->notify(new CambioEstado($this->ticket));
+
+
+        $this->emit('showToast', ['type' => 'success', 'message' => 'Se inicio el flujo correctamente']);
+        $this->selectedTi = "";
+        $this->selectedFuncional = "";
+        $this->loadTicket();
+    }
+
+
+    public function addFileCambio($cambio_id = null)
+    {
+        $this->validate(['newFileCambio' => 'required|file|max:10240']);
+        $nombre_original = $this->newFileCambio->getClientOriginalName();
+        $nombre_sin_extension = pathinfo($nombre_original, PATHINFO_FILENAME);
+        $extension = $this->newFileCambio->getClientOriginalExtension();
+        $nombre_db = Str::slug($nombre_sin_extension);
+        $nombre_a_guardar = $nombre_db . '.' . $extension;
+        $path = $this->newFileCambio->storeAs('public/tickets', $nombre_a_guardar);
+        // Guardar el archivo con la referencia al comentario (si existe) y al ticket
+        $this->ticket->archivos()->create([
+            'ruta' => $path,
+            'cambio_id' => $cambio_id,
+        ]);
+        $this->newFileCambio = null;
+        $this->loadTicket($this->ticket->id); // Refresh ticket data
     }
 
 
@@ -487,8 +555,6 @@ class Show extends Component
 
             // Recalcular el tiempo restante en base al nuevo ANS
             $this->calcularTiempoRestante();
-
-
         }
 
         Historial::create([
@@ -593,6 +659,50 @@ class Show extends Component
     {
         // Remover el archivo temporal
         $this->reset('newFile');
+    }
+
+    public function removeFileCambio()
+    {
+        // Remover el archivo temporal
+        $this->reset('newFileCambio');
+    }
+
+    public function consultoria()
+    {
+        $this->ticket->update([
+            'escalar' => true,
+            'estado_id' => 9
+        ]);
+
+        Historial::create([
+            'ticket_id' => $this->ticket->id,
+            'user_id' => Auth::id(),
+            'accion' => 'Escalado',
+            'detalle' =>  $this->ticket->asignado->name.' Cambió el estado del ticket a: Escalado a consultoría',
+        ]);
+
+        $this->ticket->usuario->notify(new CambioEstado($this->ticket));
+
+        $this->emit('showToast', ['type' => 'success', 'message' => 'Cambio de estado a: Escalado a consultoría']);
+        $this->loadTicket($this->ticket->id);
+    }
+
+    public function consultoriaCambio(){
+        $this->ticket->update([
+            'estado_id' => 3
+        ]);
+
+        Historial::create([
+            'ticket_id' => $this->ticket->id,
+            'user_id' => Auth::id(),
+            'accion' => 'FinEscalado',
+            'detalle' =>  $this->ticket->asignado->name.' Cambió el estado del ticket a: En atención',
+        ]);
+
+        $this->ticket->usuario->notify(new CambioEstado($this->ticket));
+
+        $this->emit('showToast', ['type' => 'success', 'message' => 'Cambio de estado a: En atención']);
+        $this->loadTicket($this->ticket->id);
     }
 
     public function render()

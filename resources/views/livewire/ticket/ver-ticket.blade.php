@@ -505,10 +505,12 @@
                                                         <div class="input-group d-flex justify-content-between">
                                                             <div class="d-flex align-items-center">
                                                                 <span class="input-group-prepend">
-                                                                    <a href="#">
-                                                                        <i class="fa fa-paperclip"
-                                                                            onclick="abrir()"></i>
-                                                                    </a>
+                                                                    <label for="file" class="custom-file-upload">
+                                                                        <i class="fa fa-paperclip"></i>
+                                                                    </label>
+                                                                    <input type="file" id="file"
+                                                                        name="file" class="d-none"
+                                                                        wire:model="newFile">
                                                                 </span>
                                                             </div>
                                                             <div class="input-group-append">
@@ -521,10 +523,6 @@
                                                 </div>
                                             </div>
                                         @endif
-                                        <div>
-                                            <input type="file" id="file" name="file" class="d-none"
-                                                wire:model="newFile">
-                                        </div>
                                         <div class="col-12 d-flex justify-content-center">
                                             <div wire:loading wire:target="newFile" class="" role="alert">
                                                 <div class="spinner-border text-primary" role="status">
@@ -719,10 +717,6 @@
                         });
                 });
             });
-
-            function abrir() {
-                var file = document.getElementById("file").click();
-            }
         </script>
     @endpush
 </div>

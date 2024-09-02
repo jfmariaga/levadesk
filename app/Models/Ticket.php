@@ -25,7 +25,10 @@ class Ticket extends Model
         'urgencia_id',
         'nomenclatura',
         'prioridad',
-        'notificado'
+        'notificado',
+        'ans_vencido',
+        'ans_inicial_vencido',
+        'escalar'
     ];
 
     public function usuario()
@@ -127,5 +130,10 @@ class Ticket extends Model
     public function aprobacion()
     {
         return $this->hasOne(Aprobacion::class);
+    }
+
+    public function cambio()
+    {
+        return $this->hasOne(Cambios::class);
     }
 }
