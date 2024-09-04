@@ -8,7 +8,7 @@ use Livewire\Component;
 class Index extends Component
 {
     public $sociedad_id;
-    // protected $listeners = ['cargarAplicaciones'];
+    protected $listeners = ['getAplicaciones'];
 
     protected $queryString = ['sociedad_id'];
 
@@ -18,7 +18,7 @@ class Index extends Component
     }
 
     public function getAplicaciones(){
-        $aplicaciones = Aplicaciones::where('sociedad_id', $this->sociedad_id)->with(['sociedad', 'mariaga'])->get()->toJson();
+        $aplicaciones = Aplicaciones::where('sociedad_id', $this->sociedad_id)->with(['sociedad', 'grupo'])->get()->toJson();
         // dd($aplicaciones);
         $this->emit('cargarTablaAplicaciones', $aplicaciones);
     }

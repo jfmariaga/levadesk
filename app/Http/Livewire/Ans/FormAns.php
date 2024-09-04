@@ -2,7 +2,7 @@
 
 namespace App\Http\Livewire\Ans;
 
-use App\Models\Ans;
+use App\Models\ANS;
 use App\Models\TipoSolicitud;
 use Livewire\Component;
 use Illuminate\Support\Str;
@@ -30,7 +30,7 @@ class FormAns extends Component
 
     public function editAns($id)
     {
-        $this->ans_old = Ans::find($id);
+        $this->ans_old = ANS::find($id);
         $this->nivel = $this->ans_old->nivel;
         $this->h_atencion = $this->ans_old->h_atencion;
         $this->t_asignacion = $this->ans_old->t_asignacion_segundos / 60; // convertir a minutos
@@ -48,7 +48,7 @@ class FormAns extends Component
         $this->validate();
 
         // Validar unicidad del nivel para el tipo de solicitud
-        $existeNivel = Ans::where('nivel', $this->nivel)
+        $existeNivel = ANS::where('nivel', $this->nivel)
                           ->where('solicitud_id', $this->solicitud)
                           ->when($this->ans_old, function($query) {
                               return $query->where('id', '!=', $this->ans_old->id);
@@ -65,7 +65,7 @@ class FormAns extends Component
         $tiempoAceptacionSegundos = $this->t_aceptacion * 3600; // convertir a segundos
 
         if (!$this->ans_old) {
-            $create = Ans::create([
+            $create = ANS::create([
                 'nivel' => Str::upper($this->nivel),
                 'h_atencion' => $this->h_atencion,
                 't_asignacion_segundos' => $tiempoAsignacionSegundos,

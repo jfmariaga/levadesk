@@ -368,7 +368,7 @@
                                 {{ $ticket->titulo }}, {{ $ticket->descripcion }}
                             </h5>
                             <p><i class="text-muted">{{ $ticket->sociedad->nombre }}>>{{ $ticket->tipoSolicitud->nombre }}>>{{ $ticket->categoria->nombre }}>>
-                                    {{ $ticket->subcategoria->nombre }}</i></p>
+                                    {{ $ticket->subcategoria->nombre }}{{$ticket->aplicacion? '>>'.$ticket->aplicacion->nombre: ''}}</i></p>
                             <div class="row">
                                 <div class="col-md-3">
                                     <p><strong>Urgencia:</strong> {{ $ticket->urgencia->nombre }}</p>

@@ -17,5 +17,5 @@
 @stop
 
 @section('modals')
-    @include('admin.sociedad.modal_add')
+    @include('admin.sociedad.modal_aplicacion_add')
 @endsection

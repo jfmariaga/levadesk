@@ -16,7 +16,7 @@ class CreateAplicacionesTable extends Migration
         Schema::create('aplicaciones', function (Blueprint $table) {
             $table->id();
             $table->foreignId('sociedad_id')->constrained('sociedades')->onDelete('cascade');
-            $table->foreignId('grupo')->constrained('grupos')->onDelete('cascade');
+            $table->foreignId('grupo_id')->constrained('grupos')->onDelete('cascade');
             $table->string('nombre');
             $table->tinyInteger('estado');
             $table->timestamps();

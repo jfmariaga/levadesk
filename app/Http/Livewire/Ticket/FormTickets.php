@@ -8,6 +8,7 @@ use App\Models\TipoSolicitud;
 use App\Models\Categoria;
 use App\Models\Subcategoria;
 use App\Models\ANS;
+use App\Models\Aplicaciones;
 use App\Models\Estado;
 use App\Models\Grupo;
 use App\Models\Historial;
@@ -43,6 +44,8 @@ class FormTickets extends Component
     public $ticket_old;
     public $urgencia;
     public $usuarioId;
+    public $aplicaciones = []; // Campo para almacenar las aplicaciones
+    public $aplicacion_id; // Para almacenar la aplicación seleccionada
 
 
 
@@ -56,6 +59,7 @@ class FormTickets extends Component
         'archivos.*' => 'nullable|file|mimes:jpg,png,pdf,doc,docx,xlsx,xls',
         'urgencia' => 'required',
         'archivos' => 'array|max:2',
+        'aplicacion_id' => 'nullable|exists:aplicaciones,id',
     ];
 
 
@@ -78,16 +82,41 @@ class FormTickets extends Component
     {
         $this->categorias = Categoria::where('solicitud_id', $value)->get();
         $this->subcategorias = [];
+        $this->aplicaciones = [];
     }
 
     public function updatedCategoriaId($value)
     {
         $this->subcategorias = Subcategoria::where('categoria_id', $value)->get();
+        $this->aplicaciones = [];
+    }
+
+    public function updatedSociedadId($value)
+    {
+        // Limpiar aplicaciones al cambiar de sociedad
+        $this->aplicaciones = [];
+
+        // Verificar si la subcategoría seleccionada es SOPORTE DE APLICACIONES
+        if ($this->subcategoria_id && Subcategoria::find($this->subcategoria_id)->nombre === 'SOPORTE DE APLICACIONES') {
+            $this->aplicaciones = Aplicaciones::where('sociedad_id', $this->sociedad_id)->get();
+        }
+    }
+
+    public function updatedSubcategoriaId($value)
+    {
+        $this->aplicaciones = [];
+
+        // Verificar si la subcategoría seleccionada es SOPORTE DE APLICACIONES
+        $subcategoria = Subcategoria::find($value);
+        if ($subcategoria && $subcategoria->nombre === 'SOPORTE DE APLICACIONES') {
+            $this->aplicaciones = Aplicaciones::where('sociedad_id', $this->sociedad_id)->get();
+        } else {
+            $this->aplicacion_id = null; // Si no es SOPORTE DE APLICACIONES, ocultar el campo de aplicaciones
+        }
     }
 
     public function submit()
     {
-
         $this->validate();
 
         if (count($this->archivos) > 2) {
@@ -104,17 +133,45 @@ class FormTickets extends Component
             return;
         }
 
-        // Obtener el grupo asociado a la subcategoría
-        $grupo = $subcategoria->grupo;
+        // Definir el usuario que será asignado al ticket
+        $usuario = null;
+        $grupo = null; // Definir el grupo aquí, porque el grupo dependerá de la subcategoría o aplicación
 
-        // Asegurarse de que $grupo no es null
-        if (!$grupo) {
-            session()->flash('error', 'No hay grupo asignado a la subcategoría seleccionada');
-            return;
+        // Si la subcategoría es SOPORTE DE APLICACIONES, asignar según la aplicación seleccionada
+        if ($subcategoria->nombre === 'SOPORTE DE APLICACIONES') {
+            // Obtener la aplicación seleccionada
+            $aplicacion = Aplicaciones::find($this->aplicacion_id);
+
+            // Verificar que la aplicación existe y tiene un grupo asociado
+            if ($aplicacion && $aplicacion->grupo_id) {
+                // Cargar el grupo relacionado con la aplicación a través de la relación grupo_id
+                $grupo = $aplicacion->grupo;
+
+                // Verificar que el grupo existe
+                if ($grupo) {
+                    // Obtener el usuario con menos tickets en el grupo relacionado con la aplicación
+                    $usuario = $grupo->usuarios()->withCount('ticketsAsignados')->orderBy('tickets_asignados_count', 'asc')->first();
+                } else {
+                    session()->flash('error', 'No hay grupo asignado a la aplicación seleccionada.');
+                    return;
+                }
+            } else {
+                session()->flash('error', 'No hay grupo o usuarios asignados a la aplicación seleccionada.');
+                return;
+            }
+        } else {
+            // Obtener el grupo asociado a la subcategoría
+            $grupo = $subcategoria->grupo;
+
+            // Verificar que $grupo no es null
+            if (!$grupo) {
+                session()->flash('error', 'No hay grupo asignado a la subcategoría seleccionada');
+                return;
+            }
+
+            // Obtener el usuario del grupo con menos tickets asignados
+            $usuario = $grupo->usuarios()->withCount('ticketsAsignados')->orderBy('tickets_asignados_count', 'asc')->first();
         }
-
-        // Obtener el usuario del grupo con menos tickets asignados
-        $usuario = $grupo->usuarios()->withCount('ticketsAsignados')->orderBy('tickets_asignados_count', 'asc')->first();
 
         if (!$usuario) {
             session()->flash('error', 'No hay usuarios disponibles en el grupo');
@@ -126,7 +183,7 @@ class FormTickets extends Component
             ->where('nivel', 'INICIAL')
             ->first();
 
-
+        // Crear el ticket
         $ticket = Ticket::create([
             'titulo' => $this->titulo,
             'descripcion' => $this->descripcion,
@@ -139,11 +196,13 @@ class FormTickets extends Component
             'creador_id' => Auth::id(),
             'asignado_a' => $usuario->id,
             'usuario_id' => Auth::id(),
-            'grupo_id' => $grupo->id,
+            'grupo_id' => $grupo->id, // Grupo de la subcategoría o la aplicación, dependiendo del caso
             'urgencia_id' => $this->urgencia,
+            'aplicacion_id' => $this->aplicacion_id,
             'ans_id' => $ansInicial ? $ansInicial->id : null,  // Asignar ANS inicial
         ]);
 
+        // Guardar archivos si los hay
         if ($this->archivos) {
             foreach ($this->archivos as $archivo) {
                 $nombre_original = $archivo->getClientOriginalName();
@@ -183,6 +242,7 @@ class FormTickets extends Component
         $this->resetForm();
     }
 
+
     public function generateNomenclatura()
     {
         // Genera la nomenclatura del ticket
@@ -204,6 +264,7 @@ class FormTickets extends Component
         $this->sociedad_id = "";
         $this->tipo_solicitud_id = "";
         $this->categoria_id = "";
+        $this->aplicacion_id = "";
         $this->subcategoria_id = "";
         $this->archivos = [];
         $this->ticket_old = null;

@@ -66,6 +66,20 @@
                                 <span class="text-danger">{{ $message }}</span>
                             @enderror
                         </div>
+                        <div class="form-group col-md-6">
+                            @if (!empty($aplicaciones))
+                                <label for="aplicacion_id">Aplicación <b style="color: red">*</b></label>
+                                <select id="aplicacion_id" class="form-control" wire:model="aplicacion_id">
+                                    <option value="">Seleccionar...</option>
+                                    @foreach ($aplicaciones as $aplicacion)
+                                        <option value="{{ $aplicacion->id }}">{{ $aplicacion->nombre }}</option>
+                                    @endforeach
+                                </select>
+                                @error('aplicacion_id')
+                                    <span class="text-danger">{{ $message }}</span>
+                                @enderror
+                            @endif
+                        </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group col-md-6">

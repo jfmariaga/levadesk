@@ -28,7 +28,8 @@ class Ticket extends Model
         'notificado',
         'ans_vencido',
         'ans_inicial_vencido',
-        'escalar'
+        'escalar',
+        'aplicacion_id',
     ];
 
     public function usuario()
@@ -135,5 +136,10 @@ class Ticket extends Model
     public function cambio()
     {
         return $this->hasOne(Cambios::class);
+    }
+
+    public function aplicacion()
+    {
+        return $this->belongsTo(Aplicaciones::class);
     }
 }

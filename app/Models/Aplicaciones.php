@@ -11,17 +11,21 @@ class Aplicaciones extends Model
 
     protected $fillable = [
         'sociedad_id',
-        'grupo',
+        'grupo_id',
         'nombre',
         'estado',
     ];
 
-    public function mariaga(){
-        return $this->belongsTo(Grupo::class, 'grupo');
+    public function grupo(){
+        return $this->belongsTo(Grupo::class,'grupo_id');
     }
 
     public function sociedad(){
         return $this->belongsTo(Sociedad::class);
+    }
+
+    public function tickets(){
+        return $this->hasMany(Ticket::class);
     }
 
 

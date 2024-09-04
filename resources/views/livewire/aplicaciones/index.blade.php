@@ -105,7 +105,7 @@
                             id,
                             nombre,
                             sociedad,
-                            mariaga,
+                            grupo,
                             estado
                         } = element;
                         console.log(element);
@@ -114,7 +114,7 @@
                         body.append(`<tr id="tr_${id}">
                             <td class="pointer">${nombre}</td>
                             <td class="pointer">${sociedad.nombre}</td>
-                            <td class="pointer">${mariaga.nombre}</td>
+                            <td class="pointer">${grupo.nombre}</td>
                             <td class="pointer">${estado == 0 ?  '<span style="color: green;">✔</span>' : '<span style="color: red;">✘</span>'}</td>
                             <td>
                                 <div class="d-flex">
@@ -139,8 +139,8 @@
             }
 
             function editar(id) {
-            $('#btn_form_sociedad').click();
-            Livewire.emit('editSociedad', id);
+            $('#btn_form_aplicacion').click();
+            Livewire.emit('editAplicacion', id);
         }
         </script>
     @endpush
