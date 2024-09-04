@@ -18,7 +18,7 @@ class CreateCambiosTable extends Migration
             $table->unsignedBigInteger('ticket_id')->unique();
             $table->unsignedBigInteger('aprobador_funcional_id');
             $table->unsignedBigInteger('aprobador_ti_id')->nullable();
-            $table->enum('estado', ['pendiente', 'aprobado_funcional', 'rechazado_funcional', 'aprobado_ti', 'rechazado_ti', 'cerrado']);
+            $table->enum('estado', ['pendiente', 'aprobado_funcional', 'rechazado_funcional', 'aprobado_ti', 'rechazado_ti', 'cerrado','aprobado','aprobado_user']);
             $table->text('comentarios_funcional')->nullable();
             $table->text('comentarios_ti')->nullable();
             $table->timestamps();

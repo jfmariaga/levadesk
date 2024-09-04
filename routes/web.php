@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Auth;
 // use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Livewire\Livewire;
 
 Route::get('/', function () {
@@ -13,6 +14,13 @@ Route::get('/', function () {
 });
 
 Auth::routes();
+
+Route::get('storage-link', function(){
+	Artisan::call('cache:clear');
+	Artisan::call('config:cache');
+	Artisan::call('route:cache');
+	Artisan::call('storage:link');
+});
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
@@ -32,6 +40,9 @@ Route::view('gestionar', 'admin.gestionar.index')->name('gestionar');
 Route::view('verTicket', 'admin.ticket.verTicket')->name('verTicket');
 Route::view('aprobacion', 'admin.aprobacion.index')->name('aprobacion');
 Route::view('aprobar', 'admin.aprobacion.aprobar')->name('aprobar');
+Route::view('cambios', 'admin.cambios.index')->name('cambios');
+Route::view('cambio', 'admin.cambios.cambios')->name('cambio');
+Route::view('sociedades', 'admin.sociedad.aplicaciones')->name('sociedades');
 
 
 // Route::get('/search-users', function (Request $request) {

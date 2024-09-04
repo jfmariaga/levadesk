@@ -88,7 +88,7 @@
     @push('js')
         <script>
             document.addEventListener('livewire:load', function() {
-                @this.loadAprobaciones()
+                @this.loadAprobacionesCambios()
             });
 
             function mostrarTablaFuncional() {
@@ -110,11 +110,11 @@
             }
 
 
-            Livewire.on('cargarAprobacionesFuncionalTabla', data => {
+            Livewire.on('cargarAprobacionesFuncionalTablaCambios', data => {
                 cargarTabla(data, 'funcional');
             });
 
-            Livewire.on('cargarAprobacionesTiTabla', data => {
+            Livewire.on('cargarAprobacionesTiTablaCambios', data => {
                 cargarTabla(data, 'ti');
             });
 
@@ -179,7 +179,7 @@
                 <td class="pointer">${estado}</td>
                 <td>
                     <div class="d-flex">
-                           <a href="aprobar?ticket_id=${id}" class="btn btn-xs btn-default text-primary mx-1 shadow" title="Edit"><i class="far fa-eye"></i></a>
+                           <a href="cambio?ticket_id=${id}" class="btn btn-xs btn-default text-primary mx-1 shadow" title="Edit"><i class="far fa-eye"></i></a>
                     </div>
                 </td>
             </tr>`);
@@ -198,3 +198,4 @@
         </script>
     @endpush
 </div>
+

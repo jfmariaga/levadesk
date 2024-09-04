@@ -17,7 +17,8 @@ class Comentario extends Model
         'comentario',
         'tipo',
         'calificacion',
-        'comentario_calificacion'
+        'comentario_calificacion',
+        'check_comentario',
     ];
 
     public function ticket()

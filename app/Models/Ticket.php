@@ -74,7 +74,7 @@ class Ticket extends Model
 
     public function ans()
     {
-        return $this->belongsTo(Ans::class);
+        return $this->belongsTo(ANS::class);
     }
 
     public function urgencia()

@@ -9,7 +9,6 @@ class Cambios extends Model
 {
     use HasFactory;
 
-
     protected $fillable = [
         'ticket_id',
         'aprobador_funcional_id',
@@ -17,6 +16,10 @@ class Cambios extends Model
         'estado',
         'comentarios_funcional',
         'comentarios_ti',
+        'aprobador_user_id',
+        'aprobador_final_ti_id',
+        'check_aprobado',
+        'check_aprobado_ti',
     ];
 
     public function ticket()
@@ -24,17 +27,27 @@ class Cambios extends Model
         return $this->belongsTo(Ticket::class);
     }
 
-    public function aprobadorFuncional()
+    public function aprobadorFuncionalCambio()
     {
         return $this->belongsTo(User::class, 'aprobador_funcional_id');
     }
 
-    public function aprobadorTi()
+    public function aprobadorTiCambio()
     {
         return $this->belongsTo(User::class, 'aprobador_ti_id');
     }
 
+    public function aprobadorUser()
+    {
+        return $this->belongsTo(User::class, 'aprobador_user_id');
+    }
+
+    public function aprobadorFinalTi()
+    {
+        return $this->belongsTo(User::class, 'aprobador_final_ti_id');
+    }
+
     public  function archivos(){
-        return $this->hasMany(Archivo::class);
+        return $this->hasMany(Archivo::class,'cambio_id');
     }
 }

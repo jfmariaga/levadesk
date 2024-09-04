@@ -17,4 +17,8 @@ class Sociedad extends Model
     {
         return $this->hasMany(Ticket::class);
     }
+
+    public  function aplicaciones(){
+        return $this->hasMany(Aplicaciones::class);
+    }
 }

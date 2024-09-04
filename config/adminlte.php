@@ -137,7 +137,7 @@ return [
     'usermenu_header' => true,
     'usermenu_header_class' => 'bg-info',
     'usermenu_image' => true,
-    'usermenu_desc' =>true,
+    'usermenu_desc' => true,
     'usermenu_profile_url' => true,
 
     /*
@@ -310,9 +310,19 @@ return [
             'icon' => 'fas fa-edit',
         ],
         [
-            'text' => 'Aprobaciones',
-            'route' => 'aprobacion',
+            'text' => 'Aprobación',
             'icon' => 'fas fa-calendar-check',
+            'submenu' => [
+                [
+                    'text' => 'Accesos',
+                    'route' => 'aprobacion',
+
+                ],
+                [
+                    'text' => 'Cambios',
+                    'route' => 'cambios',
+                ],
+            ],
         ],
         ['header' => 'ADMINISTRADOR'],
         [

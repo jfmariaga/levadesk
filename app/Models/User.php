@@ -104,4 +104,15 @@ class User extends Authenticatable
     {
         return $this->hasMany(Aprobacion::class, 'aprobador_ti_id');
     }
+
+    public function aprobacionesFuncionalesCambios()
+    {
+        return $this->hasMany(Cambios::class, 'aprobador_funcional_id');
+    }
+
+    // Relación para las aprobaciones donde el usuario es líder de TI
+    public function aprobacionesTiCambios()
+    {
+        return $this->hasMany(Cambios::class, 'aprobador_ti_id');
+    }
 }

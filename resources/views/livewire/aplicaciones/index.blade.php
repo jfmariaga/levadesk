@@ -11,21 +11,21 @@
                         class="far fa-file-excel"></i></a>
                 <a href="javascript:exportTabla('pdf')" class="btn-lg btn-default text-danger mx-1 shadow "><i
                         class="far fa-file-pdf"></i></a>
-                <a href="#" data-toggle="modal" data-target="#form_sociedad" id="btn_form_sociedad"
+                <a href="#" data-toggle="modal" data-target="#form_aplicacion" id="btn_form_aplicacion"
                     class="btn-lg btn-default mx-1 shadow">
-                    <i class="fas fa-plus"></i> Sociedad</a>
+                    <i class="fas fa-plus"></i> Aplicación</a>
             </div>
-            <table class="table table-striped tabla_sociedades d-none" style="width:100%;">
+            <table class="table table-striped tabla_aplicaciones d-none" style="width:100%;">
                 <thead>
                     <tr>
                         <th>Nombre</th>
-                        <th>Descripción</th>
-                        <th>Nomenclatura</th>
+                        <th>Sociedad</th>
+                        <th>Responsable</th>
                         <th>Estado</th>
                         <th>Acc</th>
                     </tr>
                 </thead>
-                <tbody id="content_tabla_sociedades">
+                <tbody id="content_tabla_aplicaciones">
                 </tbody>
             </table>
             <div class="margin_20 loading_p">
@@ -38,19 +38,19 @@
     @push('js')
         <script>
             document.addEventListener('livewire:load', function() {
-                @this.cargarSociedad()
+                @this.getAplicaciones()
             });
-            Livewire.on('cargarSociedadesTabla', data => {
+            Livewire.on('cargarTablaAplicaciones', data => {
                 cargarTabla(data);
             });
 
             function cargarTabla(data) {
-                $('.tabla_sociedades').DataTable().destroy(); // destruimos la tabla
-                $('.tabla_sociedades').addClass('d-none'); // ocultamos la tabla
+                $('.tabla_aplicaciones').DataTable().destroy(); // destruimos la tabla
+                $('.tabla_aplicaciones').addClass('d-none'); // ocultamos la tabla
                 $('.loading_p').removeClass('d-none'); // mostramos el loading
-                $('#content_tabla_sociedades').html(''); // limpiar la tabla
+                $('#content_tabla_aplicaciones').html(''); // limpiar la tabla
                 llenarTabla(data).then(() => {
-                    $('.tabla_sociedades').DataTable({ // volver a inicializar DataTables
+                    $('.tabla_aplicaciones').DataTable({ // volver a inicializar DataTables
                         language: {
                             "decimal": "",
                             "emptyTable": "No hay información",
@@ -77,7 +77,7 @@
                                 autoFilter: true,
                                 title: 'Sociedades',
                                 exportOptions: {
-                                    columns: [0, 1, 2, 3, 4]
+                                    columns: [0, 1, 2, 3]
                                 },
                             },
                             {
@@ -85,12 +85,12 @@
                                 autoFilter: true,
                                 title: 'Sociedades',
                                 exportOptions: {
-                                    columns: [0, 1, 2, 3, 4]
+                                    columns: [0, 1, 2, 3]
                                 },
                             }
                         ]
                     });
-                    $('.tabla_sociedades').removeClass('d-none'); // mostrar la tabla
+                    $('.tabla_aplicaciones').removeClass('d-none'); // mostrar la tabla
                     $('.loading_p').addClass('d-none');
                 });
             }
@@ -98,28 +98,30 @@
             function llenarTabla(data) {
                 data = JSON.parse(data);
                 return new Promise((resolve) => {
-                    let body = $('#content_tabla_sociedades');
+                    let body = $('#content_tabla_aplicaciones');
                     for (let index = 0; index < data.length; index++) {
                         const element = data[index];
                         const {
                             id,
                             nombre,
-                            descripcion,
-                            codigo,
+                            sociedad,
+                            mariaga,
                             estado
                         } = element;
+                        console.log(element);
+
 
                         body.append(`<tr id="tr_${id}">
                             <td class="pointer">${nombre}</td>
-                            <td class="pointer">${descripcion ? descripcion :''}</td>
-                            <td class="pointer">${codigo}</td>
+                            <td class="pointer">${sociedad.nombre}</td>
+                            <td class="pointer">${mariaga.nombre}</td>
                             <td class="pointer">${estado == 0 ?  '<span style="color: green;">✔</span>' : '<span style="color: red;">✘</span>'}</td>
                             <td>
                                 <div class="d-flex">
                                     <button  onclick="editar(${id})" class="btn btn-xs btn-default text-primary mx-1 shadow" title="Edit">
                                          <i class="fa fa-lg fa-fw fa-pen"></i>
                                      </button>
-                                      <a href="sociedades?sociedad_id=${id}" class="btn btn-xs btn-default text-primary mx-1 shadow" title="Aplicaciones"><i class="fas fa-globe"></i></a>
+
                                 </div>
                             </td>
                         </tr>`);
@@ -143,3 +145,4 @@
         </script>
     @endpush
 </div>
+

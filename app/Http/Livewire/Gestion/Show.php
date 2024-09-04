@@ -8,6 +8,7 @@ use App\Models\Cambios;
 use App\Models\Ticket;
 use App\Models\Categoria;
 use App\Models\Colaborador;
+use App\Models\Comentario;
 use App\Models\Subcategoria;
 use App\Models\Historial;
 use App\Models\Impacto;
@@ -16,6 +17,7 @@ use App\Models\Tarea;
 use App\Models\TipoSolicitud;
 use App\Models\User;
 use App\Notifications\AnsCercaDeVencer;
+use App\Notifications\AprobarSet;
 use App\Notifications\CambioEstado;
 use App\Notifications\FlujoAcceso;
 use App\Notifications\NotificacionAprobacion;
@@ -204,7 +206,8 @@ class Show extends Component
         $this->loadTicket();
     }
 
-    public function flujoCambio(){
+    public function flujoCambio()
+    {
         $this->validate([
             'selectedFuncional' => 'required|exists:users,id',
             'selectedTi' => 'required|exists:users,id',
@@ -214,6 +217,8 @@ class Show extends Component
             'ticket_id' => $this->ticket->id,
             'aprobador_funcional_id' => $this->selectedFuncional,
             'aprobador_ti_id' => $this->selectedTi,
+            'aprobador_final_ti_id' => $this->selectedTi, // Mismo valor que aprobador_ti_id
+            'aprobador_user_id' => $this->ticket->usuario->id,
             'estado' => 'pendiente',
         ]);
 
@@ -241,7 +246,7 @@ class Show extends Component
         ]);
 
         // Notificar al líder funcional
-        $cambio->aprobadorFuncional->notify(new NotificacionAprobacion($cambio, $this->ticket));
+        $cambio->aprobadorFuncionalCambio->notify(new NotificacionAprobacion($cambio, $this->ticket));
         $this->ticket->usuario->notify(new CambioEstado($this->ticket));
 
 
@@ -580,7 +585,7 @@ class Show extends Component
 
     public function addComment()
     {
-        $this->validate(['newComment' => 'required|string', 'commentType' => 'required|integer|in:0,1,2']);
+        $this->validate(['newComment' => 'required|string', 'commentType' => 'required|integer|in:0,1,2,3,4']);
 
         // Crear el comentario y guardarlo en la variable $comentario
         $comentario = $this->ticket->comentarios()->create([
@@ -609,7 +614,7 @@ class Show extends Component
                 }
             }
         } else {
-            $this->ticket->update(['estado_id' => 3]);
+            // $this->ticket->update(['estado_id' => 3]);
 
             $this->ticket->update([
                 'estado_id' => 6
@@ -629,6 +634,8 @@ class Show extends Component
                 }
             }
         }
+
+
 
         // Limpiar el estado después de agregar el comentario
         $this->newComment = '';
@@ -678,7 +685,7 @@ class Show extends Component
             'ticket_id' => $this->ticket->id,
             'user_id' => Auth::id(),
             'accion' => 'Escalado',
-            'detalle' =>  $this->ticket->asignado->name.' Cambió el estado del ticket a: Escalado a consultoría',
+            'detalle' =>  $this->ticket->asignado->name . ' Cambió el estado del ticket a: Escalado a consultoría',
         ]);
 
         $this->ticket->usuario->notify(new CambioEstado($this->ticket));
@@ -687,7 +694,8 @@ class Show extends Component
         $this->loadTicket($this->ticket->id);
     }
 
-    public function consultoriaCambio(){
+    public function consultoriaCambio()
+    {
         $this->ticket->update([
             'estado_id' => 3
         ]);
@@ -696,13 +704,42 @@ class Show extends Component
             'ticket_id' => $this->ticket->id,
             'user_id' => Auth::id(),
             'accion' => 'FinEscalado',
-            'detalle' =>  $this->ticket->asignado->name.' Cambió el estado del ticket a: En atención',
+            'detalle' =>  $this->ticket->asignado->name . ' Cambió el estado del ticket a: En atención',
         ]);
 
         $this->ticket->usuario->notify(new CambioEstado($this->ticket));
 
         $this->emit('showToast', ['type' => 'success', 'message' => 'Cambio de estado a: En atención']);
         $this->loadTicket($this->ticket->id);
+    }
+
+    public function mandarParaAprobacion($id)
+    {
+        $comentario = Comentario::find($id);
+        // dd($comentario);
+        $comentario->update([
+            'check_comentario' => true
+        ]);
+
+        $this->ticket->update([
+            'estado_id' => 10
+        ]);
+
+        $this->ticket->cambio->update([
+            'check_aprobado' => true,
+        ]);
+
+
+        Historial::create([
+            'ticket_id' => $this->ticket->id,
+            'user_id' => Auth::id(),
+            'accion' => 'set ',
+            'detalle' => 'Esperando la aprobación del set de pruebas',
+        ]);
+
+        $this->ticket->cambio->aprobadorTiCambio->notify(new AprobarSet($this->ticket));
+        $this->emit('showToast', ['type' => 'success', 'message' => 'Enviado para aprobación']);
+        $this->loadTicket();
     }
 
     public function render()

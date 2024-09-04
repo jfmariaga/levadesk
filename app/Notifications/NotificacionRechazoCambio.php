@@ -7,7 +7,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class FinFlujoCambio extends Notification implements ShouldQueue
+class NotificacionRechazoCambio extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -26,9 +26,9 @@ class FinFlujoCambio extends Notification implements ShouldQueue
     public function toMail($notifiable)
     {
         return (new MailMessage)
-                    ->subject('Flujo de aprobación de cambios')
-                    ->line('El flujo de aprobación de cambios relacionado con el Ticket: ' . $this->ticket->nomenclatura . ' Ha finalizado')
-                    ->line('Resultado: ' . $this->ticket->cambio->estado)
+                    ->subject('Flujo de aprobación cambios de acceso ticket ' .$this->ticket->nomenclatura)
+                    ->line('El aprobador TI '. $this->ticket->cambio->aprobadorTiCambio->name .' No aprobó el requerimiento solicitado por el usuario en el ticket '. $this->ticket->nomenclatura)
+                    ->line('Motivo: ' . $this->ticket->cambio->comentarios_funcional)
                     ->action('Ver Ticket', url('/tickets/' . $this->ticket->id));
     }
 
@@ -37,7 +37,9 @@ class FinFlujoCambio extends Notification implements ShouldQueue
         return [
             'ticket_id' => $this->ticket->id,
             'nomenclatura' => $this->ticket->nomenclatura,
-            'estado' => $this->ticket->cambio->estado,
+            'aprobador_ti' => $this->ticket->cambio->aprobadorTiCambio->name ,
+            'motivo' => $this->ticket->cambio->comentarios_funcional ,
         ];
     }
 }
+

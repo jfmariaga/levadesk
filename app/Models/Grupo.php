@@ -15,12 +15,17 @@ class Grupo extends Model
     protected $fillable = ['nombre', 'descripcion'];
 
     public function usuarios()
-{
-    return $this->belongsToMany(User::class, 'grupo_user', 'grupo_id', 'user_id');
-}
+    {
+        return $this->belongsToMany(User::class, 'grupo_user', 'grupo_id', 'user_id');
+    }
 
 
-    public function subcategorias(){
+    public function subcategorias()
+    {
         return $this->hasMany(Subcategoria::class);
+    }
+
+    public  function aplicaciones(){
+        return $this->hasMany(Aplicaciones::class);
     }
 }

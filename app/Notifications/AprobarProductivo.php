@@ -7,7 +7,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class FinFlujoCambio extends Notification implements ShouldQueue
+class AprobarProductivo extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -26,10 +26,10 @@ class FinFlujoCambio extends Notification implements ShouldQueue
     public function toMail($notifiable)
     {
         return (new MailMessage)
-                    ->subject('Flujo de aprobación de cambios')
-                    ->line('El flujo de aprobación de cambios relacionado con el Ticket: ' . $this->ticket->nomenclatura . ' Ha finalizado')
-                    ->line('Resultado: ' . $this->ticket->cambio->estado)
-                    ->action('Ver Ticket', url('/tickets/' . $this->ticket->id));
+            ->subject('Aprobación paso a productivo'. $this->ticket->nomenclatura)
+            ->line('Se aprobó el paso a producción')
+            ->line('El ticket '. $this->ticket->nomenclatura . ' ahora esta en estado: '. $this->ticket->estado->nombre  )
+            ->action('Ver Ticket', url('/tickets/' . $this->ticket->id));
     }
 
     public function toArray($notifiable)
@@ -37,7 +37,7 @@ class FinFlujoCambio extends Notification implements ShouldQueue
         return [
             'ticket_id' => $this->ticket->id,
             'nomenclatura' => $this->ticket->nomenclatura,
-            'estado' => $this->ticket->cambio->estado,
+            'estado' => $this->ticket->estado->nombre,
         ];
     }
 }

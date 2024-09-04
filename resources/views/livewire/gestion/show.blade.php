@@ -859,9 +859,9 @@
                                                             <strong>{{ $ticket->cambio->created_at->format('d/m/Y H:i') }}</strong>.
                                                         </p>
                                                         <p><strong>Líder funcional:</strong>
-                                                            {{ $ticket->cambio->aprobadorFuncional->name }}</p>
+                                                            {{ $ticket->cambio->aprobadorFuncionalCambio->name }}</p>
                                                         <p><strong>Aprobador TI:</strong>
-                                                            {{ $ticket->cambio->aprobadorTi->name }}</p>
+                                                            {{ $ticket->cambio->aprobadorTiCambio->name }}</p>
                                                         <p>Para ver el estado del flujo, observa el timeline del ticket.
                                                         </p>
                                                         <hr>
@@ -876,9 +876,9 @@
                                                         <p>El flujo de aprobación ha sido completado y aprobado. Por
                                                             favor ejecuta el requerimiento del usuario.</p>
                                                         <p><strong>Líder funcional:</strong>
-                                                            {{ $ticket->cambio->aprobadorFuncional->name }}</p>
+                                                            {{ $ticket->cambio->aprobadorFuncionalCambio->name }}</p>
                                                         <p><strong>Aprobador TI:</strong>
-                                                            {{ $ticket->cambio->aprobadorTi->name }}</p>
+                                                            {{ $ticket->cambio->aprobadorTiCambio->name }}</p>
                                                         <hr>
                                                     @endif
                                                 @else
@@ -915,39 +915,42 @@
                                                             @enderror
                                                         </div>
                                                         <div class="form-group col-3">
-                                                           <p> <span class="input-group-prepend">
-                                                                <label for="fileCambio" class="custom-file-upload">
-                                                                    <i class="fa fa-paperclip"></i>
-                                                                </label>
-                                                                <input type="file" id="fileCambio" name="file"
-                                                                    class="d-none" wire:model="newFileCambio">
-                                                            </span>
-                                                        </p>
+                                                            <p> <span class="input-group-prepend">
+                                                                    <label for="fileCambio"
+                                                                        class="custom-file-upload">
+                                                                        <i class="fa fa-paperclip"></i>
+                                                                    </label>
+                                                                    <input type="file" id="fileCambio"
+                                                                        name="file" class="d-none"
+                                                                        wire:model="newFileCambio">
+                                                                </span>
+                                                            </p>
                                                         </div>
                                                         @if ($newFileCambio)
-                                                        <div
-                                                            class="d-flex ml-1 col-12 align-items-center border-file p-2 rounded-file">
-                                                            <div class="mr-2">
-                                                                <i
-                                                                    class="fa fa-check-circle text-success-file"></i>
+                                                            <div
+                                                                class="d-flex ml-1 col-12 align-items-center border-file p-2 rounded-file">
+                                                                <div class="mr-2">
+                                                                    <i
+                                                                        class="fa fa-check-circle text-success-file"></i>
+                                                                </div>
+                                                                <div class="flex-grow-1-file">
+                                                                    <span>{{ $newFileCambio->getClientOriginalName() }}</span>
+                                                                </div>
+                                                                <div class="text-muted-file">
+                                                                    Subida completa
+                                                                </div>
+                                                                <div class="ml-2">
+                                                                    <button
+                                                                        class="btn btn-link-file text-danger-file p-0"
+                                                                        wire:click="removeFileCambio">
+                                                                        <i class="fa fa-times"></i>
+                                                                    </button>
+                                                                </div>
                                                             </div>
-                                                            <div class="flex-grow-1-file">
-                                                                <span>{{ $newFileCambio->getClientOriginalName() }}</span>
-                                                            </div>
-                                                            <div class="text-muted-file">
-                                                                Subida completa
-                                                            </div>
-                                                            <div class="ml-2">
-                                                                <button
-                                                                    class="btn btn-link-file text-danger-file p-0"
-                                                                    wire:click="removeFileCambio">
-                                                                    <i class="fa fa-times"></i>
-                                                                </button>
-                                                            </div>
-                                                        </div>
-                                                    @endif
+                                                        @endif
                                                         <div class="form-group col-3">
-                                                            <input type="submit"class="btn btn-outline-info btn-sm mt-4"
+                                                            <input
+                                                                type="submit"class="btn btn-outline-info btn-sm mt-4"
                                                                 value="Iniciar Flujo" wire:click="flujoCambio">
                                                         </div>
                                                         <div class="col-12 d-flex justify-content-center">
@@ -992,6 +995,42 @@
                                                                     {{ $ticket->comentario += 1 }}
                                                                 </span>
                                                             @else
+                                                                @if (
+                                                                    $ticket->cambio &&
+                                                                        $ticket->cambio->estado == 'aprobado' &&
+                                                                        $comentario->user_id == $ticket->cambio->aprobador_user_id)
+                                                                    <div
+                                                                        class="d-flex justify-content-end row mr-2 mb-2">
+                                                                        @if ($ticket->estado_id == 10 && $comentario->check_comentario == true)
+                                                                            <h5 class="badge text-white"
+                                                                                style="background-color: #666">Enviado
+                                                                                para aprobación de set de
+                                                                                priebas</h5>
+                                                                        @elseif($ticket->cambio->check_aprobado_ti == true && $comentario->check_comentario == true)
+                                                                            <h5 class="badge text-bg-dark"
+                                                                                style="background-color: #a3da92;">Se
+                                                                                aprobó el paso a producción</h5>
+                                                                        @else
+                                                                            <div class="dropdown">
+                                                                                @if ($ticket->cambio->check_aprobado_ti != true && $comentario->check_comentario != true)
+                                                                                    <button
+                                                                                        class="btn btn-info btn-sm dropdown-toggle"
+                                                                                        type="button"
+                                                                                        data-toggle="dropdown"
+                                                                                        aria-expanded="false">
+                                                                                @endif
+                                                                                </button>
+                                                                                <div class="dropdown-menu">
+                                                                                    <button
+                                                                                        wire:click="mandarParaAprobacion({{ $comentario->id }})"
+                                                                                        class="dropdown-item">Enviar
+                                                                                        para aprobación de set de
+                                                                                        pruebas</button>
+                                                                                </div>
+                                                                            </div>
+                                                                        @endif
+                                                                    </div>
+                                                                @endif
                                                                 <span
                                                                     class="badge color-respuesta-azul mr-2 float-right">Respuesta
                                                                     {{ $comentario->tipo == 1 ? 'Privada' : '' }}
@@ -1050,7 +1089,7 @@
                                                                     class="form-control form-control-sm">
                                                                     <option value="0">Público</option>
                                                                     <option value="1">Privado</option>
-                                                                    @if ($ticket->estado_id != 9)
+                                                                    @if ($ticket->estado_id != 9 && $ticket->estado_id != 10)
                                                                         @if (!$ticket->solucion())
                                                                             <option value="2">Solución</option>
                                                                         @endif

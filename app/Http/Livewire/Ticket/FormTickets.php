@@ -7,7 +7,7 @@ use App\Models\Sociedad;
 use App\Models\TipoSolicitud;
 use App\Models\Categoria;
 use App\Models\Subcategoria;
-use App\Models\Ans;
+use App\Models\ANS;
 use App\Models\Estado;
 use App\Models\Grupo;
 use App\Models\Historial;
