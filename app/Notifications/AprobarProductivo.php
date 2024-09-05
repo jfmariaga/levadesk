@@ -26,9 +26,9 @@ class AprobarProductivo extends Notification implements ShouldQueue
     public function toMail($notifiable)
     {
         return (new MailMessage)
-            ->subject('Aprobación paso a productivo'. $this->ticket->nomenclatura)
+            ->subject('Aprobación paso a productivo' . $this->ticket->nomenclatura)
             ->line('Se aprobó el paso a producción')
-            ->line('El ticket '. $this->ticket->nomenclatura . ' ahora esta en estado: '. $this->ticket->estado->nombre  )
+            ->line('El ticket ' . $this->ticket->nomenclatura . ' ahora esta en estado: ' . $this->ticket->estado->nombre)
             ->action('Ver Ticket', url('/tickets/' . $this->ticket->id));
     }
 

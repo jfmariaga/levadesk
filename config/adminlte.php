@@ -375,6 +375,11 @@ return [
             'route' => 'grupo',
             'icon' => 'fas fa-users',
         ],
+        [
+            'text' => 'Usuarios',
+            'route' => 'usuarios',
+            'icon' => 'fas fa-users',
+        ],
 
         ['header' => 'account_settings'],
         [

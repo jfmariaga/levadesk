@@ -368,7 +368,8 @@
                                 {{ $ticket->titulo }}, {{ $ticket->descripcion }}
                             </h5>
                             <p><i class="text-muted">{{ $ticket->sociedad->nombre }}>>{{ $ticket->tipoSolicitud->nombre }}>>{{ $ticket->categoria->nombre }}>>
-                                    {{ $ticket->subcategoria->nombre }}{{$ticket->aplicacion? '>>'.$ticket->aplicacion->nombre: ''}}</i></p>
+                                    {{ $ticket->subcategoria->nombre }}{{ $ticket->aplicacion ? '>>' . $ticket->aplicacion->nombre : '' }}</i>
+                            </p>
                             <div class="row">
                                 <div class="col-md-3">
                                     <p><strong>Urgencia:</strong> {{ $ticket->urgencia->nombre }}</p>
@@ -508,9 +509,8 @@
                                                                     <label for="file" class="custom-file-upload">
                                                                         <i class="fa fa-paperclip"></i>
                                                                     </label>
-                                                                    <input type="file" id="file"
-                                                                        name="file" class="d-none"
-                                                                        wire:model="newFile">
+                                                                    <input type="file" id="file" name="file"
+                                                                        class="d-none" wire:model="newFile">
                                                                 </span>
                                                             </div>
                                                             <div class="input-group-append">

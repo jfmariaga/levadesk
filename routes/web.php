@@ -43,6 +43,7 @@ Route::view('aprobar', 'admin.aprobacion.aprobar')->name('aprobar');
 Route::view('cambios', 'admin.cambios.index')->name('cambios');
 Route::view('cambio', 'admin.cambios.cambios')->name('cambio');
 Route::view('sociedades', 'admin.sociedad.aplicaciones')->name('sociedades');
+Route::view('usuarios', 'admin.usuarios.index')->name('usuarios');
 
 
 // Route::get('/search-users', function (Request $request) {
