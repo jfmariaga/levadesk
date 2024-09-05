@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Auth\VerificationController;
 use App\Models\User;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Support\Facades\Auth;
@@ -13,7 +14,21 @@ Route::get('/', function () {
     return view('auth.login');
 });
 
-Auth::routes();
+// Habilita la autenticación y las rutas de verificación de correo
+Auth::routes(['verify' => true]);
+
+// Ruta para mostrar la notificación de verificación de correo
+Route::get('/email/verify', function () {
+    return view('auth.verify'); // Vista donde se le pedirá al usuario que verifique su correo
+})->middleware('auth')->name('verification.notice');
+
+// Ruta para manejar la verificación de correo
+Route::get('/email/verify/{id}/{hash}', [VerificationController::class, 'verify'])
+    ->middleware(['auth', 'signed'])->name('verification.verify');
+
+// Ruta para reenviar el correo de verificación si el usuario no lo ha recibido
+Route::post('/email/resend', [VerificationController::class, 'resend'])
+    ->middleware(['auth', 'throttle:6,1'])->name('verification.resend');
 
 Route::get('storage-link', function(){
 	Artisan::call('cache:clear');
@@ -22,7 +37,12 @@ Route::get('storage-link', function(){
 	Artisan::call('storage:link');
 });
 
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+// Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+
+Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])
+    ->middleware('verified')
+    ->name('home');
+
 
 Route::view('sociedad', 'admin.sociedad.index')->name('sociedad');
 Route::view('tipo-solicitud', 'admin.solicitud.index')->name('solicitud');

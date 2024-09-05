@@ -9,7 +9,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     use HasApiTokens, HasFactory, Notifiable;
     use HasRoles;
@@ -22,6 +22,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'estado',        // Nuevo campo
+        'sociedad_id',   // Nuevo campo
     ];
 
     /**
@@ -114,5 +116,10 @@ class User extends Authenticatable
     public function aprobacionesTiCambios()
     {
         return $this->hasMany(Cambios::class, 'aprobador_ti_id');
+    }
+
+    public function sociedad()
+    {
+        return $this->belongsTo(Sociedad::class);
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\Sociedad;
 use App\Providers\RouteServiceProvider;
 use App\Models\User;
 use Illuminate\Foundation\Auth\RegistersUsers;
@@ -47,12 +48,29 @@ class RegisterController extends Controller
      * @param  array  $data
      * @return \Illuminate\Contracts\Validation\Validator
      */
+
+    public function showRegistrationForm()
+    {
+        // Carga todas las sociedades desde la base de datos
+        $sociedades = Sociedad::all();
+
+        // Retorna la vista 'auth.register' y le pasa la variable $sociedades
+        return view('auth.register', compact('sociedades'));
+    }
+
     protected function validator(array $data)
     {
         return Validator::make($data, [
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users', function ($attribute, $value, $fail) {
+                $allowedDomains = ['panalsas.com', 'levapan.com'];
+                $emailDomain = substr(strrchr($value, "@"), 1);
+                if (!in_array($emailDomain, $allowedDomains)) {
+                    $fail('El correo debe pertenecer a los dominios panalsas.com o levapan.com.');
+                }
+            }],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'sociedad_id' => ['required', 'exists:sociedades,id'],  // Validación para sociedad
         ]);
     }
 
@@ -64,10 +82,17 @@ class RegisterController extends Controller
      */
     protected function create(array $data)
     {
-        return User::create([
+        $user = User::create([
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
+            'estado' => true, // Por defecto, el estado es 'activo'
+            'sociedad_id' => $data['sociedad_id'], // Asigna la sociedad
         ]);
+
+        // Asigna el rol por defecto de usuario
+        $user->assignRole('Usuario');
+
+        return $user;
     }
 }

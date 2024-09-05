@@ -11,14 +11,16 @@ class Sociedad extends Model
 
     protected $table = 'sociedades';
 
-    protected $fillable = ['nombre', 'descripcion','estado','codigo'];
+    protected $fillable = ['nombre', 'descripcion', 'estado', 'codigo'];
 
     public function tickets()
     {
         return $this->hasMany(Ticket::class);
     }
 
-    public  function aplicaciones(){
+    public  function aplicaciones()
+    {
         return $this->hasMany(Aplicaciones::class);
     }
+
 }
