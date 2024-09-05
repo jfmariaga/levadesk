@@ -525,7 +525,7 @@ class Show extends Component
             'ticket_id' => $this->ticket->id,
             'user_id' => Auth::id(),
             'accion' => 'Impacto',
-            'detalle' => 'Se actualizó el impacto y el ANS Inical ' . ($ansCumplido ? 'se cumplió' : 'no se cumplió'),
+            'detalle' => 'Se actualizó el impacto y el ANS Inicial ' . ($ansCumplido ? 'se cumplió' : 'no se cumplió'),
         ]);
 
         // Calculando la prioridad

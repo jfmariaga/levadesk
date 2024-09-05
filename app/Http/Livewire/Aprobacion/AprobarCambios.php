@@ -112,7 +112,7 @@ class AprobarCambios extends Component
                 'ticket_id' => $this->ticket_id,
                 'user_id' => Auth::id(),
                 'accion' => 'Aprobación funcional',
-                'detalle' => $this->estado_aprobacion === 'aprobado_funcional' ? 'Aprobado  por el lider funcioanal.' : 'Rechazado por el lider funcional',
+                'detalle' => $this->estado_aprobacion === 'aprobado_funcional' ? 'Aprobado  por el líder funcional.' : 'Rechazado por el líder funcional',
             ]);
 
             if ($this->estado_aprobacion === 'aprobado_funcional') {
@@ -129,7 +129,7 @@ class AprobarCambios extends Component
                 Comentario::create([
                     'ticket_id' => $this->ticket->id,
                     'user_id' => 16,
-                    'comentario' => 'Debido a que el lider funcional no aprobo la solicitud de acceso, se rechaza el ticket con una calificacion de 4/5⭐',
+                    'comentario' => 'Debido a que el líder funcional no aprobó la solicitud de cambios se rechaza el ticket con una calificación de 4/5⭐',
                     'calificacion' => 4,
                 ]);
 
@@ -267,7 +267,7 @@ class AprobarCambios extends Component
         ]);
 
         $this->ticket->asignado->notify(new AprobarProductivo($this->ticket));
-        $this->emit('showToast', ['type' => 'success', 'message' => 'Se aprobo el set de pruebas']);
+        $this->emit('showToast', ['type' => 'success', 'message' => 'Se aprobó el set de pruebas']);
         $this->verTicket();
     }
 
@@ -293,7 +293,7 @@ class AprobarCambios extends Component
         ]);
 
         $this->ticket->asignado->notify(new NoAprobarProductivo($this->ticket));
-        $this->emit('showToast', ['type' => 'warning', 'message' => 'No se aprobo el paso a producción']);
+        $this->emit('showToast', ['type' => 'warning', 'message' => 'No se aprobó el paso a producción']);
         $this->verTicket();
     }
 

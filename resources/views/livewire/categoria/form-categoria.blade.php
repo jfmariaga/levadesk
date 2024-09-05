@@ -3,9 +3,9 @@
         <div class="modal-header">
             <h5 class="modal-title">
                 @if ($categoria_old)
-                    <i class="fas fa-edit"></i> Editar categoria
+                    <i class="fas fa-edit"></i> Editar categoría
                 @else
-                    <i class="fas fa-plus"></i> Nueva categoria
+                    <i class="fas fa-plus"></i> Nueva categoría
                 @endif
             </h5>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close" wire:click="resetear">
@@ -86,7 +86,7 @@
                 $('#form_categoria').modal('hide');
                 toastRight('success', 'Categoria editada con éxito!');
             })
-            
+
             Livewire.on('selectSolicitud', (id = null) => {
                 if (id) {
                     $('#solicitud').val(id).select2().trigger('change');

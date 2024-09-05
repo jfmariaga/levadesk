@@ -129,7 +129,7 @@ class VerTicket extends Component
         Historial::create([
             'ticket_id' => $this->ticket->id,
             'user_id' => auth()->id(),
-            'accion' => 'No aceptacion',
+            'accion' => 'No aceptación',
             'detalle' => 'El usuario no aceptó la solución.',
         ]);
 
