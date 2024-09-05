@@ -26,7 +26,7 @@ class RechazoFlujo extends Notification implements ShouldQueue
     {
         return (new MailMessage)
                     ->subject('Solicitud Rechazada ')
-                    ->line('La solicitud de gestion de acceso relacionada con el ticket ' . $this->ticket->nomenclatura . '.')
+                    ->line('La solicitud de gestión de acceso relacionada con el ticket ' . $this->ticket->nomenclatura . '.')
                     ->line('No fue aprobada por ' . $this->ticket->aprobacion->aprobadorFuncional->name)
                     ->line('Motivo: ' . $this->ticket->aprobacion->comentarios_funcional)
                     ->line('El estado del ticket es '. $this->ticket->estado->nombre)

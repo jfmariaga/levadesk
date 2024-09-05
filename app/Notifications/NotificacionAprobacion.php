@@ -30,8 +30,8 @@ class NotificacionAprobacion extends Notification implements ShouldQueue
         return (new MailMessage)
                     ->subject('Aprobación requerida')
                     ->line('El agente TI ' . $this->ticket->asignado->name .' Te ha asignado como aprobador para el ticket: ' . $this->ticket->nomenclatura)
-                    ->line('Por favor ingresa a LevaDesk y dirigete a la sección de aprobaciones')
-                    ->action('Ver aprobacion', url('/tickets/' . $this->ticket->id));
+                    ->line('Por favor ingresa a LevaDesk y dirígete a la sección de aprobaciones')
+                    ->action('Ver aprobación', url('/tickets/' . $this->ticket->id));
     }
 
     public function toArray($notifiable)
