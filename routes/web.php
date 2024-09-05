@@ -14,6 +14,8 @@ Route::get('/', function () {
     return view('auth.login');
 });
 
+
+
 // Habilita la autenticación y las rutas de verificación de correo
 Auth::routes(['verify' => true]);
 
