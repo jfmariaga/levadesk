@@ -9,7 +9,7 @@ use Spatie\Permission\Models\Role;
 
 class FormUsuarios extends Component
 {
-    public $name, $email, $rol, $sociedad, $estado;
+    public $name, $email, $rol, $sociedad_id, $estado;
     public $usuario_old;
     public $sociedades =[];
     public $roles =[];
@@ -18,9 +18,9 @@ class FormUsuarios extends Component
 
     protected $rules = [
         'name' => 'required|string|max:255',
-        'email' => 'required|max:2',
+        'email' => 'required',
         'rol' => 'required',
-        'sociedad' => 'required',
+        'sociedad_id' => 'required',
         'estado' => 'required',
     ];
 
@@ -35,9 +35,13 @@ class FormUsuarios extends Component
         $this->usuario_old = User::find($id);
         $this->name = $this->usuario_old->name;
         $this->email  = $this->usuario_old->email;
-        $this->rol  = $this->usuario_old->getRoleNames();
-        $this->sociedad  = $this->usuario_old->sociedad_id;
+        $this->rol  = $this->usuario_old->roles->pluck('id');
+        $this->sociedad_id  = $this->usuario_old->sociedad_id;
         $this->estado  = $this->usuario_old->estado;
+        // dd($this->rol);
+
+        $this->emit('selectSociedad', $this->sociedad_id);
+        $this->emit('selectRol', $this->rol);
     }
 
     public function actualizar(){
@@ -46,11 +50,12 @@ class FormUsuarios extends Component
         if ($this->usuario_old) {
              $this->usuario_old->name = $this->name;
              $this->usuario_old->email = $this->email;
-             $this->usuario_old->sociedad_id = $this->sociedad;
+             $this->usuario_old->sociedad_id = $this->sociedad_id;
              $this->usuario_old->estado = $this->estado;
-             $this->usuario_old->roles()->sync($this->role);
+             $this->usuario_old->roles()->sync($this->rol);
              $this->usuario_old->update();
              $this->emit('usuario_actualizado');
+             $this->emit('cargarUsuarios');
              $this->resetear();
         }
     }
