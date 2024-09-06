@@ -70,4 +70,6 @@ Route::group(['middleware' => ['auth', 'verified']], function () {
         Route::view('cambios', 'admin.cambios.index')->name('cambios');
         Route::view('cambio', 'admin.cambios.cambios')->name('cambio');
     });
+
+    Route::view('perfil', 'admin.perfil.perfil')->name('perfil');
 });

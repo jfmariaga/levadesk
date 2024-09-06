@@ -63,12 +63,14 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function adminlte_desc()
     {
-        return 'I\'m a nice guy';
+        // Retorna una breve descripción o cargo del usuario.
+        return $this->hasRole('Admin') ? 'Administrador' : 'Usuario';
     }
 
     public function adminlte_profile_url()
     {
-        return 'profile/username';
+        // Aquí se puede retornar la URL del perfil del usuario.
+        return route('perfil');
     }
 
     public function comentarios()

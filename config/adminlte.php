@@ -404,13 +404,13 @@ return [
 
         ['header' => 'account_settings'],
         [
-            'text' => 'profile',
-            'url' => 'admin/settings',
+            'text' => 'Perfil',
+            'route' => 'perfil',
             'icon' => 'fas fa-fw fa-user',
         ],
         [
-            'text' => 'change_password',
-            'url' => 'admin/settings',
+            'text' => 'Cambiar contraseña',
+            'route' => 'perfil',
             'icon' => 'fas fa-fw fa-lock',
         ],
     ],
