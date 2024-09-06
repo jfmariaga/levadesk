@@ -13,6 +13,10 @@
                 <a href="javascript:exportTabla('pdf')" class="btn-lg btn-default text-danger mx-1 shadow">
                     <i class="far fa-file-pdf"></i>
                 </a>
+                <a href="#" data-toggle="modal" data-target="#form_usuarios" id="btn_form_usuarios"
+                    class="btn-lg btn-default mx-1 shadow d-none">
+                    <i class="fas fa-plus"></i> usuarios
+                </a>
             </div>
             <table class="table table-striped tabla_ans d-none" style="width:100%;">
                 <thead>
@@ -142,10 +146,10 @@
                 }
             }
 
-            // function editar(id) {
-            //     $('#btn_form_ans').click();
-            //     Livewire.emit('editAns', id);
-            // }
+            function editar(id) {
+                $('#btn_form_usuarios').click();
+                Livewire.emit('editUsuarios', id);
+            }
         </script>
     @endpush
 </div>

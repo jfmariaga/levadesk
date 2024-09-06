@@ -12,6 +12,6 @@
     </div>
 @stop
 
-{{-- @section('modals')
-    @include('admin.ans.modal_add_ans')
-@endsection --}}
+@section('modals')
+    @include('admin.usuarios.modal_add_usuarios')
+@endsection
