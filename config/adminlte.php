@@ -303,11 +303,13 @@ return [
             'text' => 'Tickets',
             'route' => 'ticket',
             'icon' => 'fas fa-paper-plane',
+            'can' => 'ticket',
         ],
         [
             'text' => ' Gestion de tickets',
             'route' => 'gestion',
             'icon' => 'fas fa-edit',
+            'can' => 'gestion',
         ],
         [
             'text' => 'Aprobación',
@@ -316,69 +318,88 @@ return [
                 [
                     'text' => 'Accesos',
                     'route' => 'aprobacion',
+                    'can' => 'aprobacion',
+
 
                 ],
                 [
                     'text' => 'Cambios',
                     'route' => 'cambios',
+                    'can' => 'cambios',
+
                 ],
             ],
         ],
-        ['header' => 'ADMINISTRADOR'],
+        [
+            'header' => 'ADMINISTRADOR',
+            'can' => 'sociedad',
+        ],
+
         [
             'text' => 'Sociedades',
             'route' => 'sociedad',
             'icon' => 'fas fa-fw fa-building',
+            'can' => 'sociedad',
         ],
         [
             'text' => 'Tipo de solicitud',
             'route' => 'solicitud',
             'icon' => 'fas fa-edit',
+            'can' => 'solicitud',
         ],
         [
             'text' => 'Categorias',
             'route' => 'categoria',
             'icon' => 'fas fa-list',
+            'can' => 'categoria',
         ],
         [
             'text' => 'Subcategorias',
             'route' => 'subcategoria',
             'icon' => 'fas fa-boxes',
+            'can' => 'subcategoria',
         ],
         [
             'text' => 'ANS',
             'route' => 'ans',
             'icon' => 'fas fa-stopwatch',
+            'can' => 'ans',
         ],
         [
             'text' => 'Estados',
             'route' => 'estado',
             'icon' => 'fas fa-clock text-muted',
+            'can' => 'estado',
         ],
         [
             'text' => 'Cargos',
             'route' => 'cargo',
             'icon' => 'fas fa-address-card',
+            'can' => 'cargo',
         ],
         [
             'text' => 'Urgencia',
             'route' => 'urgencia',
             'icon' => 'fas fa-bolt',
+            'can' => 'urgencia',
         ],
         [
             'text' => 'Impacto',
             'route' => 'impacto',
             'icon' => 'fas fa-wave-square',
+            'can' => 'impacto',
         ],
         [
             'text' => 'Grupos',
             'route' => 'grupo',
             'icon' => 'fas fa-users',
+            'can' => 'grupo',
         ],
         [
             'text' => 'Usuarios',
             'route' => 'usuarios',
             'icon' => 'fas fa-users',
+            'can' => 'usuarios',
         ],
 
         ['header' => 'account_settings'],
@@ -392,60 +413,6 @@ return [
             'url' => 'admin/settings',
             'icon' => 'fas fa-fw fa-lock',
         ],
-        // [
-        //     'text' => 'multilevel',
-        //     'icon' => 'fas fa-fw fa-share',
-        //     'submenu' => [
-        //         [
-        //             'text' => 'level_one',
-        //             'url' => '#',
-        //         ],
-        //         [
-        //             'text' => 'level_one',
-        //             'url' => '#',
-        //             'submenu' => [
-        //                 [
-        //                     'text' => 'level_two',
-        //                     'url' => '#',
-        //                 ],
-        //                 [
-        //                     'text' => 'level_two',
-        //                     'url' => '#',
-        //                     'submenu' => [
-        //                         [
-        //                             'text' => 'level_three',
-        //                             'url' => '#',
-        //                         ],
-        //                         [
-        //                             'text' => 'level_three',
-        //                             'url' => '#',
-        //                         ],
-        //                     ],
-        //                 ],
-        //             ],
-        //         ],
-        //         [
-        //             'text' => 'level_one',
-        //             'url' => '#',
-        //         ],
-        //     ],
-        // ],
-        // ['header' => 'labels'],
-        // [
-        //     'text' => 'important',
-        //     'icon_color' => 'red',
-        //     'url' => '#',
-        // ],
-        // [
-        //     'text' => 'warning',
-        //     'icon_color' => 'yellow',
-        //     'url' => '#',
-        // ],
-        // [
-        //     'text' => 'information',
-        //     'icon_color' => 'cyan',
-        //     'url' => '#',
-        // ],
     ],
 
     /*
