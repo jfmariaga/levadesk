@@ -13,16 +13,15 @@
                 <a href="javascript:exportTabla('pdf')" class="btn-lg btn-default text-danger mx-1 shadow">
                     <i class="far fa-file-pdf"></i>
                 </a>
-                {{-- <a href="#" data-toggle="modal" data-target="#form_ans" id="btn_form_ans"
-                    class="btn-lg btn-default mx-1 shadow">
-                    <i class="fas fa-plus"></i> ANSs
-                </a> --}}
             </div>
             <table class="table table-striped tabla_ans d-none" style="width:100%;">
                 <thead>
                     <tr>
                         <th>Nombre</th>
                         <th>Correo</th>
+                        <th>Rol</th>
+                        <th>Sociedad</th>
+                        <th>Estado</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
@@ -108,12 +107,20 @@
                             id,
                             name,
                             email,
+                            estado,
+                            roles,
+                            sociedad
                         } = element;
-console.log(element);
+
+                        // Aquí manejamos los roles como una cadena separada por comas
+                        const rolesString = roles.map(role => role.name).join(', ');
 
                         body.append(`<tr id="tr_${id}">
                             <td class="pointer">${name}</td>
                             <td class="pointer">${email}</td>
+                            <td class="pointer">${rolesString ? rolesString : 'Sin definir'}</td>
+                            <td class="pointer">${sociedad ? sociedad.nombre : 'Sin definir'}</td>
+                             <td class="pointer">${estado == 1 ?  '<span style="color: green;">✔</span>' : '<span style="color: red;">✘</span>'}</td>
                             <td>
                                 <div class="d-flex">
                                     <button onclick="editar(${id})" class="btn btn-xs btn-default text-primary mx-1 shadow" title="Edit">
