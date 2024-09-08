@@ -39,22 +39,36 @@
                         <img src="{{ Auth::user()->adminlte_image() }}" class="rounded-circle mb-3 profile-img" alt="Foto de perfil">
                         <h4 class="text-primary">{{ Auth::user()->name }}</h4>
                         <p class="text-muted">{{ Auth::user()->adminlte_desc() }}</p>
-                        <p class="mb-2"><strong>Sociedad:</strong> {{ $sociedad->nombre ?? 'No asignada' }}</p>
+                        <p class="mb-2"><strong>Sociedad:</strong> {{ $sociedad->name ?? 'No asignada' }}</p>
                         <p class="mb-0"><strong>Grupos de Atención:</strong></p>
                         <ul class="list-unstyled">
                             @foreach ($grupos as $grupo)
-                                <li>{{ $grupo->nombre }}</li>
+                                <li>{{ $grupo->name }}</li>
                             @endforeach
                         </ul>
                     </div>
                 </div>
             </div>
 
-            <!-- Main section: Actualizar perfil y Cambiar contraseña -->
+            <!-- Main section: Pestañas para "Actualizar perfil" y "Cambiar contraseña" -->
             <div class="col-md-8">
-                <div class="row">
-                    <!-- Actualizar Perfil -->
-                    <div class="col-md-7">
+                <ul class="nav nav-tabs" id="profileTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile"
+                            type="button" role="tab" aria-controls="profile" aria-selected="true">
+                            Actualizar Perfil
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="password-tab" data-bs-toggle="tab" data-bs-target="#password"
+                            type="button" role="tab" aria-controls="password" aria-selected="false">
+                            Cambiar Contraseña
+                        </button>
+                    </li>
+                </ul>
+                <div class="tab-content mt-3" id="profileTabsContent">
+                    <!-- Tab de Actualizar Perfil -->
+                    <div class="tab-pane fade show active" id="profile" role="tabpanel" aria-labelledby="profile-tab">
                         <div class="card shadow-sm mb-4">
                             <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
                                 <h5 class="card-title mb-0">Actualizar Perfil</h5>
@@ -89,8 +103,8 @@
                         </div>
                     </div>
 
-                    <!-- Cambiar Contraseña -->
-                    <div class="col-md-5">
+                    <!-- Tab de Cambiar Contraseña -->
+                    <div class="tab-pane fade" id="password" role="tabpanel" aria-labelledby="password-tab">
                         <div class="card shadow-sm">
                             <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
                                 <h5 class="card-title mb-0">Cambiar Contraseña</h5>
@@ -126,7 +140,7 @@
         </div>
     </div>
 
-    <!-- Incluyendo Toastr -->
+    <!-- Incluyendo Toastr para mensajes -->
     <script>
         window.addEventListener('toast', event => {
             toastr[event.detail.type](event.detail.message);
