@@ -408,11 +408,6 @@ return [
             'route' => 'perfil',
             'icon' => 'fas fa-fw fa-user',
         ],
-        [
-            'text' => 'Cambiar contraseña',
-            'route' => 'perfil',
-            'icon' => 'fas fa-fw fa-lock',
-        ],
     ],
 
     /*

@@ -24,6 +24,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'password',
         'estado',        // Nuevo campo
         'sociedad_id',   // Nuevo campo
+        'profile_photo',  // Nuevo campo
     ];
 
     /**
@@ -47,7 +48,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function grupos()
     {
-        return $this->belongsToMany(Grupo::class, 'user_grupo');
+        return $this->belongsToMany(Grupo::class, 'grupo_user', 'user_id', 'grupo_id');
     }
 
 
@@ -58,7 +59,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function adminlte_image()
     {
-        return 'https://picsum.photos/300/300';
+        return $this->profile_photo ? asset('storage/' . $this->profile_photo) : 'https://picsum.photos/300/300';
     }
 
     public function adminlte_desc()
