@@ -26,10 +26,11 @@ class FinFlujoCambio extends Notification implements ShouldQueue
     public function toMail($notifiable)
     {
         return (new MailMessage)
-                    ->subject('Flujo de aprobación de cambios')
-                    ->line('El flujo de aprobación de cambios relacionado con el Ticket: ' . $this->ticket->nomenclatura . ' Ha finalizado')
-                    ->line('Resultado: ' . $this->ticket->cambio->estado)
-                    ->action('Ver Ticket', url('/tickets/' . $this->ticket->id));
+            ->greeting('¡Hola! ' . $this->ticket->asignado->name)
+            ->subject('Flujo de aprobación de cambios')
+            ->line('El flujo de aprobación de cambios relacionado con el Ticket: ' . $this->ticket->nomenclatura . ' Ha finalizado')
+            ->line('Resultado: ' . $this->ticket->cambio->estado)
+            ->action('Ver Ticket', url('/tickets/' . $this->ticket->id));
     }
 
     public function toArray($notifiable)

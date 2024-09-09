@@ -26,13 +26,15 @@ class TicketAsignado extends Notification implements ShouldQueue
     public function toMail($notifiable)
     {
         return (new MailMessage)
-                    ->subject('Nuevo Ticket Asignado')
-                    ->line('Se le ha asignado un nuevo ticket.')
-                    ->line('Código del Ticket: ' . $this->ticket->nomenclatura)
-                    ->line('Estado: ' . $this->ticket->estado->nombre)
-                    ->line('Urgencia: ' . $this->ticket->urgencia->nombre)
-                    ->line('Titulo: ' . $this->ticket->titulo)
-                    ->action('Ver Ticket', url('/tickets/' . $this->ticket->id));
+            ->greeting('¡Hola! ' . $this->ticket->asignado->name)
+            ->subject('Nuevo Ticket Asignado')
+            ->line('Se le ha asignado un nuevo ticket.')
+            ->line('Generado por: ' . $this->ticket->usuario->name)
+            ->line('Código del Ticket: ' . $this->ticket->nomenclatura)
+            ->line('Estado: ' . $this->ticket->estado->nombre)
+            ->line('Urgencia: ' . $this->ticket->urgencia->nombre)
+            ->line('Titulo: ' . $this->ticket->titulo)
+            ->action('Ver Ticket',url('/home?ticket_id=' . $this->ticket->id));
     }
 
     public function toArray($notifiable)

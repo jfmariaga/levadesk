@@ -1184,6 +1184,20 @@
                                     <p><strong>Colaborador :</strong> {{ $colaborador->user->name }}</p>
                                 @endforeach
                             @endif
+                            @if ($ticket->cambio)
+                            <h5>Flujo de cambios</h5>
+                            <p><strong>Líder funcional:</strong>
+                                {{ $ticket->cambio->aprobadorFuncionalCambio->name }}</p>
+                            <p><strong>Aprobador TI:</strong>
+                                {{ $ticket->cambio->aprobadorTiCambio->name }}</p>
+                            @endif
+                            @if ($ticket->aprobacion)
+                            <h5>Flujo de accesos</h5>
+                            <p><strong>Líder funcional:</strong>
+                                {{ $ticket->aprobacion->aprobadorFuncional->name }}</p>
+                            <p><strong>Aprobador TI:</strong>
+                                {{ $ticket->aprobacion->aprobadorTi->name }}</p>
+                            @endif
                         </div>
                     </div>
                 </div>

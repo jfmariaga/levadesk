@@ -26,14 +26,14 @@ class TicketCreado extends Notification implements ShouldQueue
     public function toMail($notifiable)
     {
         return (new MailMessage)
+            ->greeting('¡Hola! ' . $this->ticket->usuario->name)
             ->subject('Ticket Creado Exitosamente')
             ->line('Su ticket ha sido creado con éxito.')
             ->line('Titulo: ' . $this->ticket->titulo)
             ->line('Código del Ticket: ' . $this->ticket->nomenclatura)
             ->line('Estado: ' . $this->ticket->estado->nombre)
             ->line('Urgencia: ' . $this->ticket->urgencia->nombre)
-            ->line('Agente TI Asignado: ' . $this->ticket->asignado->name)
-            ->action('Ver Ticket', url('/tickets/' . $this->ticket->id));
+            ->line('Agente TI Asignado: ' . $this->ticket->asignado->name);
     }
 
     public function toArray($notifiable)

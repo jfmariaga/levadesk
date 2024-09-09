@@ -28,12 +28,13 @@ class Reasignado extends Notification implements ShouldQueue
     public function toMail($notifiable)
     {
         return (new MailMessage)
-                    ->subject('Ticket reasignado' )
-                    ->line($this->usuarioOld->name . ' Te reasigno el ticket ' . $this->ticket->nomenclatura)
-                    ->line('Estado: ' . $this->ticket->estado->nombre)
-                    ->line('Urgencia: ' . $this->ticket->urgencia->nombre)
-                    ->line('Titulo: ' . $this->ticket->titulo)
-                    ->action('Ver Tarea', url('/tickets/' . $this->ticket->id));
+            ->greeting('¡Hola! ' . $this->ticket->asignado->name)
+            ->subject('Ticket reasignado')
+            ->line($this->usuarioOld->name . ' Te reasigno el ticket ' . $this->ticket->nomenclatura)
+            ->line('Estado: ' . $this->ticket->estado->nombre)
+            ->line('Urgencia: ' . $this->ticket->urgencia->nombre)
+            ->line('Titulo: ' . $this->ticket->titulo)
+            ->action('Ver Tarea', url('/tickets/' . $this->ticket->id));
     }
 
     public function toArray($notifiable)
