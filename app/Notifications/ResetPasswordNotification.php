@@ -47,11 +47,12 @@ class ResetPasswordNotification extends Notification implements ShouldQueue
             ->subject('Restablecer contraseña')
             ->greeting('Hola!')
             ->line('Recibiste este correo porque solicitaste un restablecimiento de contraseña para tu cuenta.')
-            ->action('Restablecer contraseña', url(route('password.reset', $this->token, false)))
+            ->action('Restablecer contraseña', url(config('app.url') . route('password.reset', $this->token, false)))
             ->line('Este enlace para restablecer la contraseña expirará en 60 minutos.')
             ->line('Si no solicitaste un restablecimiento de contraseña, no es necesario realizar ninguna acción.')
             ->salutation('Saludos, LevaDesk');
     }
+
 
     /**
      * Get the array representation of the notification.
@@ -66,4 +67,3 @@ class ResetPasswordNotification extends Notification implements ShouldQueue
         ];
     }
 }
-
