@@ -63,7 +63,7 @@ class RegisterController extends Controller
         return Validator::make($data, [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users', function ($attribute, $value, $fail) {
-                $allowedDomains = ['panalsas.com', 'levapan.com'];
+                $allowedDomains = ['panalsas.com', 'levapan.com','Levapan.com.do','levapan.com.ec','levacolsas.com'];
                 $emailDomain = substr(strrchr($value, "@"), 1);
                 if (!in_array($emailDomain, $allowedDomains)) {
                     $fail('El correo debe pertenecer a los dominios panalsas.com o levapan.com.');
