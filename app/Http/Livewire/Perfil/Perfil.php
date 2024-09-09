@@ -63,7 +63,7 @@ class Perfil extends Component
                 'regex:/[a-z]/',      // Debe contener al menos una minúscula
                 'regex:/[A-Z]/',      // Debe contener al menos una mayúscula
                 'regex:/[0-9]/',      // Debe contener al menos un número
-                'regex:/[@$!%*#?&]/', // Debe contener al menos un carácter especial
+                'regex:/[@$!%*#?&.]/', // Debe contener al menos un carácter especial
                 'confirmed',
             ],
         ]);
