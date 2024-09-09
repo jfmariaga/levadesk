@@ -15,20 +15,16 @@ class Aprobacion extends Component
     {
         $user = Auth::user();
 
-        // Asumiendo que tienes relaciones definidas en el modelo User
-        // para las aprobaciones funcionales y de TI, y que el modelo Aprobacion
-        // tiene una relación `ticket` que apunta al modelo Ticket.
-
+        // Aprobaciones Funcionales
         $this->aprobacionesFuncional = $user->aprobacionesFuncionales()
-            ->where(function ($query) {
-                $query->where('estado', 'pendiente')
-                    ->orWhere('estado', 'rechazado_ti');
-            })
             ->with(['ticket' => function ($query) {
                 $query->select('id', 'nomenclatura', 'usuario_id', 'asignado_a', 'estado_id')
                     ->with(['usuario:id,name', 'asignado:id,name', 'estado:id,nombre']);
             }])
             ->get()
+            ->sortBy(function ($aprobacion) {
+                return $aprobacion->estado === 'pendiente' || $aprobacion->estado === 'rechazado_ti' ? 0 : 1;
+            })
             ->map(function ($aprobacion) {
                 return [
                     'id' => $aprobacion->ticket->id,
@@ -40,13 +36,16 @@ class Aprobacion extends Component
             })
             ->toArray();
 
+        // Aprobaciones TI
         $this->aprobacionesTi = $user->aprobacionesTi()
-            ->where('estado', 'aprobado_funcional')
             ->with(['ticket' => function ($query) {
                 $query->select('id', 'nomenclatura', 'usuario_id', 'asignado_a', 'estado_id')
                     ->with(['usuario:id,name', 'asignado:id,name', 'estado:id,nombre']);
             }])
             ->get()
+            ->sortBy(function ($aprobacion) {
+                return $aprobacion->estado === 'aprobado_funcional' ? 0 : 1;
+            })
             ->map(function ($aprobacion) {
                 return [
                     'id' => $aprobacion->ticket->id,
@@ -58,6 +57,7 @@ class Aprobacion extends Component
             })
             ->toArray();
 
+        // Emitir los datos a las tablas correspondientes
         $this->emit('cargarAprobacionesFuncionalTabla', json_encode($this->aprobacionesFuncional));
         $this->emit('cargarAprobacionesTiTabla', json_encode($this->aprobacionesTi));
     }
