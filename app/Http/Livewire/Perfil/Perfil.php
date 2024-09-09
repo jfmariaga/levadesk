@@ -49,7 +49,7 @@ class Perfil extends Component
             'email' => $this->email,
         ]);
 
-        $this->dispatchBrowserEvent('toast', ['message' => 'Perfil actualizado con éxito.', 'type' => 'success']);
+        session()->flash('profile_updated', 'Perfil actualizado con éxito.');
     }
 
     public function updatePassword()
@@ -79,7 +79,7 @@ class Perfil extends Component
             'password' => Hash::make($this->password),
         ]);
 
-        $this->dispatchBrowserEvent('toast', ['message' => 'Contraseña actualizada con éxito.', 'type' => 'success']);
+        session()->flash('password_updated', 'Contraseña actualizada con éxito.');
     }
 
     public function render()

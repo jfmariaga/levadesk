@@ -39,11 +39,11 @@
                         <img src="{{ Auth::user()->adminlte_image() }}" class="rounded-circle mb-3 profile-img" alt="Foto de perfil">
                         <h4 class="text-primary">{{ Auth::user()->name }}</h4>
                         <p class="text-muted">{{ Auth::user()->adminlte_desc() }}</p>
-                        <p class="mb-2"><strong>Sociedad:</strong> {{ $sociedad->name ?? 'No asignada' }}</p>
+                        <p class="mb-2"><strong>Sociedad:</strong> {{ $sociedad->nombre ?? 'No asignada' }}</p>
                         <p class="mb-0"><strong>Grupos de Atención:</strong></p>
                         <ul class="list-unstyled">
                             @foreach ($grupos as $grupo)
-                                <li>{{ $grupo->name }}</li>
+                                <li>{{ $grupo->nombre }}</li>
                             @endforeach
                         </ul>
                     </div>
@@ -54,16 +54,16 @@
             <div class="col-md-8">
                 <ul class="nav nav-tabs" id="profileTabs" role="tablist">
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile"
-                            type="button" role="tab" aria-controls="profile" aria-selected="true">
+                        <a class="nav-link active" id="profile-tab" data-toggle="tab" href="#profile"
+                            role="tab" aria-controls="profile" aria-selected="true">
                             Actualizar Perfil
-                        </button>
+                        </a>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="password-tab" data-bs-toggle="tab" data-bs-target="#password"
-                            type="button" role="tab" aria-controls="password" aria-selected="false">
+                        <a class="nav-link" id="password-tab" data-toggle="tab" href="#password"
+                            role="tab" aria-controls="password" aria-selected="false">
                             Cambiar Contraseña
-                        </button>
+                        </a>
                     </li>
                 </ul>
                 <div class="tab-content mt-3" id="profileTabsContent">
@@ -78,20 +78,20 @@
                                 <form wire:submit.prevent="updateProfile" enctype="multipart/form-data">
                                     <div class="form-group mb-3">
                                         <label for="name" class="form-label">Nombre Completo</label>
-                                        <input type="text" wire:model="name" class="form-control form-control-sm" id="name">
+                                        <input type="text" wire:model.defer="name" class="form-control form-control-sm" id="name">
                                         @error('name') <span class="text-danger small">{{ $message }}</span> @enderror
                                     </div>
 
                                     <div class="form-group mb-3">
                                         <label for="email" class="form-label">Correo Electrónico</label>
-                                        <input type="email" wire:model="email" class="form-control form-control-sm" id="email">
+                                        <input type="email" wire:model.defer="email" class="form-control form-control-sm" id="email">
                                         @error('email') <span class="text-danger small">{{ $message }}</span> @enderror
                                     </div>
 
                                     <div class="form-group mb-3">
                                         <label for="profile_photo" class="form-label">Foto de Perfil</label>
                                         <div class="custom-file">
-                                            <input type="file" wire:model="profile_photo" class="custom-file-input" id="profile_photo">
+                                            <input type="file" wire:model.defer="profile_photo" class="custom-file-input" id="profile_photo">
                                             <label class="custom-file-label" for="profile_photo">Seleccionar archivo</label>
                                             @error('profile_photo') <span class="text-danger small">{{ $message }}</span> @enderror
                                         </div>
@@ -114,19 +114,19 @@
                                 <form wire:submit.prevent="updatePassword">
                                     <div class="form-group mb-3">
                                         <label for="current_password" class="form-label">Contraseña Actual</label>
-                                        <input type="password" wire:model="current_password" class="form-control form-control-sm" id="current_password">
+                                        <input type="password" wire:model.defer="current_password" class="form-control form-control-sm" id="current_password">
                                         @error('current_password') <span class="text-danger small">{{ $message }}</span> @enderror
                                     </div>
 
                                     <div class="form-group mb-3">
                                         <label for="password" class="form-label">Nueva Contraseña</label>
-                                        <input type="password" wire:model="password" class="form-control form-control-sm" id="password">
+                                        <input type="password" wire:model.defer="password" class="form-control form-control-sm" id="password">
                                         @error('password') <span class="text-danger small">{{ $message }}</span> @enderror
                                     </div>
 
                                     <div class="form-group mb-3">
                                         <label for="password_confirmation" class="form-label">Confirmar Nueva Contraseña</label>
-                                        <input type="password" wire:model="password_confirmation" class="form-control form-control-sm" id="password_confirmation">
+                                        <input type="password" wire:model.defer="password_confirmation" class="form-control form-control-sm" id="password_confirmation">
                                         @error('password_confirmation') <span class="text-danger small">{{ $message }}</span> @enderror
                                     </div>
 
@@ -146,4 +146,7 @@
             toastr[event.detail.type](event.detail.message);
         });
     </script>
+
+    <!-- Asegurarse de incluir Bootstrap JS versión 4 -->
+    {{-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script> --}}
 </div>
