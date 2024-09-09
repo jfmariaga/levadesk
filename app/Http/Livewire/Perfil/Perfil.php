@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Livewire\Perfil;
 
 use Illuminate\Support\Facades\Auth;
@@ -11,11 +12,19 @@ class Perfil extends Component
     use WithFileUploads;
 
     public $name, $email, $current_password, $password, $password_confirmation, $profile_photo;
+    public $activeSection = 'profile'; // Variable para almacenar la sección activa
 
     public function mount()
     {
         $this->name = Auth::user()->name;
         $this->email = Auth::user()->email;
+        $this->activeSection = session('activeSection', 'profile'); // Carga la sección activa desde la sesión
+    }
+
+    public function setActiveSection($section)
+    {
+        $this->activeSection = $section; // Actualiza la sección activa
+        session()->put('activeSection', $section); // Guarda la sección activa en la sesión
     }
 
     public function updateProfile()
@@ -34,7 +43,7 @@ class Perfil extends Component
                     }
                 }
             ],
-            'profile_photo' => 'nullable|image|max:1024',
+            'profile_photo' => 'nullable|image|mimes:jpg,jpeg,png|max:1024',
         ]);
 
         $user = Auth::user();
@@ -49,7 +58,10 @@ class Perfil extends Component
             'email' => $this->email,
         ]);
 
-        session()->flash('profile_updated', 'Perfil actualizado con éxito.');
+        $this->emit('showToast', ['type' => 'success', 'message' => 'Perfil actualizado con éxito.']);
+        $this->resetValidation();
+        $this->setActiveSection('profile'); // Mantiene la sección de perfil activa
+        $this->render();
     }
 
     public function updatePassword()
@@ -71,7 +83,7 @@ class Perfil extends Component
         $user = Auth::user();
 
         if (!Hash::check($this->current_password, $user->password)) {
-            $this->dispatchBrowserEvent('toast', ['message' => 'La contraseña actual no es correcta.', 'type' => 'error']);
+            $this->emit('showToast', ['type' => 'error', 'message' => 'La contraseña actual no es correcta.']);
             return;
         }
 
@@ -79,7 +91,9 @@ class Perfil extends Component
             'password' => Hash::make($this->password),
         ]);
 
-        session()->flash('password_updated', 'Contraseña actualizada con éxito.');
+        $this->emit('showToast', ['type' => 'success', 'message' => 'Contraseña actualizada con éxito.']);
+        $this->setActiveSection('password'); // Mantiene la sección de contraseña activa
+        $this->render();
     }
 
     public function render()
