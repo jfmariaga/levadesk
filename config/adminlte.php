@@ -402,7 +402,7 @@ return [
             'can' => 'usuarios',
         ],
 
-        ['header' => 'account_settings'],
+        ['header' => 'Configuración de cuenta'],
         [
             'text' => 'Perfil',
             'route' => 'perfil',
