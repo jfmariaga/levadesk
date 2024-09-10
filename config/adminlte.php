@@ -298,7 +298,7 @@ return [
             'type' => 'fullscreen-widget',
             'topnav_right' => true,
         ],
-        ['header' => 'GESTION DE TICKET'],
+        ['header' => 'GESTIÓN DE TICKET'],
         [
             'text' => 'Tickets',
             'route' => 'ticket',
@@ -306,7 +306,7 @@ return [
             'can' => 'ticket',
         ],
         [
-            'text' => ' Gestion de tickets',
+            'text' => ' Gestión de tickets',
             'route' => 'gestion',
             'icon' => 'fas fa-edit',
             'can' => 'gestion',
@@ -348,13 +348,13 @@ return [
             'can' => 'solicitud',
         ],
         [
-            'text' => 'Categorias',
+            'text' => 'Categorías',
             'route' => 'categoria',
             'icon' => 'fas fa-list',
             'can' => 'categoria',
         ],
         [
-            'text' => 'Subcategorias',
+            'text' => 'Subcategorías',
             'route' => 'subcategoria',
             'icon' => 'fas fa-boxes',
             'can' => 'subcategoria',
@@ -402,7 +402,7 @@ return [
             'can' => 'usuarios',
         ],
 
-        ['header' => 'Configuración de cuenta'],
+        ['header' => 'CONFIGURACIÓN DE LA CUENTA'],
         [
             'text' => 'Perfil',
             'route' => 'perfil',
