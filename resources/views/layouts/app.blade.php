@@ -23,6 +23,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pickadate.js/3.6.4/compressed/themes/default.css">
     <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/pickadate.js/3.6.4/compressed/themes/default.date.css">
+        <link rel="stylesheet" href="{{ asset('css/custom.css') }}">
     <style type="text/css">
         {{-- You can add AdminLTE customizations here --}}
     </style>

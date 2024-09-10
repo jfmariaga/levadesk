@@ -31,4 +31,10 @@
         <button type="submit" class="btn btn-link p-0 m-0 align-baseline">{{ __('Solicitar otro correo') }}</button>.
     </form>
 
+    <!-- Añade un enlace o botón para cerrar sesión -->
+    <form method="POST" action="{{ route('logout') }}" class="d-inline">
+        @csrf
+        <button type="submit" class="btn btn-link p-0 m-0 align-baseline">{{ __('Cerrar') }}</button>
+    </form>
+
 @stop

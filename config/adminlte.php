@@ -63,11 +63,11 @@ return [
     |
     */
 
-    'logo' => '',
+    'logo' => '<b>LevaDesk</b>',
     'logo_img' => 'vendor/adminlte/dist/img/AdminLTELogo.png',
-    'logo_img_class' => 'brand-image img-circle elevation-3',
+    'logo_img_class' => 'custom-logo brand-image img-circle',
     'logo_img_xl' => null,
-    'logo_img_xl_class' => 'brand-image-xs',
+    'logo_img_xl_class' => 'custom-logo-xl',
     'logo_img_alt' => 'Admin Logo',
 
     /*
@@ -86,11 +86,11 @@ return [
     'auth_logo' => [
         'enabled' => false,
         'img' => [
-            'path' => 'vendor/adminlte/dist/img/AdminLTELogo.png',
+            'path' => 'vendor/adminlte/dist/img/logo_levadesk.png',
             'alt' => 'Auth Logo',
             'class' => '',
-            'width' => 150,
-            'height' => 150,
+            'width' => 250,
+            'height' => null,
         ],
     ],
 
