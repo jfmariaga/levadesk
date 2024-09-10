@@ -66,7 +66,7 @@ class RegisterController extends Controller
                 $allowedDomains = ['panalsas.com', 'levapan.com','levapan.com.do','levapan.com.ec','levacolsas.com'];
                 $emailDomain = substr(strrchr($value, "@"), 1);
                 if (!in_array($emailDomain, $allowedDomains)) {
-                    $fail('El correo debe pertenecer a los dominios panalsas.com o levapan.com.');
+                    $fail('Debes de ingresar un correo corporativo');
                 }
             }],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
