@@ -513,7 +513,7 @@
                         <div class="card-header cabezera-aprobacion col-md-12">
                             <div class="d-flex align-items-center" style="background-color: #eeeeee">
                                 <div class="col-md-6">
-                                    <h5>Aprobación de Acceso</h5>
+                                    <h5>Aprobación de Cambios</h5>
                                 </div>
                             </div>
                         </div>

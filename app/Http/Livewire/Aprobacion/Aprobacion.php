@@ -22,16 +22,13 @@ class Aprobacion extends Component
                     ->with(['usuario:id,name', 'asignado:id,name', 'estado:id,nombre']);
             }])
             ->get()
-            ->sortBy(function ($aprobacion) {
-                return $aprobacion->estado === 'pendiente' || $aprobacion->estado === 'rechazado_ti' ? 0 : 1;
-            })
             ->map(function ($aprobacion) {
                 return [
                     'id' => $aprobacion->ticket->id,
                     'nomenclatura' => $aprobacion->ticket->nomenclatura,
                     'usuario' => $aprobacion->ticket->usuario->name ?? 'N/A',
                     'agente_ti' => $aprobacion->ticket->asignado->name ?? 'N/A',
-                    'estado' => $aprobacion->ticket->estado->nombre,
+                    'estado' => $aprobacion->estado,
                 ];
             })
             ->toArray();
@@ -52,7 +49,7 @@ class Aprobacion extends Component
                     'nomenclatura' => $aprobacion->ticket->nomenclatura,
                     'usuario' => $aprobacion->ticket->usuario->name ?? 'N/A',
                     'agente_ti' => $aprobacion->ticket->asignado->name ?? 'N/A',
-                    'estado' => $aprobacion->ticket->estado->nombre,
+                    'estado' => $aprobacion->estado,
                 ];
             })
             ->toArray();
