@@ -87,7 +87,7 @@ class Show extends Component
     public function mount()
     {
         $this->loadTicket();
-        $this->usuarios = User::all();  // Obtener todos los usuarios
+        $this->usuarios = User::where('estado', 1)->get();  // Obtener todos los usuarios activos
         $this->calcularTiempoRestante();
     }
 

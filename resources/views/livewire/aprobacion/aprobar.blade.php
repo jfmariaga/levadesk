@@ -344,12 +344,218 @@
                                     </div>
                                     <hr>
                                 </div>
+                                <div class="row">
+                                    <div class="col-12 comentario">
+                                        @if ($ticket->estado_id != 1)
+                                            <div>
+                                                @foreach ($ticket->comentarios as $comentario)
+                                                    <div class="card">
+                                                        <div class="direct-chat-infos clearfix mt-1">
+                                                            <span
+                                                                class="direct-chat-name float-left ml-2">{{ $comentario->user->name ?? 'Anónimo' }}</span>
+                                                            <span
+                                                                class="direct-chat-timestamp float-left ml-2">{{ $comentario->created_at->format('d M Y h:i a') }}</span>
+                                                            @if ($comentario->tipo == 2)
+                                                                @if ($ticket->estado_id != 4)
+                                                                    <div
+                                                                        class="d-flex justify-content-end row mr-2 mb-2">
+                                                                        <button
+                                                                            wire:click="aceptarSolucion({{ $comentario->id }})"
+                                                                            class="btn btn-outline-info btn-sm">
+                                                                            <i class="fas fa-check-circle"></i>
+                                                                        </button>
+                                                                        <button
+                                                                            wire:click="rechazarSolucion({{ $comentario->id }})"
+                                                                            class="btn btn-outline-danger btn-sm ml-2">
+                                                                            <i class="fas fa-times-circle"></i>
+                                                                        </button>
+                                                                    </div>
+                                                                @endif
+                                                                <span
+                                                                    class="badge color-verde-claro mr-2 float-right">Solución
+                                                                    {{ $ticket->comentario += 1 }}
+                                                                </span>
+                                                            @else
+                                                                @if ($comentario->tipo == 3)
+                                                                    <span
+                                                                        class="badge estado-por-iniciar mr-2 float-right">Solución
+                                                                        no aceptada. Respuesta
+                                                                        {{ $ticket->comentario += 1 }}
+                                                                    </span>
+                                                                @else
+                                                                    @if (
+                                                                        $ticket->estado_id == 10 &&
+                                                                            $ticket->cambio->check_aprobado &&
+                                                                            $ticket->cambio->aprobador_final_ti_id == Auth::id() &&
+                                                                            $comentario->check_comentario == true)
+                                                                        <div
+                                                                            class="d-flex justify-content-end row mr-2 mb-2">
+                                                                            <button wire:click="aprobarSet()"
+                                                                                class="btn btn-outline-info btn-sm">
+                                                                                <i class="fas fa-check-circle"></i>
+                                                                            </button>
+                                                                            <button
+                                                                                wire:click="rechazarSet({{ $comentario->id }})"
+                                                                                class="btn btn-outline-danger btn-sm ml-2">
+                                                                                <i class="fas fa-times-circle"></i>
+                                                                            </button>
+                                                                        </div>
+                                                                    @endif
+                                                                    <span
+                                                                        class="badge color-respuesta-azul mr-2 float-right">Respuesta
+                                                                        {{ $comentario->tipo == 1 ? 'Privada' : '' }}
+                                                                        {{ $ticket->comentario += 1 }}
+                                                                    </span>
+                                                                @endif
+                                                            @endif
+                                                        </div>
+                                                        <div
+                                                            class="direct-chat-text mr-2 mb-2 {{ $comentario->tipo == 2 ? 'color-verde-claro' : 'bg-light' }} ">
+                                                            {!! $comentario->comentario !!}
+                                                            @if ($comentario->archivos->count())
+                                                                <strong>Archivos:</strong>
+                                                                <ul class="list-unstyled">
+                                                                    @foreach ($comentario->archivos as $archivo)
+                                                                        <li>
+                                                                            <a href="{{ Storage::url($archivo->ruta) }}"
+                                                                                target="_blank">Adjunto</a>
+                                                                        </li>
+                                                                    @endforeach
+                                                                </ul>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                            @if ($ticket->estado_id != 4 && $ticket->estado_id != 5)
+                                                <div>
+                                                    <div class="card">
+                                                        <div class="card-body p-0">
+                                                            <div class="d-flex align-items-start">
+                                                                <div wire:ignore class="w-100">
+                                                                    <textarea name="editor" id="editor" class="form-control border-0" cols="30" rows="5"
+                                                                        placeholder="Escribe tu mensaje aquí..."></textarea>
+                                                                </div>
+                                                                @error('newComment')
+                                                                    <span class="text-danger">{{ $message }}</span>
+                                                                @enderror
+                                                            </div>
+                                                        </div>
+                                                        <div class="card-footer d-flex justify-content-between align-items-center"
+                                                            style="background-color: #eeeeee">
+                                                            <div class="input-group d-flex justify-content-between">
+                                                                <div class="d-flex align-items-center">
+                                                                    <span class="input-group-prepend">
+                                                                        <label for="file"
+                                                                            class="custom-file-upload">
+                                                                            <i class="fa fa-paperclip"></i>
+                                                                        </label>
+                                                                        <input type="file" id="file"
+                                                                            name="file" class="d-none"
+                                                                            wire:model="newFile">
+                                                                    </span>
+                                                                </div>
+                                                                <div class="input-group-append">
+                                                                    <button wire:click="addComment"
+                                                                        class="btn btn-outline-info btn-sm">Responder
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            @endif
+                                            <div class="col-12 d-flex justify-content-center">
+                                                <div wire:loading wire:target="newFile" class="" role="alert">
+                                                    <div class="spinner-border text-primary" role="status">
+                                                        <span class="text-center"></span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            @if ($newFile)
+                                                <div class="d-flex align-items-center border-file p-2 rounded-file">
+                                                    <div class="mr-2">
+                                                        <i class="fa fa-check-circle text-success-file"></i>
+                                                    </div>
+                                                    <div class="flex-grow-1-file">
+                                                        <span>{{ $newFile->getClientOriginalName() }}</span>
+                                                    </div>
+                                                    <div class="text-muted-file">
+                                                        Subida completa
+                                                    </div>
+                                                    <div class="ml-2">
+                                                        <button class="btn btn-link-file text-danger-file p-0"
+                                                            wire:click="removeFile">
+                                                            <i class="fa fa-times"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            @endif
+                                        @endif
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="col-12 col-md-3 mb-3">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Aprobación de Acceso</h5>
+                        </div>
+                        <div class="card-body">
+                            @if (
+                                $estado_aprobacion_old === 'pendiente' ||
+                                    $estado_aprobacion_old === 'aprobado_funcional' ||
+                                    $estado_aprobacion_old === 'rechazado_funcional' ||
+                                    $estado_aprobacion_old === 'rechazado_ti' ||
+                                    $estado_aprobacion_old === 'aprobado_ti')
+                                @if (
+                                    $aprobador_funcional_id === auth()->user()->id &&
+                                        ($estado_aprobacion_old === 'pendiente' || $estado_aprobacion_old === 'rechazado_ti'))
+                                    <div class="form-group">
+                                        <label for="estado_aprobacion_funcional">Aprobación Funcional:</label>
+                                        <select wire:model="estado_aprobacion" id="estado_aprobacion_funcional"
+                                            class="form-control">
+                                            <option value="">-- Seleccione --</option>
+                                            <option value="aprobado_funcional">Aprobar</option>
+                                            <option value="rechazado_funcional">Rechazar</option>
+                                        </select>
+                                    </div>
+                                    @if ($estado_aprobacion === 'rechazado_funcional')
+                                        <div class="form-group">
+                                            <label for="comentariosRechazo">Comentario (Obligatorio si
+                                                rechaza):</label>
+                                            <textarea wire:model="comentariosRechazo" id="comentariosRechazo" rows="3" class="form-control"></textarea>
+                                        </div>
+                                    @endif
+                                    <button wire:click="aprobarFuncional" class="btn btn-outline-info btn-sm">Confirmar</button>
+                                @elseif($aprobador_ti_id === auth()->user()->id && $estado_aprobacion_old === 'aprobado_funcional')
+                                    <div class="form-group">
+                                        <label for="estado_aprobacion_ti">Aprobación TI:</label>
+                                        <select wire:model="estado_aprobacion" class="form-control">
+                                            <option value="">-- Seleccione --</option>
+                                            <option value="aprobado_ti">Aprobar</option>
+                                            <option value="rechazado_ti">Rechazar</option>
+                                        </select>
+                                    </div>
+                                    @if ($estado_aprobacion === 'rechazado_ti')
+                                        <div class="form-group">
+                                            <label for="comentariosRechazo">Comentario (Obligatorio si
+                                                rechaza):</label>
+                                            <textarea wire:model="comentariosRechazo" id="comentariosRechazo" rows="3" class="form-control"></textarea>
+                                        </div>
+                                    @endif
+                                    <button wire:click="aprobarTi" class="btn btn-outline-info btn-sm">Confirmar</button>
+                                @else
+                                    <p>Ya aprobaste este ticket</p>
+                                @endif
+                            @else
+                                <p>El flujo de aprobación ya ha sido completado.</p>
+                            @endif
+                        </div>
+                    </div>
                     <div class="card">
                         <div class="card-header col-md-12">
                             <div class="d-flex align-items-center" style="background-color: #eeeeee">
@@ -367,74 +573,18 @@
                                 @endforeach
                             @endif
                             @if ($ticket->cambio)
-                            <h5>Flujo de cambios</h5>
-                            <p><strong>Líder funcional:</strong>
-                                {{ $ticket->cambio->aprobadorFuncionalCambio->name }}</p>
-                            <p><strong>Aprobador TI:</strong>
-                                {{ $ticket->cambio->aprobadorTiCambio->name }}</p>
+                                <h5>Flujo de cambios</h5>
+                                <p><strong>Líder funcional:</strong>
+                                    {{ $ticket->cambio->aprobadorFuncionalCambio->name }}</p>
+                                <p><strong>Aprobador TI:</strong>
+                                    {{ $ticket->cambio->aprobadorTiCambio->name }}</p>
                             @endif
                             @if ($ticket->aprobacion)
-                            <h5>Flujo de accesos</h5>
-                            <p><strong>Líder funcional:</strong>
-                                {{ $ticket->aprobacion->aprobadorFuncional->name }}</p>
-                            <p><strong>Aprobador TI:</strong>
-                                {{ $ticket->aprobacion->aprobadorTi->name }}</p>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-12 col-md-4 col-lg-4 mt-1">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5>Aprobación de Acceso</h5>
-                        </div>
-                        <div class="card-body">
-                            @if (
-                                    $estado_aprobacion_old === 'pendiente' ||
-                                    $estado_aprobacion_old === 'aprobado_funcional' ||
-                                    $estado_aprobacion_old === 'rechazado_funcional' ||
-                                    $estado_aprobacion_old === 'rechazado_ti' ||
-                                    $estado_aprobacion_old === 'aprobado_ti')
-                                @if ($aprobador_funcional_id === auth()->user()->id && ($estado_aprobacion_old === 'pendiente' || $estado_aprobacion_old === 'rechazado_ti'))
-                                    <div class="form-group">
-                                        <label for="estado_aprobacion_funcional">Aprobación Funcional:</label>
-                                        <select wire:model="estado_aprobacion" id="estado_aprobacion_funcional"
-                                            class="form-control">
-                                            <option value="">-- Seleccione --</option>
-                                            <option value="aprobado_funcional">Aprobar</option>
-                                            <option value="rechazado_funcional">Rechazar</option>
-                                        </select>
-                                    </div>
-                                    @if ($estado_aprobacion === 'rechazado_funcional')
-                                        <div class="form-group">
-                                            <label for="comentariosRechazo">Comentario (Obligatorio si rechaza):</label>
-                                            <textarea wire:model="comentariosRechazo" id="comentariosRechazo" rows="3" class="form-control"></textarea>
-                                        </div>
-                                    @endif
-                                    <button wire:click="aprobarFuncional" class="btn btn-primary">Confirmar</button>
-                                @elseif($aprobador_ti_id === auth()->user()->id && ($estado_aprobacion_old  === 'aprobado_funcional'))
-                                    <div class="form-group">
-                                        <label for="estado_aprobacion_ti">Aprobación TI:</label>
-                                        <select wire:model="estado_aprobacion"
-                                            class="form-control">
-                                            <option value="">-- Seleccione --</option>
-                                            <option value="aprobado_ti">Aprobar</option>
-                                            <option value="rechazado_ti">Rechazar</option>
-                                        </select>
-                                    </div>
-                                    @if ($estado_aprobacion === 'rechazado_ti')
-                                        <div class="form-group">
-                                            <label for="comentariosRechazo">Comentario (Obligatorio si rechaza):</label>
-                                            <textarea wire:model="comentariosRechazo" id="comentariosRechazo" rows="3" class="form-control"></textarea>
-                                        </div>
-                                    @endif
-                                    <button wire:click="aprobarTi" class="btn btn-primary">Confirmar</button>
-                                @else
-                                    <p>Ya aprobaste este ticket</p>
-                                @endif
-                            @else
-                                <p>El flujo de aprobación ya ha sido completado.</p>
+                                <h5>Flujo de accesos</h5>
+                                <p><strong>Líder funcional:</strong>
+                                    {{ $ticket->aprobacion->aprobadorFuncional->name }}</p>
+                                <p><strong>Aprobador TI:</strong>
+                                    {{ $ticket->aprobacion->aprobadorTi->name }}</p>
                             @endif
                         </div>
                     </div>
@@ -455,8 +605,36 @@
                 });
 
                 $('#estado_aprobacion').on('change', function() {
-                @this.set('estado_aprobacion_ti', $(this).val());
-            });
+                    @this.set('estado_aprobacion_ti', $(this).val());
+                });
+
+                function initializeEditor() {
+                    ClassicEditor
+                        .create(document.querySelector('#editor'))
+                        .then(function(editor) {
+                            editorInstance = editor; // Guardamos la instancia del editor
+                            editor.model.document.on('change:data', () => {
+                                @this.set('newComment', editor.getData());
+                            });
+                        })
+                        .catch(error => {
+                            console.log(error);
+                        });
+                }
+
+                initializeEditor();
+
+                Livewire.on('editorVisible', () => {
+                    initializeEditor();
+                });
+
+                Livewire.on('resetearEditor', i => {
+                    if (editorInstance) { // Verificar si editorInstance está definido
+                        editorInstance.setData(''); // Reseteamos el contenido del editor
+                    } else {
+                        console.error("Editor instance is not defined.");
+                    }
+                });
             });
         </script>
     @endpush

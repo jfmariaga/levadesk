@@ -190,6 +190,60 @@ class Aprobar extends Component
         $this->verTicket();
     }
 
+    public function addComment()
+    {
+        $this->validate(['newComment' => 'required|string']);
+
+        // Crear el comentario y guardarlo en la variable $comentario
+        $comentario = $this->ticket->comentarios()->create([
+            'user_id' => auth()->id(),
+            'comentario' => $this->newComment,
+            'tipo' => 0,
+        ]);
+
+        // Asocia el archivo con el comentario recién creado si existe
+        if ($this->newFile) {
+            $this->addFile($comentario->id);
+        }
+
+        $this->ticket->asignado->notify(new NuevoComentario($comentario));
+
+        if ($this->ticket->aprobacion->aprobadorFuncional) {
+            $this->ticket->aprobacion->aprobadorFuncional->notify(new NuevoComentario($comentario));
+        }
+
+        if ($this->ticket->aprobacion->aprobadorTi) {
+            $this->ticket->aprobacion->aprobadorTi->notify(new NuevoComentario($comentario));
+        }
+
+        // Limpiar el estado después de agregar el comentario
+        $this->newComment = '';
+        $this->verTicket('comentarios'); // Refresca los datos del ticket
+        $this->emit('resetearEditor');
+    }
+
+    public function addFile($comentario_id = null)
+    {
+        $this->validate(['newFile' => 'required|file|max:10240']);
+        $nombre_original = $this->newFile->getClientOriginalName();
+        $nombre_sin_extension = pathinfo($nombre_original, PATHINFO_FILENAME);
+        $extension = $this->newFile->getClientOriginalExtension();
+        $nombre_db = Str::slug($nombre_sin_extension);
+        $nombre_a_guardar = $nombre_db . '.' . $extension;
+        $path = $this->newFile->storeAs('public/tickets', $nombre_a_guardar);
+        // Guardar el archivo con la referencia al comentario (si existe) y al ticket
+        $this->ticket->archivos()->create([
+            'ruta' => $path,
+            'comentario_id' => $comentario_id,
+        ]);
+        $this->newFile = null;
+        $this->verTicket($this->ticket->id); // Refresh ticket data
+    }
+    public function removeFile()
+    {
+        // Remover el archivo temporal
+        $this->reset('newFile');
+    }
 
     public function render()
     {
