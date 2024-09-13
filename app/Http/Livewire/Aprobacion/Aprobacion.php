@@ -34,15 +34,12 @@ class Aprobacion extends Component
             ->toArray();
 
         // Aprobaciones TI
-        $this->aprobacionesTi = $user->aprobacionesTi()
+        $this->aprobacionesTi = $user->aprobacionesTi()->where('estado', '!=','pendiente')->where('estado', '!=','rechazado_funcional')
             ->with(['ticket' => function ($query) {
                 $query->select('id', 'nomenclatura', 'usuario_id', 'asignado_a', 'estado_id')
                     ->with(['usuario:id,name', 'asignado:id,name', 'estado:id,nombre']);
             }])
             ->get()
-            ->sortBy(function ($aprobacion) {
-                return $aprobacion->estado === 'aprobado_funcional' ? 0 : 1;
-            })
             ->map(function ($aprobacion) {
                 return [
                     'id' => $aprobacion->ticket->id,
