@@ -9,9 +9,9 @@
         }
     </style>
 
-    @if (Auth::user()->id === $usuarioId)
+    @if (Auth::user()->id === $usuarioId->id)
         <div class="row">
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <div class=" card small-box card-solicitudes-por-iniciar">
                     <div class="inner">
                         <h3>{{ $ticketsAbiertos }}</h3>
@@ -22,7 +22,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <div class="card small-box card-solicitudes-en-proceso">
                     <div class="inner">
                         <h3>{{ $ticketsEnProceso }}</h3>
@@ -33,7 +33,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <div class="card small-box card-total-solucionados">
                     <div class="inner">
                         <h3>{{ $ticketsCerrados }}</h3>
@@ -44,7 +44,31 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
+                <div class="card small-box card-tickets-rechazados">
+                    <div class="inner">
+                        <h3>{{ $ticketsRechazados }}</h3>
+                        <p>Tickets Rechazados</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-times-circle"></i>
+                    </div>
+                </div>
+            </div>
+            @if ($usuarioId->roles->first()->name == 'Admin' || $usuarioId->roles->first()->name == 'Aprobador' || ($usuarioId->roles->first()->name == 'Agente' && $aprobacion > 0))
+                <div class="col-md-2">
+                    <div class="card small-box bg-info">
+                        <div class="inner">
+                            <h3>{{ $aprobacion }}</h3>
+                            <p>Tickets por aprobar</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-thumbs-up"></i>
+                        </div>
+                    </div>
+                </div>
+            @endif
+            <div class="col-md-2">
                 <div class="card small-box color-azul">
                     <div class="inner">
                         <h3>{{ $ticketsTotal }}</h3>

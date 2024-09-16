@@ -112,6 +112,11 @@
             color: #ffffff;
         }
 
+        .card-tickets-rechazados {
+            background-color: #ff391f;
+            color: #ffffff;
+        }
+
         .card-horas-soporte {
             background-color: #8BC34A;
             color: #ffffff;
