@@ -2,6 +2,7 @@
 
 {{-- Extend and customize the browser title --}}
 
+
 @section('title')
     {{ config('adminlte.title') }}
     @hasSection('subtitle')
@@ -23,7 +24,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pickadate.js/3.6.4/compressed/themes/default.css">
     <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/pickadate.js/3.6.4/compressed/themes/default.date.css">
-        <link rel="stylesheet" href="{{ asset('css/custom.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/custom.css') }}">
     <style type="text/css">
         {{-- You can add AdminLTE customizations here --}}
     </style>
@@ -328,6 +329,7 @@
         }
     </style>
 @endpush
+<!-- Aquí incluimos el navbar personalizado -->
 @section('content_header')
     @hasSection('content_header_title')
         <h1 class="text-muted">
@@ -348,12 +350,14 @@
 {{-- Rename section content to content_body --}}
 
 @section('content')
+    @include('layouts.navbar')
     @yield('content_body')
 @stop
 
 {{-- Create a common footer --}}
 
 @section('footer')
+
     {{-- <div class="float-right">
         Version: {{ config('app.version', '1.0.0') }}
     </div>

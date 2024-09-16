@@ -133,12 +133,12 @@ return [
     |
     */
 
-    'usermenu_enabled' => true,
-    'usermenu_header' => true,
+    'usermenu_enabled' => false,
+    'usermenu_header' => false,
     'usermenu_header_class' => 'bg-info',
-    'usermenu_image' => true,
-    'usermenu_desc' => true,
-    'usermenu_profile_url' => true,
+    'usermenu_image' => false,
+    'usermenu_desc' => false,
+    'usermenu_profile_url' => false,
 
     /*
     |--------------------------------------------------------------------------
@@ -294,10 +294,6 @@ return [
     */
 
     'menu' => [
-        [
-            'type' => 'fullscreen-widget',
-            'topnav_right' => true,
-        ],
         ['header' => 'GESTIÓN DE TICKET'],
         [
             'text' => 'Tickets',

@@ -15,7 +15,7 @@
                 <div class=" card small-box card-solicitudes-por-iniciar">
                     <div class="inner">
                         <h3>{{ $ticketsAbiertos }}</h3>
-                        <p>Tickets Por Iniciar</p>
+                        <p>Por iniciar</p>
                     </div>
                     <div class="icon">
                         <i class="fas fa-folder"></i>
@@ -26,7 +26,7 @@
                 <div class="card small-box card-solicitudes-en-proceso">
                     <div class="inner">
                         <h3>{{ $ticketsEnProceso }}</h3>
-                        <p>Tickets en atención</p>
+                        <p>En atención</p>
                     </div>
                     <div class="icon">
                         <i class="fas fa-tasks"></i>
@@ -37,7 +37,7 @@
                 <div class="card small-box card-total-solucionados">
                     <div class="inner">
                         <h3>{{ $ticketsCerrados }}</h3>
-                        <p>Tickets Solucionados</p>
+                        <p>Solucionados</p>
                     </div>
                     <div class="icon">
                         <i class="fas fa-check-circle"></i>
@@ -48,7 +48,7 @@
                 <div class="card small-box card-tickets-rechazados">
                     <div class="inner">
                         <h3>{{ $ticketsRechazados }}</h3>
-                        <p>Tickets Rechazados</p>
+                        <p>Rechazados</p>
                     </div>
                     <div class="icon">
                         <i class="fas fa-times-circle"></i>
@@ -60,7 +60,7 @@
                     <div class="card small-box bg-info">
                         <div class="inner">
                             <h3>{{ $aprobacion }}</h3>
-                            <p>Tickets por aprobar</p>
+                            <p>Por aprobar</p>
                         </div>
                         <div class="icon">
                             <i class="fas fa-thumbs-up"></i>

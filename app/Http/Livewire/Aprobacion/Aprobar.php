@@ -131,6 +131,9 @@ class Aprobar extends Component
                 $this->ticket->usuario->notify(new RechazoFlujo($this->ticket));
                 $this->ticket->asignado->notify(new RechazoFlujo($this->ticket));
             }
+
+            // Emitir un evento de Livewire para que el componente de notificaciones actualice las aprobaciones
+            $this->emit('actualizarNotificaciones');
             $this->emit('showToast', ['type' => 'success', 'message' => 'La aprobación funcional ha sido ' . $this->estado_aprobacion . '.']);
         } else {
             $this->emit('showToast', ['type' => 'error', 'message' => 'No se pudo actualizar la aprobación.']);
@@ -181,6 +184,7 @@ class Aprobar extends Component
             } else {
                 $this->ticket->aprobacion->aprobadorFuncional->notify(new NotificacionRechazo($this->ticket));
             }
+            $this->emit('actualizarNotificaciones');
 
             $this->emit('showToast', ['type' => 'success', 'message' => 'La aprobación TI ha sido ' . $this->estado_aprobacion . '.']);
         } else {

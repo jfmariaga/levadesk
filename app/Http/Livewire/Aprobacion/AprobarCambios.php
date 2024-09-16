@@ -136,6 +136,8 @@ class AprobarCambios extends Component
                 $this->ticket->usuario->notify(new RechazoFlujoCambio($this->ticket));
                 $this->ticket->asignado->notify(new RechazoFlujoCambio($this->ticket));
             }
+            $this->emit('actualizarNotificaciones');
+
             $this->emit('showToast', ['type' => 'success', 'message' => 'La aprobación funcional ha sido ' . $this->estado_aprobacion . '.']);
         } else {
             $this->emit('showToast', ['type' => 'error', 'message' => 'No se pudo actualizar la aprobación.']);
@@ -186,6 +188,8 @@ class AprobarCambios extends Component
             } else {
                 $this->ticket->cambio->aprobadorFuncionalCambio->notify(new NotificacionRechazoCambio($this->ticket));
             }
+            $this->emit('actualizarNotificaciones');
+
 
             $this->emit('showToast', ['type' => 'success', 'message' => 'La aprobación TI ha sido ' . $this->estado_aprobacion . '.']);
         } else {
@@ -250,7 +254,8 @@ class AprobarCambios extends Component
         $this->reset('newFile');
     }
 
-    public function aprobarSet(){
+    public function aprobarSet()
+    {
         $this->ticket->update([
             'estado_id' => 3
         ]);
@@ -271,7 +276,8 @@ class AprobarCambios extends Component
         $this->verTicket();
     }
 
-    public function rechazarSet($id){
+    public function rechazarSet($id)
+    {
 
         $comentario =  Comentario::find($id);
         $comentario->update([
