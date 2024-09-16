@@ -2,7 +2,7 @@
     <style>
         .card {
             font-size: 0.9rem;
-            margin: 5px;
+            margin: 3px;
             /* Añade margen alrededor de las tarjetas */
             border: none;
             border-radius: 10px;
