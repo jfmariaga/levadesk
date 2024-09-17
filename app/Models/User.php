@@ -25,6 +25,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'estado',        // Nuevo campo
         'sociedad_id',   // Nuevo campo
         'profile_photo',  // Nuevo campo
+        'en_vacaciones'
     ];
 
     /**

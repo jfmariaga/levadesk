@@ -96,6 +96,7 @@ class Aprobar extends Component
             return;
         }
 
+
         // Guardar los cambios en la aprobación
         $aprobacionActualizada = $this->ticket->aprobacion->update([
             'estado' => $this->estado_aprobacion,
@@ -118,6 +119,12 @@ class Aprobar extends Component
                     'accion' => 'Aprobación pendiente',
                     'detalle' => 'Aprobación pendiente por TI',
                 ]);
+
+                // Verificar si el aprobador funcional tiene el rol de "Usuario" y actualizar a "Aprobador"
+                $aprobadorTI = User::find($this->ticket->aprobacion->aprobadorTi->id);
+                if ($aprobadorTI->hasRole('Usuario')) {
+                    $aprobadorTI->syncRoles(['Aprobador']); // Cambia el rol a "Aprobador"
+                }
                 $this->ticket->aprobacion->aprobadorTi->notify(new NotificacionAprobacion($this->ticket->aprobacion, $this->ticket));
             } else {
                 $this->ticket->update(['estado_id' => 5]); // Estado cerrado si es rechazado funcionalmente

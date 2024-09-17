@@ -2,8 +2,13 @@
 
 namespace App\Http\Livewire\Perfil;
 
+use App\Models\Historial;
+use App\Models\Ticket;
+use App\Models\User;
+use App\Notifications\TicketAsignado;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Request;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -13,12 +18,15 @@ class Perfil extends Component
 
     public $name, $email, $current_password, $password, $password_confirmation, $profile_photo;
     public $activeSection = 'profile'; // Variable para almacenar la sección activa
-
+    public $nuevoAsignadoId; // Declarar la propiedad nuevoAsignadoId
+    public $en_vacaciones; // Propiedad para manejar el estado de vacaciones
     public function mount()
     {
         $this->name = Auth::user()->name;
         $this->email = Auth::user()->email;
         $this->activeSection = session('activeSection', 'profile'); // Carga la sección activa desde la sesión
+        $this->nuevoAsignadoId = null; // Inicializar como null
+        $this->en_vacaciones = Auth::user()->en_vacaciones;
     }
 
     public function setActiveSection($section)
@@ -35,13 +43,13 @@ class Perfil extends Component
                 'required',
                 'email',
                 'max:255',
-                 function ($attribute, $value, $fail) {
-                $allowedDomains = ['panalsas.com', 'levapan.com','levapan.com.do','levapan.com.ec','levacolsas.com'];
-                $emailDomain = substr(strrchr($value, "@"), 1);
-                if (!in_array($emailDomain, $allowedDomains)) {
-                    $fail('Debes de ingresar un correo corporativo');
+                function ($attribute, $value, $fail) {
+                    $allowedDomains = ['panalsas.com', 'levapan.com', 'levapan.com.do', 'levapan.com.ec', 'levacolsas.com'];
+                    $emailDomain = substr(strrchr($value, "@"), 1);
+                    if (!in_array($emailDomain, $allowedDomains)) {
+                        $fail('Debes de ingresar un correo corporativo');
+                    }
                 }
-            }
             ],
             'profile_photo' => 'nullable|image|mimes:jpg,jpeg,png|max:1024',
         ]);
@@ -91,10 +99,83 @@ class Perfil extends Component
             'password' => Hash::make($this->password),
         ]);
 
+        $this->emit('actualizarPerfil');
         $this->emit('showToast', ['type' => 'success', 'message' => 'Contraseña actualizada con éxito.']);
         $this->setActiveSection('password'); // Mantiene la sección de contraseña activa
         $this->render();
     }
+
+
+    public function marcarVacaciones()
+    {
+        $usuario = Auth::user(); // Obtenemos al usuario autenticado
+
+        // Marcar o desmarcar como en vacaciones según el valor del checkbox
+        $usuario->en_vacaciones = $this->en_vacaciones;
+        $usuario->save();
+
+        // Si el usuario ya no está en vacaciones, no reasignamos los tickets
+        if (!$this->en_vacaciones) {
+            // Emitir evento para mostrar notificación en la interfaz
+            $this->emit('showToast', ['type' => 'success', 'message' => 'Bienvenido de vuelta 💪']);
+            return;
+        }
+
+        // Si no se ha especificado un nuevo agente, mostramos un error
+        if (!$this->nuevoAsignadoId) {
+            $this->emit('showToast', ['type' => 'error', 'message' => 'Debes seleccionar un agente para reasignar los tickets.']);
+            return;
+        }
+
+        // Filtrar los tickets asignados al usuario actual que no están en estado "finalizado" o "rechazado"
+        $ticketsAsignados = Ticket::where('asignado_a', $usuario->id)
+            ->whereNotIn('estado_id', [4, 5])  // Suponiendo que 3 = finalizado y 4 = rechazado
+            ->get();
+
+        foreach ($ticketsAsignados as $ticket) {
+            // Reasignar los tickets al agente especificado
+            $nuevoAsignado = User::role(['Agente', 'Admin'])  // Verificar si el usuario tiene el rol de "Agente" o "Admin"
+                ->where('id', $this->nuevoAsignadoId)
+                ->where('en_vacaciones', false)  // Asegurarse de que no esté en vacaciones
+                ->first();
+
+
+            if ($nuevoAsignado) {
+                $ticket->asignado_a = $nuevoAsignado->id;
+
+                // Guardar los cambios en el ticket
+                $ticket->save();
+
+                // Notificar al nuevo usuario asignado
+                $nuevoAsignado->notify(new TicketAsignado($ticket));
+
+                // Registrar en el historial
+                Historial::create([
+                    'ticket_id' => $ticket->id,
+                    'user_id' => Auth::id(),
+                    'accion' => 'Asignado por vacaciones',
+                    'detalle' => 'Nuevo agente asignado por motivos de vaciones de '. Auth::user()->name,
+                ]);
+            } else {
+                // Si el agente especificado no es válido o está en vacaciones, mostramos un error
+                $this->emit('showToast', ['type' => 'error', 'message' => 'El agente seleccionado no es válido o está en vacaciones.']);
+                return;
+            }
+        }
+
+        // Registrar en el historial
+        Historial::create([
+            'ticket_id' => $ticket->id,
+            'user_id' => Auth::id(),
+            'accion' => 'Asignado por vacaciones',
+            'detalle' => 'Nuevo agente asignado por motivos de vaciones de ***********',
+        ]);
+
+        // Emitir evento para mostrar notificación en la interfaz
+        $this->emit('showToast', ['type' => 'success', 'message' => 'Vacaciones marcadas y tickets reasignados.']);
+    }
+
+
 
     public function render()
     {
@@ -102,6 +183,13 @@ class Perfil extends Component
         $grupos = $user->grupos;
         $sociedad = $user->sociedad;
 
-        return view('livewire.perfil.perfil', compact('grupos', 'sociedad'));
+        // Obtener los usuarios con el rol de "Agente" y que no estén de vacaciones usando Spatie
+        $agentes = User::role(['Agente', 'Admin'])  // Filtrar usuarios con rol de "Agente" o "Admin"
+            ->where('en_vacaciones', false)  // Filtrar los que no están en vacaciones
+            ->where('id', '!=', Auth::user()->id)  // Excluir al usuario actual
+            ->get();
+
+
+        return view('livewire.perfil.perfil', compact('grupos', 'sociedad', 'agentes'));
     }
 }

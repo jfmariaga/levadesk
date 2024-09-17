@@ -80,7 +80,7 @@ class FormTickets extends Component
 
     public function updatedTipoSolicitudId($value)
     {
-        $this->categorias = Categoria::where('solicitud_id', $value)->where('estado', 0)->get();
+        $this->categorias = Categoria::where('solicitud_id', $value)->where('estado', 0) ->get();
         $this->subcategorias = [];
         $this->aplicaciones = [];
     }
@@ -88,7 +88,7 @@ class FormTickets extends Component
     public function updatedCategoriaId($value)
     {
         $this->subcategorias = Subcategoria::where('categoria_id', $value)
-        ->where('estado', 0)
+        ->where('estado', 0)  // Filtrar por estado
         ->get();
         $this->aplicaciones = [];
     }

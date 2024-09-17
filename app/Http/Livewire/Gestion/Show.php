@@ -181,6 +181,12 @@ class Show extends Component
             'estado_id' => 8
         ]);
 
+        // Verificar si el aprobador funcional tiene el rol de "Usuario" y actualizar a "Aprobador"
+        $aprobadorFuncional = User::find($this->selectedFuncional);
+        if ($aprobadorFuncional->hasRole('Usuario')) {
+            $aprobadorFuncional->syncRoles(['Aprobador']); // Cambia el rol a "Aprobador"
+        }
+
         Historial::create([
             'ticket_id' => $this->ticket_id,
             'user_id' => Auth::id(),
@@ -225,6 +231,12 @@ class Show extends Component
         $this->ticket->update([
             'estado_id' => 8
         ]);
+
+        // Verificar si el aprobador funcional tiene el rol de "Usuario" y actualizar a "Aprobador"
+        $aprobadorFuncional = User::find($this->selectedFuncional);
+        if ($aprobadorFuncional->hasRole('Usuario')) {
+            $aprobadorFuncional->syncRoles(['Aprobador']); // Cambia el rol a "Aprobador"
+        }
 
         // Asocia el archivo con el comentario recién creado si existe
         if ($this->newFileCambio) {

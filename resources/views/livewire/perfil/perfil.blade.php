@@ -83,6 +83,69 @@
                 transform: rotate(360deg);
             }
         }
+
+        /* Centrar el contenido */
+        .form-group {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Estilos para el switch */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 4px;
+            bottom: 2px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: #17a2b8;
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(26px);
+        }
+
+        .slider.round {
+            border-radius: 34px;
+        }
+
+        .slider.round:before {
+            border-radius: 50%;
+        }
     </style>
 
     <div class="container mt-5">
@@ -103,6 +166,34 @@
                                 <li>{{ $grupo->nombre }}</li>
                             @endforeach
                         </ul>
+                        @if (!Auth::user()->hasRole('Usuario'))
+                            <div class="form-group d-flex flex-column align-items-center">
+                                <div class="d-flex align-items-center mb-3">
+                                    <label class="mb-0">¿En vacaciones?</label>
+                                    <label class="switch ml-2">
+                                        <input type="checkbox" wire:model="en_vacaciones">
+                                        <span class="slider round"></span>
+                                    </label>
+                                </div>
+
+                                <!-- Selector de Agente -->
+                                <div class="form-group mb-3">
+                                    <label for="agente">Asignar tickets a:</label>
+                                    <select wire:model="nuevoAsignadoId" id="agente"
+                                        class="form-control form-control-sm">
+                                        <option value="">Seleccionar automáticamente</option>
+                                        @foreach ($agentes as $agente)
+                                            <option value="{{ $agente->id }}">{{ $agente->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <button class="btn btn-outline-info btn-sm" wire:click="marcarVacaciones">Confirmar
+                                    Vacaciones</button>
+                            </div>
+                        @endif
+
+
                     </div>
                 </div>
             </div>
@@ -214,7 +305,8 @@
                                     @enderror
                                 </div>
 
-                                <button type="submit" class="btn btn-secondary w-100"><i class="fas fa-key me-1"></i>
+                                <button type="submit" class="btn btn-secondary w-100"><i
+                                        class="fas fa-key me-1"></i>
                                     Actualizar Contraseña</button>
                             </form>
                         </div>
@@ -223,5 +315,16 @@
             </div>
         </div>
     </div>
+
+    @push('js')
+        <script>
+            document.addEventListener('livewire:load', function() {
+                Livewire.on('showToast', (data) => {
+                    toastRight(data.type, data.message);
+                });
+
+            });
+        </script>
+    @endpush
 
 </div>
