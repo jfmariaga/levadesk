@@ -163,14 +163,6 @@ class Perfil extends Component
             }
         }
 
-        // Registrar en el historial
-        Historial::create([
-            'ticket_id' => $ticket->id,
-            'user_id' => Auth::id(),
-            'accion' => 'Asignado por vacaciones',
-            'detalle' => 'Nuevo agente asignado por motivos de vaciones de ***********',
-        ]);
-
         // Emitir evento para mostrar notificación en la interfaz
         $this->emit('showToast', ['type' => 'success', 'message' => 'Vacaciones marcadas y tickets reasignados.']);
     }
