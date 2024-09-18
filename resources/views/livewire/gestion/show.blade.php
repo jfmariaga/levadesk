@@ -678,7 +678,7 @@
                                                         @enderror
                                                     </div>
                                                     <div class="col-md-4">
-                                                        <p><strong>Sucategoría:</strong> <b style="color: red">*</b>
+                                                        <p><strong>Subcategoría:</strong> <b style="color: red">*</b>
                                                         </p>
                                                         <select class="form-control" wire:model="subcategoria_id">
                                                             <option>Seleccionar</option>
