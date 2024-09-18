@@ -290,6 +290,10 @@ class AprobarCambios extends Component
             'check_comentario' => false,
         ]);
 
+        $this->ticket->update([
+            'estado_id' => 3
+        ]);
+
         Historial::create([
             'ticket_id' => $this->ticket->id,
             'user_id' => Auth::id(),
@@ -305,7 +309,6 @@ class AprobarCambios extends Component
         ]);
 
         $this->ticket->asignado->notify(new NoAprobarProductivo($this->ticket));
-        $this->emit('showToast', ['type' => 'warning', 'message' => 'No se aprobó el paso a producción']);
         $this->verTicket();
     }
 

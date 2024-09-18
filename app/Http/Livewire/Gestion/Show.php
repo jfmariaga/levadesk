@@ -93,6 +93,7 @@ class Show extends Component
         $this->loadTicket();
         $this->usuarios = User::where('estado', 1)->get();  // Obtener todos los usuarios activos
         $this->calcularTiempoRestante();
+
     }
 
     public function calcularTiempoRestante()

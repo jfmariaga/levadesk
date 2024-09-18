@@ -393,18 +393,19 @@
                                                                         {{ $ticket->comentario += 1 }}
                                                                     </span>
                                                                 @else
-                                                                    @if ($ticket->estado_id == 10 &&
+                                                                    @if (
+                                                                        $ticket->estado_id == 10 &&
                                                                             $ticket->cambio->check_aprobado &&
                                                                             $ticket->cambio->aprobador_final_ti_id == Auth::id() &&
                                                                             $comentario->check_comentario == true)
                                                                         <div
                                                                             class="d-flex justify-content-end row mr-2 mb-2">
-                                                                            <button wire:click="aprobarSet()"
+                                                                            <button onclick="confirmProducion()"
                                                                                 class="btn btn-outline-info btn-sm">
                                                                                 <i class="fas fa-check-circle"></i>
                                                                             </button>
                                                                             <button
-                                                                                wire:click="rechazarSet({{ $comentario->id }})"
+                                                                                onclick="confirmDelete({{ $comentario->id }})"
                                                                                 class="btn btn-outline-danger btn-sm ml-2">
                                                                                 <i class="fas fa-times-circle"></i>
                                                                             </button>
@@ -563,7 +564,8 @@
                                             <textarea wire:model="comentariosRechazo" id="comentariosRechazo" rows="3" class="form-control"></textarea>
                                         </div>
                                     @endif
-                                    <button wire:click="aprobarTiCambio" class="btn btn-outline-info btn-sm">Confirmar</button>
+                                    <button wire:click="aprobarTiCambio"
+                                        class="btn btn-outline-info btn-sm">Confirmar</button>
                                 @else
                                     <p>Ya aprobaste este ticket</p>
                                 @endif
@@ -594,18 +596,18 @@
                                 @endforeach
                             @endif
                             @if ($ticket->cambio)
-                            <h5>Flujo de cambios</h5>
-                            <p><strong>Líder funcional:</strong>
-                                {{ $ticket->cambio->aprobadorFuncionalCambio->name }}</p>
-                            <p><strong>Aprobador TI:</strong>
-                                {{ $ticket->cambio->aprobadorTiCambio->name }}</p>
+                                <h5>Flujo de cambios</h5>
+                                <p><strong>Líder funcional:</strong>
+                                    {{ $ticket->cambio->aprobadorFuncionalCambio->name }}</p>
+                                <p><strong>Aprobador TI:</strong>
+                                    {{ $ticket->cambio->aprobadorTiCambio->name }}</p>
                             @endif
                             @if ($ticket->aprobacion)
-                            <h5>Flujo de accesos</h5>
-                            <p><strong>Líder funcional:</strong>
-                                {{ $ticket->aprobacion->aprobadorFuncional->name }}</p>
-                            <p><strong>Aprobador TI:</strong>
-                                {{ $ticket->aprobacion->aprobadorTi->name }}</p>
+                                <h5>Flujo de accesos</h5>
+                                <p><strong>Líder funcional:</strong>
+                                    {{ $ticket->aprobacion->aprobadorFuncional->name }}</p>
+                                <p><strong>Aprobador TI:</strong>
+                                    {{ $ticket->aprobacion->aprobadorTi->name }}</p>
                             @endif
                         </div>
                     </div>
@@ -657,6 +659,24 @@
                     }
                 });
             });
+
+            function confirmDelete(id) {
+                alertClickCallback('Rechazar',
+                    'No aprobar el paso a producción', 'warning',
+                    'Confirmar', 'Cancelar', async () => {
+                        const res = await @this.rechazarSet(id);
+                        toastRight('error', 'No se aprobó el paso a producción!');
+                    });
+            }
+
+            function confirmProducion() {
+                alertClickCallback('Confirmar',
+                    'Confirmar paso a producción', 'success',
+                    'Confirmar', 'Cancelar', async () => {
+                        const res = await @this.aprobarSet();
+                        toastRight('success', 'Se aprobó el paso a producción!');
+                    });
+            }
         </script>
     @endpush
 </div>
