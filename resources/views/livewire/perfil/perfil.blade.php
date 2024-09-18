@@ -168,32 +168,35 @@
                         </ul>
                         @if (!Auth::user()->hasRole('Usuario'))
                             <div class="form-group d-flex flex-column align-items-center">
-                                <div class="d-flex align-items-center mb-3">
-                                    <label class="mb-0">¿En vacaciones?</label>
-                                    <label class="switch ml-2">
-                                        <input type="checkbox" wire:model="en_vacaciones">
-                                        <span class="slider round"></span>
-                                    </label>
-                                </div>
+                                @if (Auth::user()->en_vacaciones)
+                                    <!-- Si el agente está de vacaciones, mostrar el agente de respaldo -->
+                                    <p><strong>Agente BK:</strong>
+                                        {{ Auth::user()->backups->last()->name ?? 'No asignado' }}</p>
 
-                                <!-- Selector de Agente -->
-                                <div class="form-group mb-3">
-                                    <label for="agente">Asignar tickets a:</label>
-                                    <select wire:model="nuevoAsignadoId" id="agente"
-                                        class="form-control form-control-sm">
-                                        <option value="">Seleccionar automáticamente</option>
-                                        @foreach ($agentes as $agente)
-                                            <option value="{{ $agente->id }}">{{ $agente->name }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
+                                    <!-- Botón para volver al trabajo -->
+                                    <button class="btn btn-outline-info btn-sm" wire:click="volverDelTrabajo">
+                                        Regresar al trabajo
+                                    </button>
+                                @else
+                                    <!-- Si no está de vacaciones, permitir seleccionar el agente de respaldo -->
+                                    <div class="form-group mb-3">
+                                        <label for="agente">Si te vas a ausentar, por favor elige a un agente como tu BK :</label>
+                                        <select wire:model="nuevoAsignadoId" id="agente"
+                                            class="form-control form-control-sm">
+                                            <option value="">Seleccionar automáticamente</option>
+                                            @foreach ($agentes as $agente)
+                                                <option value="{{ $agente->id }}">{{ $agente->name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
 
-                                <button class="btn btn-outline-info btn-sm" wire:click="marcarVacaciones">Confirmar
-                                    Vacaciones</button>
+                                    <!-- Botón para confirmar vacaciones -->
+                                    <button class="btn btn-outline-info btn-sm" wire:click="marcarVacaciones">
+                                        Confirmar
+                                    </button>
+                                @endif
                             </div>
                         @endif
-
-
                     </div>
                 </div>
             </div>

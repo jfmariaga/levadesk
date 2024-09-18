@@ -80,7 +80,7 @@ class FormTickets extends Component
 
     public function updatedTipoSolicitudId($value)
     {
-        $this->categorias = Categoria::where('solicitud_id', $value)->where('estado', 0) ->get();
+        $this->categorias = Categoria::where('solicitud_id', $value)->where('estado', 0)->get();
         $this->subcategorias = [];
         $this->aplicaciones = [];
     }
@@ -88,8 +88,8 @@ class FormTickets extends Component
     public function updatedCategoriaId($value)
     {
         $this->subcategorias = Subcategoria::where('categoria_id', $value)
-        ->where('estado', 0)  // Filtrar por estado
-        ->get();
+            ->where('estado', 0)  // Filtrar por estado
+            ->get();
         $this->aplicaciones = [];
     }
 
@@ -178,6 +178,19 @@ class FormTickets extends Component
         if (!$usuario) {
             session()->flash('error', 'No hay usuarios disponibles en el grupo');
             return;
+        }
+
+        // **Lógica de vacaciones**
+        // Si el usuario está de vacaciones, reasignamos al agente backup (agente_bk)
+        if ($usuario->en_vacaciones) {
+            $backupAgente = $usuario->backups()->first(); // Obtenemos el primer agente de respaldo
+
+            if ($backupAgente) {
+                $usuario = $backupAgente;
+            } else {
+                session()->flash('error', 'El usuario está en vacaciones y no tiene un agente de respaldo asignado.');
+                return;
+            }
         }
 
         // Obtenemos el ANS inicial asociado al tipo de solicitud

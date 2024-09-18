@@ -19,14 +19,14 @@ class Perfil extends Component
     public $name, $email, $current_password, $password, $password_confirmation, $profile_photo;
     public $activeSection = 'profile'; // Variable para almacenar la sección activa
     public $nuevoAsignadoId; // Declarar la propiedad nuevoAsignadoId
-    public $en_vacaciones; // Propiedad para manejar el estado de vacaciones
+    // public $en_vacaciones; // Propiedad para manejar el estado de vacaciones
     public function mount()
     {
         $this->name = Auth::user()->name;
         $this->email = Auth::user()->email;
         $this->activeSection = session('activeSection', 'profile'); // Carga la sección activa desde la sesión
         $this->nuevoAsignadoId = null; // Inicializar como null
-        $this->en_vacaciones = Auth::user()->en_vacaciones;
+        // $this->en_vacaciones = Auth::user()->en_vacaciones;
     }
 
     public function setActiveSection($section)
@@ -110,16 +110,6 @@ class Perfil extends Component
     {
         $usuario = Auth::user(); // Obtenemos al usuario autenticado
 
-        // Marcar o desmarcar como en vacaciones según el valor del checkbox
-        $usuario->en_vacaciones = $this->en_vacaciones;
-        $usuario->save();
-
-        // Si el usuario ya no está en vacaciones, no reasignamos los tickets
-        if (!$this->en_vacaciones) {
-            // Emitir evento para mostrar notificación en la interfaz
-            $this->emit('showToast', ['type' => 'success', 'message' => 'Bienvenido de vuelta 💪']);
-            return;
-        }
 
         // Si no se ha especificado un nuevo agente, mostramos un error
         if (!$this->nuevoAsignadoId) {
@@ -127,9 +117,14 @@ class Perfil extends Component
             return;
         }
 
+        // Añadir el agente de respaldo en la tabla pivote (sin eliminar los anteriores backups si los hay)
+        $usuario->backups()->sync([$this->nuevoAsignadoId]);
+        $usuario->en_vacaciones = true;  // Solo se actualiza cuando se confirma vacaciones
+        $usuario->save();
+
         // Filtrar los tickets asignados al usuario actual que no están en estado "finalizado" o "rechazado"
         $ticketsAsignados = Ticket::where('asignado_a', $usuario->id)
-            ->whereNotIn('estado_id', [4, 5])  // Suponiendo que 3 = finalizado y 4 = rechazado
+            ->whereNotIn('estado_id', [4, 5])
             ->get();
 
         foreach ($ticketsAsignados as $ticket) {
@@ -154,7 +149,7 @@ class Perfil extends Component
                     'ticket_id' => $ticket->id,
                     'user_id' => Auth::id(),
                     'accion' => 'Asignado por vacaciones',
-                    'detalle' => 'Nuevo agente asignado por motivos de vaciones de '. Auth::user()->name,
+                    'detalle' => 'Nuevo agente asignado por motivos de vacaciones de ' . Auth::user()->name,
                 ]);
             } else {
                 // Si el agente especificado no es válido o está en vacaciones, mostramos un error
@@ -165,6 +160,13 @@ class Perfil extends Component
 
         // Emitir evento para mostrar notificación en la interfaz
         $this->emit('showToast', ['type' => 'success', 'message' => 'Vacaciones marcadas y tickets reasignados.']);
+    }
+
+    public function volverDelTrabajo(){
+        $usuario = Auth::user(); // Obtenemos al usuario autenticado
+        $usuario->en_vacaciones = false;  // Solo se actualiza cuando se confirma vacaciones
+        $usuario->save();
+        $this->emit('showToast', ['type' => 'success', 'message' => 'Bienvenido de vuelta 💪']);
     }
 
 

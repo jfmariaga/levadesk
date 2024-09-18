@@ -126,4 +126,15 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->belongsTo(Sociedad::class);
     }
+
+    public function backups()
+    {
+        return $this->belongsToMany(User::class, 'agente_backup', 'agente_id', 'backup_id')->withTimestamps();
+    }
+
+
+    public function esBackupDe()
+    {
+        return $this->belongsToMany(User::class, 'agente_backup', 'backup_id', 'agente_id')->withTimestamps();
+    }
 }
