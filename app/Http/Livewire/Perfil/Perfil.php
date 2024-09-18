@@ -149,7 +149,7 @@ class Perfil extends Component
                     'ticket_id' => $ticket->id,
                     'user_id' => Auth::id(),
                     'accion' => 'Asignado por vacaciones',
-                    'detalle' => 'Nuevo agente asignado por motivos de vacaciones de ' . Auth::user()->name,
+                    'detalle' => 'Ticket reasignado a ' . $nuevoAsignado->name,
                 ]);
             } else {
                 // Si el agente especificado no es válido o está en vacaciones, mostramos un error
@@ -159,7 +159,7 @@ class Perfil extends Component
         }
 
         // Emitir evento para mostrar notificación en la interfaz
-        $this->emit('showToast', ['type' => 'success', 'message' => 'Vacaciones marcadas y tickets reasignados.']);
+        $this->emit('showToast', ['type' => 'success', 'message' => 'Acción correcta se han reasignado los  tickets.']);
     }
 
     public function volverDelTrabajo(){
