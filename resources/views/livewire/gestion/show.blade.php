@@ -534,7 +534,8 @@
                                 {{ $ticket->titulo }}, {{ $ticket->descripcion }}
                             </h5>
                             <p><i class="text-muted">{{ $ticket->sociedad->nombre }}>>{{ $ticket->tipoSolicitud->nombre }}>>{{ $ticket->categoria->nombre }}>>
-                                    {{ $ticket->subcategoria->nombre }} {{$ticket->aplicacion? '>>'.$ticket->aplicacion->nombre: ''}}</i></p>
+                                    {{ $ticket->subcategoria->nombre }}
+                                    {{ $ticket->aplicacion ? '>>' . $ticket->aplicacion->nombre : '' }}</i></p>
                             <div class="row">
                                 <div class="col-md-3">
                                     <p><strong>Urgencia:</strong> {{ $ticket->urgencia->nombre }}</p>
@@ -691,6 +692,24 @@
                                                             <span class="text-danger">{{ $message }}</span>
                                                         @enderror
                                                     </div>
+                                                    <!-- Mostrar la selección de aplicaciones solo si es SOPORTE DE APLICACIONES -->
+                                                    @if ($subcategoria && $subcategoria->nombre === 'SOPORTE DE APLICACIONES')
+                                                        <div class="col-md-4">
+                                                            <p><strong>Aplicación:</strong> <b style="color: red">*</b>
+                                                            </p>
+                                                            <select class="form-control" wire:model="aplicacion_id">
+                                                                <option value="">Seleccionar aplicación...
+                                                                </option>
+                                                                @foreach ($aplicaciones as $aplicacion)
+                                                                    <option value="{{ $aplicacion->id }}">
+                                                                        {{ $aplicacion->nombre }}</option>
+                                                                @endforeach
+                                                            </select>
+                                                            @error('aplicacion_id')
+                                                                <span class="text-danger">{{ $message }}</span>
+                                                            @enderror
+                                                        </div>
+                                                    @endif
                                                     <div class="mt-2 col-12">
                                                         <button wire:click="actualizarCategoria"
                                                             class="btn btn-outline-info btn-sm float-right">Actualizar</button>
@@ -1185,18 +1204,18 @@
                                 @endforeach
                             @endif
                             @if ($ticket->cambio)
-                            <h5>Flujo de cambios</h5>
-                            <p><strong>Líder funcional:</strong>
-                                {{ $ticket->cambio->aprobadorFuncionalCambio->name }}</p>
-                            <p><strong>Aprobador TI:</strong>
-                                {{ $ticket->cambio->aprobadorTiCambio->name }}</p>
+                                <h5>Flujo de cambios</h5>
+                                <p><strong>Líder funcional:</strong>
+                                    {{ $ticket->cambio->aprobadorFuncionalCambio->name }}</p>
+                                <p><strong>Aprobador TI:</strong>
+                                    {{ $ticket->cambio->aprobadorTiCambio->name }}</p>
                             @endif
                             @if ($ticket->aprobacion)
-                            <h5>Flujo de accesos</h5>
-                            <p><strong>Líder funcional:</strong>
-                                {{ $ticket->aprobacion->aprobadorFuncional->name }}</p>
-                            <p><strong>Aprobador TI:</strong>
-                                {{ $ticket->aprobacion->aprobadorTi->name }}</p>
+                                <h5>Flujo de accesos</h5>
+                                <p><strong>Líder funcional:</strong>
+                                    {{ $ticket->aprobacion->aprobadorFuncional->name }}</p>
+                                <p><strong>Aprobador TI:</strong>
+                                    {{ $ticket->aprobacion->aprobadorTi->name }}</p>
                             @endif
                         </div>
                     </div>

@@ -3,6 +3,7 @@
 namespace App\Http\Livewire\Gestion;
 
 use App\Models\ANS;
+use App\Models\Aplicaciones;
 use App\Models\Aprobacion;
 use App\Models\Cambios;
 use App\Models\Ticket;
@@ -75,6 +76,9 @@ class Show extends Component
     public $asignado_a;
     public $estado = 'pendiente';
     public $fecha_cumplimiento;
+    public $aplicacion_id;
+    public $aplicaciones;
+    public $sociedad_id;
 
     protected $rules = [
         'categoria_id' => 'required',
@@ -344,9 +348,11 @@ class Show extends Component
         $this->categoria_id = $this->ticket->categoria_id;
         $this->subcategoria_id = $this->ticket->subcategoria_id;
         $this->solicitud_id = $this->ticket->tipo_solicitud_id;
+        $this->sociedad_id = $this->ticket->sociedad_id;
         $this->categoria_nombre = $this->ticket->categoria->nombre;
         $this->subcategoria_nombre = $this->ticket->subcategoria->nombre;
         $this->solicitud_nombre = $this->ticket->tipoSolicitud->nombre;
+        $this->aplicacion_id = $this->ticket->aplicacion_id ? $this->ticket->aplicacion_id : 'NULL';
         $this->impacto_id = $this->ticket->impacto_id ? $this->ticket->impacto_id : 'NULL';
         $this->prioridad = $this->ticket->prioridad ? $this->ticket->prioridad : 'NULL';
 
@@ -421,7 +427,56 @@ class Show extends Component
             return;
         }
 
-        // Obtener el grupo asociado a la subcategoría
+        // Lógica especial para "SOPORTE DE APLICACIONES"
+        if ($subcategoria->nombre === 'SOPORTE DE APLICACIONES') {
+            // Obtener la aplicación seleccionada
+            $aplicacion = Aplicaciones::find($this->aplicacion_id);
+
+            // Verificar que la aplicación existe y tiene un grupo asociado
+            if ($aplicacion && $aplicacion->grupo_id) {
+                // Cargar el grupo relacionado con la aplicación
+                $grupo = $aplicacion->grupo;
+
+                // Verificar que el grupo existe
+                if ($grupo) {
+                    // Obtener el usuario con menos tickets en el grupo relacionado con la aplicación
+                    $usuario = $grupo->usuarios()->withCount('ticketsAsignados')->orderBy('tickets_asignados_count', 'asc')->first();
+
+                    if (!$usuario) {
+                        $this->emit('showToast', ['type' => 'error', 'message' => 'No hay usuarios disponibles en el grupo de la aplicación seleccionada']);
+                        return;
+                    }
+
+                    // Asignar al usuario con menos tickets en el grupo de la aplicación
+                    $this->ticket->update([
+                        'categoria_id' => $this->categoria_id,
+                        'subcategoria_id' => $this->subcategoria_id,
+                        'tipo_solicitud_id' => $this->solicitud_id,
+                        'asignado_a' => $usuario->id,  // Asignar al nuevo usuario
+                        'grupo_id' => $grupo->id,       // Actualizar el grupo
+                    ]);
+
+                    // Registrar en el historial la reasignación
+                    Historial::create([
+                        'ticket_id' => $this->ticket_id,
+                        'user_id' => Auth::id(),
+                        'accion' => 'Recategorizado y Reasignado',
+                        'detalle' => "Ticket recategorizado y reasignado a {$usuario->name} en el grupo {$grupo->nombre} relacionado con la aplicación seleccionada.",
+                    ]);
+
+                    $this->emit('showToast', ['type' => 'success', 'message' => "Ticket reasignado a {$usuario->name} en el grupo de la aplicación seleccionada."]);
+                    return; // Terminamos aquí, ya que la lógica especial está resuelta.
+                } else {
+                    $this->emit('showToast', ['type' => 'error', 'message' => 'No hay grupo asociado a la aplicación seleccionada']);
+                    return;
+                }
+            } else {
+                $this->emit('showToast', ['type' => 'error', 'message' => 'No hay grupo o usuarios asignados a la aplicación seleccionada.']);
+                return;
+            }
+        }
+
+        // Lógica general para las subcategorías que no sean "SOPORTE DE APLICACIONES"
         $nuevoGrupo = $subcategoria->grupo;
 
         // Asegurarse de que $nuevoGrupo no es null
@@ -508,7 +563,7 @@ class Show extends Component
                 'ticket_id' => $this->ticket_id,
                 'user_id' => Auth::id(),
                 'accion' => 'Recategorizado y Asignado',
-                'detalle' => "Ticket recategorizado y reasignado de {$usuarioAsignado->name} a {$nuevoUsuario->name} en el grupo {$nuevoGrupo->nombre}.",
+                'detalle' => "Ticket recategorizado y reasignado a {$nuevoUsuario->name} en el grupo {$nuevoGrupo->nombre}.",
             ]);
         }
 
@@ -517,6 +572,7 @@ class Show extends Component
         // Recargar los datos del ticket para reflejar los cambios
         $this->loadTicket();
     }
+
 
 
     public function actualizarImpacto()
@@ -757,8 +813,9 @@ class Show extends Component
     public function render()
     {
         $this->tipos_solicitud = TipoSolicitud::where('estado', 0)->get();
-        $this->categorias = Categoria::where('solicitud_id', $this->solicitud_id)->get();
-        $this->subcategorias = Subcategoria::where('categoria_id', $this->categoria_id)->get();
+        $this->categorias = Categoria::where('solicitud_id', $this->solicitud_id)->where('estado', 0)->get();
+        $this->subcategorias = Subcategoria::where('categoria_id', $this->categoria_id)->where('estado', 0)->get();
+        $this->aplicaciones = Aplicaciones::where('sociedad_id', $this->sociedad_id)->where('estado', 0)->get();
         $this->impactos = Impacto::all();
         $historial = Historial::where('ticket_id', $this->ticket_id)->orderBy('created_at', 'Asc')->get();
         return view('livewire.gestion.show', compact('historial'));
