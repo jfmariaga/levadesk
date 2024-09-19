@@ -8,7 +8,6 @@
             border-radius: 10px;
         }
     </style>
-
     @if (Auth::user()->id === $usuarioId->id)
         <div class="row">
             <div class="col-md-2">
@@ -55,7 +54,7 @@
                     </div>
                 </div>
             </div>
-            @if ($usuarioId->roles->first()->name == 'Admin' || $usuarioId->roles->first()->name == 'Aprobador' || ($usuarioId->roles->first()->name == 'Agente' && $aprobacion > 0))
+            {{-- @if ($usuarioId->roles->first()->name == 'Admin' || $usuarioId->roles->first()->name == 'Aprobador' || ($usuarioId->roles->first()->name == 'Agente' && $aprobacion > 0))
                 <div class="col-md-2">
                     <div class="card small-box bg-info">
                         <div class="inner">
@@ -67,7 +66,7 @@
                         </div>
                     </div>
                 </div>
-            @endif
+            @endif --}}
             <div class="col-md-2">
                 <div class="card small-box color-azul">
                     <div class="inner">

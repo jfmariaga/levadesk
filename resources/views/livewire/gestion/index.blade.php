@@ -162,6 +162,7 @@
                                             <th>Titulo</th>
                                             <th>Prioridad</th>
                                             <th>Estado</th>
+                                            <th>Rol</th>
                                             <th>Acc</th>
                                         </tr>
                                     </thead>
@@ -284,6 +285,7 @@
                             titulo,
                             urgencia,
                             estado,
+                            rol,
                         } = element;
 
                         // Formatear la fecha
@@ -299,6 +301,8 @@
                         <td class="pointer">${titulo}</td>
                         <td class="pointer">${urgencia ? urgencia.nombre :''}</td>
                         <td class="pointer">${estado ? estado.nombre:''}</td>
+
+                        <td class="pointer">${rol}</td>
                         <td>
                             <div class="d-flex">
                                 <a href="gestionar?ticket_id=${id}" class="btn btn-xs btn-default text-primary mx-1 shadow" title="Edit"><i class="far fa-eye"></i></a>

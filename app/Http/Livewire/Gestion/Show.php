@@ -20,6 +20,7 @@ use App\Models\User;
 use App\Notifications\AnsCercaDeVencer;
 use App\Notifications\AprobarSet;
 use App\Notifications\CambioEstado;
+use App\Notifications\EstadoTarea;
 use App\Notifications\FlujoAcceso;
 use App\Notifications\NotificacionAprobacion;
 use App\Notifications\NuevaTarea;
@@ -27,6 +28,8 @@ use App\Notifications\NuevoColaborador;
 use App\Notifications\NuevoComentario;
 use App\Notifications\NuevoComentarioPrivado;
 use App\Notifications\NuevoComentarioSolucion;
+use App\Notifications\PruebasProductivo;
+use App\Notifications\PruebasSet;
 use App\Notifications\Reasignado;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
@@ -79,6 +82,7 @@ class Show extends Component
     public $aplicacion_id;
     public $aplicaciones;
     public $sociedad_id;
+    public $agentes =[];
 
     protected $rules = [
         'categoria_id' => 'required',
@@ -92,8 +96,8 @@ class Show extends Component
     {
         $this->loadTicket();
         $this->usuarios = User::where('estado', 1)->get();  // Obtener todos los usuarios activos
+        $this->agentes = User::role(['Admin', 'Agente'])->get();
         $this->calcularTiempoRestante();
-
     }
 
     public function calcularTiempoRestante()
@@ -153,6 +157,7 @@ class Show extends Component
             'user_id' => $this->asignado_a ? $this->asignado_a : auth()->id(),
             'fecha_cumplimiento' => $this->fecha_cumplimiento,
             'ticket_id' => $this->ticket->id,
+            'estado' => 'pendiente',
         ]);
 
         if ($this->asignado_a) {
@@ -166,6 +171,37 @@ class Show extends Component
         $this->fecha_cumplimiento = '';
         $this->loadTicket();
         $this->emit('tareaCreada');
+    }
+
+    // Marcar tarea como "en_progreso"
+    public function marcarEnProgreso($tareaId)
+    {
+        $tarea = Tarea::find($tareaId);
+
+        if ($tarea->user_id == auth()->id()) {
+            $tarea->marcarEnProgreso();
+            $this->ticket->load('tareas.user');
+            $this->emit('tareaEnProgreso');
+        } else {
+            $this->emit('showToast', ['type' => 'error', 'message' => 'Solo el responsable puede marcar la tarea como en progreso']);
+        }
+        $this->ticket->asignado->notify(new EstadoTarea($tarea, $this->ticket));
+    }
+
+    // Marcar tarea como "completado"
+    public function marcarCompletada($tareaId)
+    {
+        $tarea = Tarea::find($tareaId);
+
+        if ($tarea->user_id == auth()->id()) {
+            $tarea->completar();
+            $this->ticket->load('tareas.user');
+            $this->emit('tareaCompletada');
+        } else {
+            $this->emit('showToast', ['type' => 'error', 'message' => 'Solo el responsable puede marcar la tarea como completada']);
+        }
+
+        $this->ticket->asignado->notify(new EstadoTarea($tarea, $this->ticket));
     }
 
     public function flujoAprobacion()
@@ -635,7 +671,7 @@ class Show extends Component
             'ticket_id' => $this->ticket->id,
             'user_id' => Auth::id(),
             'accion' => 'Impacto',
-            'detalle' =>  $this->ticket->asignado->name . ' Asigno el impacto ' . $this->ticket->impacto->nombre . ' lo que define la prioridad del ticket como ' . $prioridadCategoria,
+            'detalle' =>  Auth::user()->name . ' Asigno el impacto ' . $this->ticket->impacto->nombre . ' lo que define la prioridad del ticket como ' . $prioridadCategoria,
         ]);
 
         Historial::create([
@@ -654,7 +690,7 @@ class Show extends Component
 
     public function addComment()
     {
-        $this->validate(['newComment' => 'required|string', 'commentType' => 'required|integer|in:0,1,2,3,4']);
+        $this->validate(['newComment' => 'required|string', 'commentType' => 'required|integer|in:0,1,2,3,4,5,6']);
 
         // Crear el comentario y guardarlo en la variable $comentario
         $comentario = $this->ticket->comentarios()->create([
@@ -682,8 +718,7 @@ class Show extends Component
                     $colaborador->user->notify(new NuevoComentarioPrivado($comentario));
                 }
             }
-        } else {
-            // $this->ticket->update(['estado_id' => 3]);
+        } elseif ($this->commentType == 2) {
 
             $this->ticket->update([
                 'estado_id' => 6
@@ -700,6 +735,43 @@ class Show extends Component
             if ($this->ticket->colaboradors) {
                 foreach ($this->ticket->colaboradors as $colaborador) {
                     $colaborador->user->notify(new NuevoComentarioSolucion($comentario));
+                }
+            }
+        } elseif ($this->commentType == 5) {
+            $this->ticket->update([
+                'estado_id' => 11
+            ]);
+
+            Historial::create([
+                'ticket_id' => $this->ticket->id,
+                'user_id' => Auth::id(),
+                'accion' => 'Cambio de estado',
+                'detalle' => 'El sistema cambio el estado del ticket a: Pruebas de SET',
+            ]);
+
+            $this->ticket->usuario->notify(new PruebasSet($comentario));
+            if ($this->ticket->colaboradors) {
+                foreach ($this->ticket->colaboradors as $colaborador) {
+                    $colaborador->user->notify(new NuevoComentario($comentario));
+                }
+            }
+        } else {
+            $this->ticket->update([
+                'estado_id' => 12
+            ]);
+
+            Historial::create([
+                'ticket_id' => $this->ticket->id,
+                'user_id' => Auth::id(),
+                'accion' => 'Cambio de estado',
+                'detalle' =>  Auth::user()->name.' Cambio el estado del ticket a: Pruebas en ambiente productivo',
+            ]);
+
+            $this->ticket->usuario->notify(new PruebasProductivo($comentario));
+            $this->ticket->asignado->notify(new PruebasProductivo($comentario));
+            if ($this->ticket->colaboradors) {
+                foreach ($this->ticket->colaboradors as $colaborador) {
+                    $colaborador->user->notify(new NuevoComentario($comentario));
                 }
             }
         }
@@ -754,7 +826,7 @@ class Show extends Component
             'ticket_id' => $this->ticket->id,
             'user_id' => Auth::id(),
             'accion' => 'Escalado',
-            'detalle' =>  $this->ticket->asignado->name . ' Cambió el estado del ticket a: Escalado a consultoría',
+            'detalle' =>  Auth::user()->name . ' Cambió el estado del ticket a: Escalado a consultoría',
         ]);
 
         $this->ticket->usuario->notify(new CambioEstado($this->ticket));
@@ -765,20 +837,40 @@ class Show extends Component
 
     public function consultoriaCambio()
     {
-        $this->ticket->update([
-            'estado_id' => 3
-        ]);
+        if ($this->ticket->cambio && $this->ticket->cambio->check_aprobado_ti == true) {
+            $this->ticket->update([
+                'estado_id' => 14
+            ]);
 
-        Historial::create([
-            'ticket_id' => $this->ticket->id,
-            'user_id' => Auth::id(),
-            'accion' => 'FinEscalado',
-            'detalle' =>  $this->ticket->asignado->name . ' Cambió el estado del ticket a: En atención',
-        ]);
+            Historial::create([
+                'ticket_id' => $this->ticket->id,
+                'user_id' => Auth::id(),
+                'accion' => 'FinEscalado',
+                'detalle' =>  Auth::user()->name . ' Cambió el estado del ticket a: SET Aprobado',
+            ]);
 
-        $this->ticket->usuario->notify(new CambioEstado($this->ticket));
+            $this->ticket->usuario->notify(new CambioEstado($this->ticket));
 
-        $this->emit('showToast', ['type' => 'success', 'message' => 'Cambio de estado a: En atención']);
+            $this->emit('showToast', ['type' => 'success', 'message' => 'Ahora puedes dar gestión a este ticket']);
+        } else {
+            $this->ticket->update([
+                'estado_id' => 3
+            ]);
+
+            Historial::create([
+                'ticket_id' => $this->ticket->id,
+                'user_id' => Auth::id(),
+                'accion' => 'FinEscalado',
+                'detalle' =>  Auth::user()->name . ' Cambió el estado del ticket a: En atención',
+            ]);
+
+            $this->ticket->usuario->notify(new CambioEstado($this->ticket));
+
+            $this->emit('showToast', ['type' => 'success', 'message' => 'Cambio de estado a: En atención']);
+        }
+
+
+
         $this->loadTicket($this->ticket->id);
     }
 

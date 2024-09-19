@@ -6,8 +6,10 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Illuminate\Support\HtmlString;
 
-class Finalizado extends Notification implements ShouldQueue
+
+class PruebasProductivo extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -26,11 +28,12 @@ class Finalizado extends Notification implements ShouldQueue
     public function toMail($notifiable)
     {
         return (new MailMessage)
-            ->greeting('¡Hola! ' . $this->comentario->ticket->asignado->name)
-            ->subject('Ticket finalizado ' . $this->comentario->ticket->nomenclatura)
-            ->line($this->comentario->ticket->usuario->name . ' Aceptó la solución que proporcionaste para el ticket ' . $this->comentario->ticket->nomenclatura)
-            ->line('Tu calificación fue de ' . $this->comentario->calificacion . '/5⭐')
-            ->line($this->comentario->comentario_calificacion ? 'Comentario: ' . $this->comentario->comentario_calificacion : 'Sin comentarios')
+            ->greeting('¡Hola! ' . $this->comentario->ticket->usuario->name)
+            ->subject('Ambiente productivo habilitado ' . $this->comentario->ticket->nomenclatura)
+            ->line($this->comentario->user->name . ' Realizó los cambios en ambiente productivo para el ticket ' . $this->comentario->ticket->nomenclatura)
+            ->line('Comentario:')
+            ->line(new HtmlString($this->comentario->comentario))
+            ->line('Por favor ingresa al sistema de tickets para obtener mas detalles')
             ->action('Ver Ticket', url('/tickets/' . $this->comentario->ticket->id));
     }
 
@@ -40,7 +43,6 @@ class Finalizado extends Notification implements ShouldQueue
             'ticket_id' => $this->comentario->ticket->id,
             'nomenclatura' => $this->comentario->ticket->nomenclatura,
             'comentario' => $this->comentario->comentario,
-            'comentario_calificacion' => $this->comentario->comentario_calificacion,
             'usuario' => $this->comentario->user->name,
         ];
     }

@@ -29,6 +29,7 @@ class AprobacionCambios extends Component
                     'usuario' => $aprobacion->ticket->usuario->name ?? 'N/A',
                     'agente_ti' => $aprobacion->ticket->asignado->name ?? 'N/A',
                     'estado' => $aprobacion->estado,
+                    'estado_ticket' => $aprobacion->ticket->estado->nombre,
                 ];
             })
             ->toArray();
@@ -51,6 +52,7 @@ class AprobacionCambios extends Component
                     'usuario' => $aprobacion->ticket->usuario->name ?? 'N/A',
                     'agente_ti' => $aprobacion->ticket->asignado->name ?? 'N/A',
                     'estado' => $aprobacion->estado,
+                    'estado_ticket' => $aprobacion->ticket->estado->nombre,
                 ];
             })
             ->toArray();

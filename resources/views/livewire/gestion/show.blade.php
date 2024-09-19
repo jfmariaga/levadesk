@@ -520,6 +520,18 @@
                                                                             {{ $tarea->user->name }}</span>
                                                                     @endif
                                                                 </div>
+                                                                <!-- Botones de interacción con los estados -->
+                                                                @if ($tarea->estado == 'pendiente' && $tarea->user_id == auth()->id())
+                                                                    <button
+                                                                        wire:click="marcarEnProgreso({{ $tarea->id }})"
+                                                                        class="btn btn-outline-warning btn-sm">Marcar
+                                                                        como en progreso</button>
+                                                                @elseif ($tarea->estado == 'en_progreso' && $tarea->user_id == auth()->id())
+                                                                    <button
+                                                                        wire:click="marcarCompletada({{ $tarea->id }})"
+                                                                        class="btn btn-outline-success btn-sm">Marcar
+                                                                        como completada</button>
+                                                                @endif
                                                             </li>
                                                         @endforeach
                                                     </ul>
@@ -849,7 +861,7 @@
                                                     </div>
                                                     <hr>
                                                 @elseif ($ticket->escalar == true && $ticket->estado_id == 9)
-                                                    <p>Cambiar estado a: <strong>En atención</strong></p>
+                                                    <p><strong>Cambiar estado</strong></p>
                                                     <p><i>Si cambias el estado, se entendera que la consultoría ya
                                                             proporcionó una solución</i></p>
                                                     <div class="d-flex">
@@ -1108,9 +1120,24 @@
                                                                     class="form-control form-control-sm">
                                                                     <option value="0">Público</option>
                                                                     <option value="1">Privado</option>
-                                                                    @if ($ticket->estado_id != 9 && $ticket->estado_id != 10)
+                                                                    @if (Auth::id() == $ticket->asignado_a)
+                                                                        @if ($ticket->estado_id != 9 && $ticket->estado_id != 10)
+                                                                            @if (!$ticket->solucion())
+                                                                                <option value="2">Solución
+                                                                                </option>
+                                                                            @endif
+                                                                        @endif
+                                                                        @if ($ticket->cambio && $ticket->cambio->estado == 'aprobado' && $ticket->cambio->check_aprobado_ti == false)
+                                                                            @if (!$ticket->solucion())
+                                                                                <option value="5">Set de pruebas
+                                                                                </option>
+                                                                            @endif
+                                                                        @endif
+                                                                    @endif
+                                                                    @if ($ticket->cambio && $ticket->cambio->check_aprobado_ti == true && $ticket->colaboradores->contains('id', Auth::id()))
                                                                         @if (!$ticket->solucion())
-                                                                            <option value="2">Solución</option>
+                                                                            <option value="6">Pruebas calidad
+                                                                            </option>
                                                                         @endif
                                                                     @endif
                                                                 </select>
@@ -1163,7 +1190,7 @@
                                     <h5>Participantes</h5>
                                 </div>
                                 <div class="col-md-6">
-                                    @if ($ticket->estado_id != 4 && $ticket->estado_id != 5)
+                                    @if ($ticket->estado_id != 4 && $ticket->estado_id != 5 && Auth::id() == $ticket->asignado_a)
                                         <button wire:click="participantes"
                                             class="ml-1  {{ $participante ? 'icono-notificacion' : 'icono-colaborador' }} float-right">
                                             <i class="fas {{ $participante ? 'fa-minus' : 'fa-plus-square' }}"></i>
@@ -1180,8 +1207,9 @@
                                         <div wire:ignore>
                                             <select class="select2" id="colaborador">
                                                 <option value="">Seleccionar...</option>
-                                                @foreach ($usuarios as $usuario)
-                                                    <option value="{{ $usuario->id }}">{{ $usuario->name }}</option>
+                                                @foreach ($agentes as $agente)
+                                                    <option value="{{ $agente->id }}">{{ $agente->name }}
+                                                    </option>
                                                 @endforeach
                                             </select>
                                         </div>

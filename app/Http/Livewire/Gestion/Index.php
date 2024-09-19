@@ -30,7 +30,11 @@ class Index extends Component
     public function cargarDatos()
     {
         $userId = Auth::id();
-        $query = Ticket::where('asignado_a', $userId);
+        // $query = Ticket::where('asignado_a', $userId);
+        $query = Ticket::where('asignado_a', $userId)
+        ->orWhereHas('colaboradores', function($query) use ($userId) {
+            $query->where('user_id', $userId);
+        });
 
         if ($this->fecha_desde && $this->fecha_hasta) {
             // Formatear las fechas en el formato 'Y-m-d'
@@ -39,10 +43,21 @@ class Index extends Component
             $query->whereBetween(DB::raw('DATE(created_at)'), [$fecha_desde, $fecha_hasta]);
         }
 
-        $this->tickets = $query->with('urgencia', 'estado')->get();
-        $this->ticketsSolucionados = $this->tickets->where('estado_id', 4); // Estado 4 = Solucionado
-        $this->ticketsEnProceso = $this->tickets->where('estado_id', 3)->count(); // Estado 3 = En Proceso
-        $this->ticketsPorIniciar = $this->tickets->where('estado_id', 1)->count(); // Estado 1 = Por Iniciar
+        $tickets = $query->with('urgencia', 'estado', 'colaboradores')->get();
+
+        // Añadir el rol del usuario en cada ticket
+        $this->tickets = $tickets->map(function ($ticket) use ($userId) {
+            if ($ticket->asignado_a == $userId) {
+                $ticket->rol = 'Agente';
+            } elseif ($ticket->colaboradores->contains('id', $userId)) {
+                $ticket->rol = 'Colaborador';
+            }
+            return $ticket;
+        });
+
+        $this->ticketsSolucionados = $this->tickets->where('estado_id', 4);
+        $this->ticketsEnProceso = $this->tickets->where('estado_id', 3)->count();
+        $this->ticketsPorIniciar = $this->tickets->where('estado_id', 1)->count();
         $this->totalHorasSoporte = $this->calcularHorasSoporte($this->tickets);
 
         $this->emit('cargarGestioTicketTabla', json_encode($this->tickets));

@@ -27,6 +27,7 @@ class NuevoComentarioSolucion extends Notification implements ShouldQueue
     public function toMail($notifiable)
     {
         return (new MailMessage)
+            ->greeting('¡Hola! ' . $this->comentario->ticket->usuario->name)
             ->subject('Solución ' . $this->comentario->ticket->nomenclatura)
             ->line($this->comentario->user->name . ' Ha marcado la siguiente respuesta como solución: ')
             ->line(new HtmlString($this->comentario->comentario))

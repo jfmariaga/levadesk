@@ -34,7 +34,8 @@
                                 <th>Ticket</th>
                                 <th>Usuario</th>
                                 <th>Agente TI</th>
-                                <th>Estado</th>
+                                <th>Estado del flujo</th>
+                                <th>Estado del ticket</th>
                                 <th>Acc</th>
                             </tr>
                         </thead>
@@ -68,7 +69,8 @@
                                 <th>Ticket</th>
                                 <th>Usuario</th>
                                 <th>Agente TI</th>
-                                <th>Estado</th>
+                                <th>Estado del flujo</th>
+                                <th>Estado del ticket</th>
                                 <th>Acc</th>
                             </tr>
                         </thead>
@@ -168,21 +170,23 @@
                             nomenclatura,
                             usuario,
                             agente_ti,
-                            estado
+                            estado,
+                            estado_ticket
                         } = element;
                         console.log('ID:', id, 'Nomenclatura:', nomenclatura, 'Usuario:', usuario, 'Agente TI:',
                             agente_ti, 'Estado:', estado);
-                        body.append(`<tr id="tr_${id}">
-                <td class="pointer">${nomenclatura}</td>
-                <td class="pointer">${usuario}</td>
-                <td class="pointer">${agente_ti}</td>
-                <td class="pointer">${estado}</td>
-                <td>
-                    <div class="d-flex">
-                           <a href="aprobar?ticket_id=${id}" class="btn btn-xs btn-default text-primary mx-1 shadow" title="Edit"><i class="far fa-eye"></i></a>
-                    </div>
-                </td>
-            </tr>`);
+                                        body.append(`<tr id="tr_${id}">
+                                <td class="pointer">${nomenclatura}</td>
+                                <td class="pointer">${usuario}</td>
+                                <td class="pointer">${agente_ti}</td>
+                                <td class="pointer">${estado}</td>
+                                <td class="pointer">${estado_ticket}</td>
+                                <td>
+                                    <div class="d-flex">
+                                        <a href="aprobar?ticket_id=${id}" class="btn btn-xs btn-default text-primary mx-1 shadow" title="Edit"><i class="far fa-eye"></i></a>
+                                    </div>
+                                </td>
+                            </tr>`);
                     }
                     resolve(body);
                 });

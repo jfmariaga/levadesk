@@ -263,7 +263,7 @@ class AprobarCambios extends Component
     public function aprobarSet()
     {
         $this->ticket->update([
-            'estado_id' => 3
+            'estado_id' => 14
         ]);
 
         $this->ticket->cambio->update([
@@ -273,12 +273,13 @@ class AprobarCambios extends Component
         Historial::create([
             'ticket_id' => $this->ticket->id,
             'user_id' => Auth::id(),
-            'accion' => 'set ',
+            'accion' => 'set aprobado',
             'detalle' => 'Se aprobó el paso a producción',
         ]);
 
         $this->ticket->asignado->notify(new AprobarProductivo($this->ticket));
         $this->emit('showToast', ['type' => 'success', 'message' => 'Se aprobó el set de pruebas']);
+        $this->emit('actualizarNotificaciones');
         $this->verTicket();
     }
 
@@ -291,7 +292,7 @@ class AprobarCambios extends Component
         ]);
 
         $this->ticket->update([
-            'estado_id' => 3
+            'estado_id' => 10
         ]);
 
         Historial::create([

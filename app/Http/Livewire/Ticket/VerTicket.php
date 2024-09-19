@@ -99,11 +99,11 @@ class VerTicket extends Component
         ]);
 
         $this->ticket->asignado->notify(new Finalizado($comentarioModel));
-        if ($this->ticket->colaboradors) {
-            foreach ($this->ticket->colaboradors as $colaborador) {
-                $colaborador->user->notify(new Finalizado($comentarioModel));
-            }
-        }
+        // if ($this->ticket->colaboradors) {
+        //     foreach ($this->ticket->colaboradors as $colaborador) {
+        //         $colaborador->user->notify(new Finalizado($comentarioModel));
+        //     }
+        // }
 
         $this->emit('showToast', ['type' => 'success', 'message' => 'Gracias por tu calificación.']);
         $this->verTicket();

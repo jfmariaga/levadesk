@@ -42,8 +42,15 @@ class Notifications extends Component
             ->get();
 
         $aprobacionesTiCambios = $this->usuarioId->aprobacionesTiCambios()
-            ->where('estado', 'aprobado_funcional')
+            ->where(function ($query) {
+                $query->where('estado', 'aprobado_funcional')
+                    ->orWhere(function ($query) {
+                        $query->where('check_aprobado', true)
+                            ->where('check_aprobado_ti', false);
+                    });
+            })
             ->get();
+
 
         // Unir las aprobaciones y los cambios usando concat() para mantener las relaciones intactas
         $this->aprobaciones = $aprobacionesFuncionales->concat($aprobacionesTi);

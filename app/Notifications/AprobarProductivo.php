@@ -28,7 +28,7 @@ class AprobarProductivo extends Notification implements ShouldQueue
         return (new MailMessage)
             ->greeting('¡Hola! ' . $this->ticket->asignado->name)
             ->subject('Aprobación paso a productivo' . $this->ticket->nomenclatura)
-            ->line('Se aprobó el paso a producción')
+            ->line('Se aprobó el paso a producción, por favor ingresa a la aplicación y designa un implementador')
             ->line('El ticket ' . $this->ticket->nomenclatura . ' ahora esta en estado: ' . $this->ticket->estado->nombre)
             ->action('Ver Ticket', url('/tickets/' . $this->ticket->id));
     }

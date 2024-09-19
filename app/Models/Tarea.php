@@ -9,7 +9,7 @@ class Tarea extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['titulo', 'descripcion', 'user_id', 'fecha_cumplimiento', 'ticket_id'];
+    protected $fillable = ['titulo', 'descripcion', 'user_id', 'fecha_cumplimiento', 'ticket_id', 'estado'];
 
     public function ticket()
     {
@@ -19,5 +19,17 @@ class Tarea extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    // Cambiar tarea a "en_progreso"
+    public function marcarEnProgreso()
+    {
+        $this->update(['estado' => 'en_progreso']);
+    }
+
+    // Cambiar tarea a "completado"
+    public function completar()
+    {
+        $this->update(['estado' => 'completado']);
     }
 }
