@@ -428,63 +428,87 @@
                                     @if ($ticket->estado_id != 1)
                                         <div>
                                             @foreach ($ticket->comentarios as $comentario)
-                                                <div class="card">
-                                                    <div class="direct-chat-infos clearfix mt-1">
-                                                        <span
-                                                            class="direct-chat-name float-left ml-2">{{ $comentario->user->name ?? 'Anónimo' }}</span>
-                                                        <span
-                                                            class="direct-chat-timestamp float-left ml-2">{{ $comentario->created_at->format('d M Y h:i a') }}</span>
-                                                        @if ($comentario->tipo == 2)
-                                                            @if ($ticket->estado_id != 4)
-                                                                <div class="d-flex justify-content-end row mr-2 mb-2">
-                                                                    <button
-                                                                        wire:click="aceptarSolucion({{ $comentario->id }})"
-                                                                        class="btn btn-outline-info btn-sm">
-                                                                        <i class="fas fa-check-circle"></i>
-                                                                    </button>
-                                                                    <button
-                                                                        wire:click="rechazarSolucion({{ $comentario->id }})"
-                                                                        class="btn btn-outline-danger btn-sm ml-2">
-                                                                        <i class="fas fa-times-circle"></i>
-                                                                    </button>
-                                                                </div>
-                                                            @endif
+                                                @php
+                                                    $puedeVerComentario = false;
+
+                                                    // Verificamos si el usuario autenticado es el asignado o un colaborador del ticket
+                                                    if (
+                                                        Auth::user()->id === $ticket->asignado_a ||
+                                                        $ticket->colaboradores->contains(Auth::user())
+                                                    ) {
+                                                        $puedeVerComentario = true;
+                                                    }
+
+                                                    // Si el comentario es público (tipo == 0) o es el asignado/colaborador, puede verlo
+                                                    if ($comentario->tipo == 0 || $puedeVerComentario) {
+                                                        $puedeVerComentario = true;
+                                                    }
+
+                                                    // Los usuarios con rol 'Usuario' no pueden ver comentarios privados
+                                                    if (Auth::user()->hasRole('Usuario') && $comentario->tipo == 1) {
+                                                        $puedeVerComentario = false;
+                                                    }
+                                                @endphp
+                                                @if ($puedeVerComentario)
+                                                    <div class="card">
+                                                        <div class="direct-chat-infos clearfix mt-1">
                                                             <span
-                                                                class="badge color-verde-claro mr-2 float-right">Solución
-                                                                {{ $ticket->comentario += 1 }}
-                                                            </span>
-                                                        @else
-                                                            @if ($comentario->tipo == 3)
+                                                                class="direct-chat-name float-left ml-2">{{ $comentario->user->name ?? 'Anónimo' }}</span>
+                                                            <span
+                                                                class="direct-chat-timestamp float-left ml-2">{{ $comentario->created_at->format('d M Y h:i a') }}</span>
+                                                            @if ($comentario->tipo == 2)
+                                                                @if ($ticket->estado_id != 4)
+                                                                    <div
+                                                                        class="d-flex justify-content-end row mr-2 mb-2">
+                                                                        <button
+                                                                            wire:click="aceptarSolucion({{ $comentario->id }})"
+                                                                            class="btn btn-outline-info btn-sm">
+                                                                            <i class="fas fa-check-circle"></i>
+                                                                        </button>
+                                                                        <button
+                                                                            wire:click="rechazarSolucion({{ $comentario->id }})"
+                                                                            class="btn btn-outline-danger btn-sm ml-2">
+                                                                            <i class="fas fa-times-circle"></i>
+                                                                        </button>
+                                                                    </div>
+                                                                @endif
                                                                 <span
-                                                                    class="badge estado-por-iniciar mr-2 float-right">Solución
-                                                                    no aceptada. Respuesta
+                                                                    class="badge color-verde-claro mr-2 float-right">Solución
                                                                     {{ $ticket->comentario += 1 }}
                                                                 </span>
                                                             @else
-                                                                <span
-                                                                    class="badge color-respuesta-azul mr-2 float-right">Respuesta
-                                                                    {{ $comentario->tipo == 1 ? 'Privada' : '' }}
-                                                                    {{ $ticket->comentario += 1 }}
-                                                                </span>
+                                                                @if ($comentario->tipo == 3)
+                                                                    <span
+                                                                        class="badge estado-por-iniciar mr-2 float-right">Solución
+                                                                        no aceptada. Respuesta
+                                                                        {{ $ticket->comentario += 1 }}
+                                                                    </span>
+                                                                @else
+                                                                    <span
+                                                                        class="badge color-respuesta-azul mr-2 float-right">Respuesta
+                                                                        {{ $comentario->tipo == 1 ? 'Privada' : '' }}
+                                                                        {{ $ticket->comentario += 1 }}
+                                                                    </span>
+                                                                @endif
                                                             @endif
-                                                        @endif
+                                                        </div>
+                                                        <div
+                                                            class="direct-chat-text mr-2 mb-2 {{ $comentario->tipo == 2 ? 'color-verde-claro' : 'bg-light' }} ">
+                                                            {!! $comentario->comentario !!}
+                                                            @if ($comentario->archivos->count())
+                                                                <strong>Archivos:</strong>
+                                                                <ul class="list-unstyled">
+                                                                    @foreach ($comentario->archivos as $archivo)
+                                                                        <li>
+                                                                            <a href="{{ Storage::url($archivo->ruta) }}"
+                                                                                target="_blank">Adjunto</a>
+                                                                        </li>
+                                                                    @endforeach
+                                                                </ul>
+                                                            @endif
+                                                        </div>
                                                     </div>
-                                                    <div
-                                                        class="direct-chat-text mr-2 mb-2 {{ $comentario->tipo == 2 ? 'color-verde-claro' : 'bg-light' }} ">
-                                                        {!! $comentario->comentario !!}
-                                                        @if ($comentario->archivos->count())
-                                                            <strong>Archivos:</strong>
-                                                            <ul class="list-unstyled">
-                                                                @foreach ($comentario->archivos as $archivo)
-                                                                    <li>
-                                                                        <a href="{{ Storage::url($archivo->ruta) }}"
-                                                                            target="_blank">Adjunto</a>
-                                                                    </li>
-                                                                @endforeach
-                                                            </ul>
-                                                        @endif
-                                                    </div>
-                                                </div>
+                                                @endif
                                             @endforeach
                                         </div>
                                         @if ($ticket->estado_id != 4 && $ticket->estado_id != 5)
