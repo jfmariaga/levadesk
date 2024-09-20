@@ -166,7 +166,7 @@
                                 <li>{{ $grupo->nombre }}</li>
                             @endforeach
                         </ul>
-                        @if (!Auth::user()->hasRole('Usuario'))
+                        @if (!Auth::user()->hasRole('Usuario') && !Auth::user()->hasRole('Aprobador'))
                             <div class="form-group d-flex flex-column align-items-center">
                                 @if (Auth::user()->en_vacaciones)
                                     <!-- Si el agente está de vacaciones, mostrar el agente de respaldo -->
