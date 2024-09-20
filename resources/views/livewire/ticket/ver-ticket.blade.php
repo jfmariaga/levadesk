@@ -278,12 +278,53 @@
                 <div class="col-lg-9">
                     <div class="card">
                         <div class="col-12 mt-1 mr-2">
-                            @if ($ticket->solucion() && $ticket->estado_id != 4)
-                                <span wire:ignore class="alert alert-success color-verde-claro float-right">
-                                    Solución indicada en el comentario
-                                    #{{ $ticket->comentarios->search($ticket->solucion()) + 1 }}.
-                                </span>
+                            @if ($ticket->solucion())
+                                @php
+                                    // Obtener todos los comentarios del ticket
+                                    $comentarios = $ticket->comentarios;
+
+                                    // Obtener el ID del usuario autenticado
+                                    $usuarioAutenticadoId = Auth::id();
+
+                                    // Filtrar los comentarios visibles según la condición del usuario logueado
+                                    $comentariosVisibles = $comentarios->filter(function ($comentario) use (
+                                        $usuarioAutenticadoId,
+                                        $ticket,
+                                    ) {
+                                        // Si el usuario logueado es el mismo que el del ticket y el comentario es de tipo 1, lo excluimos
+                                        if ($usuarioAutenticadoId === $ticket->usuario_id && $comentario->tipo == 1) {
+                                            return false; // Excluir el comentario
+                                        }
+                                        return true; // Incluir el comentario si no es de tipo 1 o si no coincide con el usuario_id
+                                    });
+
+                                    // Reinicializar el contador de comentarios visibles
+                                    $contadorVisible = 0;
+
+                                    // Buscar el comentario que es la solución
+                                    $solucionComentario = $ticket->solucion(); // La solución del ticket
+
+                                    // Calcular el índice de la solución entre los comentarios visibles
+                                    $indexSolucionVisible = null;
+
+                                    foreach ($comentariosVisibles as $comentario) {
+                                        $contadorVisible++; // Incrementar el contador solo para los comentarios visibles
+
+                                        if ($comentario->id === $solucionComentario->id) {
+                                            $indexSolucionVisible = $contadorVisible; // Guardar el índice basado en el contador de visibles
+                                            break; // Romper el bucle cuando encontremos la solución
+                                        }
+                                    }
+
+                                @endphp
+
+                                @if ($solucionComentario && $ticket->estado_id != 4 && isset($indexSolucionVisible))
+                                    <span wire:ignore class="alert alert-success color-verde-claro float-right">
+                                        Solución indicada en el comentario #{{ $indexSolucionVisible }}.
+                                    </span>
+                                @endif
                             @endif
+
                             <div class="col-12 mt-1 mr-2">
                                 @php
                                     $comentarioCalificado = $ticket
@@ -427,11 +468,27 @@
                                 <div class="col-12 comentario">
                                     @if ($ticket->estado_id != 1)
                                         <div>
+                                            @php
+                                                $visibleCommentsCount = 0; // Contador para los comentarios visibles
+                                            @endphp
                                             @foreach ($ticket->comentarios as $comentario)
                                                 @php
                                                     $puedeVerComentario = false;
 
-                                                    // Verificamos si el usuario autenticado es el asignado o un colaborador del ticket
+                                                    // Si el comentario es público (tipo == 0), o está en el rango permitido (0-6) excluyendo tipo 1, puede verlo
+                                                    if (
+                                                        $comentario->tipo == 0 ||
+                                                        ($comentario->tipo >= 2 && $comentario->tipo <= 6)
+                                                    ) {
+                                                        $puedeVerComentario = true;
+                                                    }
+
+                                                    // Verificamos si el usuario tiene el rol 'Usuario' y si el comentario es de tipo 1
+                                                    if (Auth::user()->hasRole('Usuario') && $comentario->tipo == 1) {
+                                                        $puedeVerComentario = false;
+                                                    }
+
+                                                    // Si el usuario es el asignado o un colaborador del ticket, puede ver los comentarios
                                                     if (
                                                         Auth::user()->id === $ticket->asignado_a ||
                                                         $ticket->colaboradores->contains(Auth::user())
@@ -439,14 +496,9 @@
                                                         $puedeVerComentario = true;
                                                     }
 
-                                                    // Si el comentario es público (tipo == 0) o es el asignado/colaborador, puede verlo
-                                                    if ($comentario->tipo == 0 || $puedeVerComentario) {
-                                                        $puedeVerComentario = true;
-                                                    }
-
-                                                    // Los usuarios con rol 'Usuario' no pueden ver comentarios privados
-                                                    if (Auth::user()->hasRole('Usuario') && $comentario->tipo == 1) {
-                                                        $puedeVerComentario = false;
+                                                    // Incrementar el contador solo si el comentario es visible
+                                                    if ($puedeVerComentario) {
+                                                        $visibleCommentsCount++;
                                                     }
                                                 @endphp
                                                 @if ($puedeVerComentario)
@@ -456,7 +508,7 @@
                                                                 class="direct-chat-name float-left ml-2">{{ $comentario->user->name ?? 'Anónimo' }}</span>
                                                             <span
                                                                 class="direct-chat-timestamp float-left ml-2">{{ $comentario->created_at->format('d M Y h:i a') }}</span>
-                                                            @if ($comentario->tipo == 2)
+                                                            @if ($comentario->tipo == 2 && Auth::id() == $ticket->usuario_id)
                                                                 @if ($ticket->estado_id != 4)
                                                                     <div
                                                                         class="d-flex justify-content-end row mr-2 mb-2">
@@ -474,20 +526,20 @@
                                                                 @endif
                                                                 <span
                                                                     class="badge color-verde-claro mr-2 float-right">Solución
-                                                                    {{ $ticket->comentario += 1 }}
+                                                                    {{ $visibleCommentsCount }}
                                                                 </span>
                                                             @else
                                                                 @if ($comentario->tipo == 3)
                                                                     <span
                                                                         class="badge estado-por-iniciar mr-2 float-right">Solución
                                                                         no aceptada. Respuesta
-                                                                        {{ $ticket->comentario += 1 }}
+                                                                        {{ $visibleCommentsCount }}
                                                                     </span>
                                                                 @else
                                                                     <span
                                                                         class="badge color-respuesta-azul mr-2 float-right">Respuesta
                                                                         {{ $comentario->tipo == 1 ? 'Privada' : '' }}
-                                                                        {{ $ticket->comentario += 1 }}
+                                                                        {{ $visibleCommentsCount }}
                                                                     </span>
                                                                 @endif
                                                             @endif
@@ -595,6 +647,20 @@
                                 @foreach ($ticket->colaboradors as $colaborador)
                                     <p><strong>Colaborador :</strong> {{ $colaborador->user->name }}</p>
                                 @endforeach
+                            @endif
+                            @if ($ticket->cambio)
+                                <h5>Flujo de cambios</h5>
+                                <p><strong>Líder funcional:</strong>
+                                    {{ $ticket->cambio->aprobadorFuncionalCambio->name }}</p>
+                                <p><strong>Aprobador TI:</strong>
+                                    {{ $ticket->cambio->aprobadorTiCambio->name }}</p>
+                            @endif
+                            @if ($ticket->aprobacion)
+                                <h5>Flujo de accesos</h5>
+                                <p><strong>Líder funcional:</strong>
+                                    {{ $ticket->aprobacion->aprobadorFuncional->name }}</p>
+                                <p><strong>Aprobador TI:</strong>
+                                    {{ $ticket->aprobacion->aprobadorTi->name }}</p>
                             @endif
                         </div>
                     </div>

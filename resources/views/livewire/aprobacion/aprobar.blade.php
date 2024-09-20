@@ -355,7 +355,7 @@
                                                                 class="direct-chat-name float-left ml-2">{{ $comentario->user->name ?? 'Anónimo' }}</span>
                                                             <span
                                                                 class="direct-chat-timestamp float-left ml-2">{{ $comentario->created_at->format('d M Y h:i a') }}</span>
-                                                            @if ($comentario->tipo == 2)
+                                                            @if ($comentario->tipo == 2 && Auth::id() == $ticket->usuario_id)
                                                                 @if ($ticket->estado_id != 4)
                                                                     <div
                                                                         class="d-flex justify-content-end row mr-2 mb-2">

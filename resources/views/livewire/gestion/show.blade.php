@@ -464,7 +464,7 @@
                             <div class="form-row align-items-start mt-2 mb-1">
                                 @if ($tarea)
                                     <!-- Tarjeta de creación de nueva tarea -->
-                                    @if ($ticket->estado_id != 4 && $ticket->estado_id != 5)
+                                    @if ($ticket->estado_id != 4 && $ticket->estado_id != 5 && Auth::id() == $ticket->asignado_a)
                                         <div class="col-md-4">
                                             <div class="card">
                                                 <div class="card-body">
@@ -1136,7 +1136,7 @@
                                                                     @endif
                                                                     @if ($ticket->cambio && $ticket->cambio->check_aprobado_ti == true && $ticket->colaboradores->contains('id', Auth::id()))
                                                                         @if (!$ticket->solucion())
-                                                                            <option value="6">Pruebas calidad
+                                                                            <option value="6">Validar Productivo
                                                                             </option>
                                                                         @endif
                                                                     @endif

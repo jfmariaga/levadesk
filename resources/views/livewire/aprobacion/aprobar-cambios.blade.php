@@ -365,7 +365,7 @@
                                                                 class="direct-chat-name float-left ml-2">{{ $comentario->user->name ?? 'Anónimo' }}</span>
                                                             <span
                                                                 class="direct-chat-timestamp float-left ml-2">{{ $comentario->created_at->format('d M Y h:i a') }}</span>
-                                                            @if ($comentario->tipo == 2)
+                                                            @if ($comentario->tipo == 2 && Auth::id() == $ticket->usuario_id)
                                                                 @if ($ticket->estado_id != 4)
                                                                     <div
                                                                         class="d-flex justify-content-end row mr-2 mb-2">
@@ -393,13 +393,14 @@
                                                                         {{ $ticket->comentario += 1 }}
                                                                     </span>
                                                                 @else
-                                                                    @if (
-                                                                        $ticket->estado_id == 10 &&
-                                                                            $ticket->cambio->check_aprobado &&
-                                                                            $ticket->cambio->aprobador_final_ti_id == Auth::id() &&
-                                                                            $comentario->check_comentario == true)
-                                                                        <div
-                                                                            class="d-flex justify-content-end row mr-2 mb-2">
+                                                                    <div
+                                                                        class="d-flex justify-content-end row mr-2 mb-2">
+
+                                                                        @if (
+                                                                            $ticket->estado_id == 10 &&
+                                                                                $ticket->cambio->check_aprobado &&
+                                                                                $ticket->cambio->aprobador_final_ti_id == Auth::id() &&
+                                                                                $comentario->check_comentario == true)
                                                                             <button onclick="confirmProducion()"
                                                                                 class="btn btn-outline-info btn-sm">
                                                                                 <i class="fas fa-check-circle"></i>
@@ -409,8 +410,13 @@
                                                                                 class="btn btn-outline-danger btn-sm ml-2">
                                                                                 <i class="fas fa-times-circle"></i>
                                                                             </button>
-                                                                        </div>
-                                                                    @endif
+                                                                        @elseif($ticket->cambio->check_aprobado_ti == true && $comentario->check_comentario == true)
+                                                                            <h5 class="badge text-bg-dark"
+                                                                                style="background-color: #a3da92;">Se
+                                                                                aprobó el paso a producción</h5>
+                                                                        @endif
+                                                                    </div>
+
                                                                     <span
                                                                         class="badge color-respuesta-azul mr-2 float-right">Respuesta
                                                                         {{ $comentario->tipo == 1 ? 'Privada' : '' }}

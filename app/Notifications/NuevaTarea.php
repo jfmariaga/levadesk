@@ -32,6 +32,7 @@ class NuevaTarea extends Notification implements ShouldQueue
                     ->subject('Nueva Tarea Asignada: ' . $this->tarea->titulo)
                     ->line('Se te ha asignado una nueva tarea con el título: "' . $this->tarea->titulo . '"')
                     ->line('La tarea pertenece al ticket: ' . $this->ticket->nomenclatura)
+                    ->line('Mas información en la descripción de la tarea')
                     ->line('Debes completar esta tarea antes de: ' . Carbon::parse($this->tarea->fecha_cumplimiento)->format('d-m-Y H:i'))
                     ->action('Ver Tarea', url('/tickets/' . $this->ticket->id));
     }
