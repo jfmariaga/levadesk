@@ -12,7 +12,7 @@ class Subcategoria extends Model
 
     protected $table = 'subcategorias';
 
-    protected $fillable = ['categoria_id', 'nombre', 'codigo', 'descripcion','estado', 'grupo_id'];
+    protected $fillable = ['categoria_id', 'nombre', 'codigo', 'descripcion','estado'];
 
     public function categoria()
     {
@@ -29,8 +29,15 @@ class Subcategoria extends Model
         return $this->hasMany(Ticket::class);
     }
 
-    public function grupo()
+    // public function grupo()
+    // {
+    //     return $this->belongsTo(Grupo::class);
+    // }
+
+    // Nueva relación con grupos a través de la sociedad
+    public function gruposPorSociedad($sociedad_id)
     {
-        return $this->belongsTo(Grupo::class);
+        return $this->belongsToMany(Grupo::class, 'sociedad_subcategoria_grupo', 'subcategoria_id', 'grupo_id')
+                    ->wherePivot('sociedad_id', $sociedad_id);
     }
 }

@@ -23,7 +23,6 @@
                         <th>Nomenclatura</th>
                         <th>Tipo de categoria</th>
                         <th>Tipo de solicitud</th>
-                        <th>Grupo de trabajo</th>
                         <th>Estado</th>
                         <th>Acc</th>
                     </tr>
@@ -110,7 +109,6 @@
                             descripcion,
                             codigo,
                             categoria,
-                            grupo,
                             estado
                         } = element;
 
@@ -120,7 +118,6 @@
                             <td class="pointer">${codigo}</td>
                             <td class="pointer">${categoria.nombre}</td>
                             <td class="pointer">${categoria.solicitud.nombre}</td>
-                            <td class="pointer">${grupo ? grupo.nombre: ''}</td>
                             <td class="pointer">${estado == 0 ?  '<span style="color: green;">✔</span>' : '<span style="color: red;">✘</span>'}</td>
                             <td>
                                 <div class="d-flex">

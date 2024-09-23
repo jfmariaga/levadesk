@@ -47,6 +47,8 @@ class RoleSeeder extends Seeder
         Permission::create(['name' => 'grupo'])->syncRoles([$role1]);
         Permission::create(['name' => 'urgencia'])->syncRoles([$role1]);
         Permission::create(['name' => 'impacto'])->syncRoles([$role1]);
+        
+        Permission::create(['name' => 'relacion'])->syncRoles([$role1]);
 
         // Permisos compartidos para Admin, Agente, Usuario y Aprobador
         Permission::create(['name' => 'ticket'])->syncRoles([$role1, $role2, $role3, $role4]);

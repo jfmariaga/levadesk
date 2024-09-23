@@ -20,10 +20,10 @@ class Grupo extends Model
     }
 
 
-    public function subcategorias()
-    {
-        return $this->hasMany(Subcategoria::class);
-    }
+    // public function subcategorias()
+    // {
+    //     return $this->hasMany(Subcategoria::class);
+    // }
 
     public  function aplicaciones(){
         return $this->hasMany(Aplicaciones::class);

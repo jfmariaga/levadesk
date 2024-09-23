@@ -15,8 +15,7 @@ class Index extends Component
     }
 
     public function cargarSubCategoria(){
-        $subcategorias = Subcategoria::with(['categoria', 'categoria.solicitud', 'grupo'])->get()->toArray();
-        // dd($subcategorias);
+        $subcategorias = Subcategoria::with(['categoria', 'categoria.solicitud'])->get()->toArray();
         $this->emit('cargarSubCategoriasTabla', json_encode($subcategorias));
     }
 }

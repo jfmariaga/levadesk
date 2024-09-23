@@ -356,6 +356,12 @@ return [
             'can' => 'subcategoria',
         ],
         [
+            'text' => 'Grupo-sociedad-subcategoria',
+            'route' => 'relacion',
+            'icon' => 'fas fa-boxes',
+            'can' => 'relacion',
+        ],
+        [
             'text' => 'ANS',
             'route' => 'ans',
             'icon' => 'fas fa-stopwatch',

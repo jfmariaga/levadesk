@@ -117,145 +117,282 @@ class FormTickets extends Component
         }
     }
 
+    // public function submit()
+    // {
+    //     $this->validate();
+
+    //     if (count($this->archivos) > 2) {
+    //         $this->addError('archivos', 'No se pueden subir más de dos archivos.');
+    //         return;
+    //     }
+
+    //     // Obtener la subcategoría seleccionada
+    //     $subcategoria = Subcategoria::find($this->subcategoria_id);
+
+    //     // Asegurarse de que $subcategoria no es null
+    //     if (!$subcategoria) {
+    //         session()->flash('error', 'Subcategoría no encontrada');
+    //         return;
+    //     }
+
+    //     // Definir el usuario que será asignado al ticket
+    //     $usuario = null;
+    //     $grupo = null; // Definir el grupo aquí, porque el grupo dependerá de la subcategoría o aplicación
+
+    //     // Si la subcategoría es SOPORTE DE APLICACIONES, asignar según la aplicación seleccionada
+    //     if ($subcategoria->nombre === 'SOPORTE DE APLICACIONES') {
+    //         // Obtener la aplicación seleccionada
+    //         $aplicacion = Aplicaciones::find($this->aplicacion_id);
+
+    //         // Verificar que la aplicación existe y tiene un grupo asociado
+    //         if ($aplicacion && $aplicacion->grupo_id) {
+    //             // Cargar el grupo relacionado con la aplicación a través de la relación grupo_id
+    //             $grupo = $aplicacion->grupo;
+
+    //             // Verificar que el grupo existe
+    //             if ($grupo) {
+    //                 // Obtener el usuario con menos tickets en el grupo relacionado con la aplicación
+    //                 $usuario = $grupo->usuarios()->withCount('ticketsAsignados')->orderBy('tickets_asignados_count', 'asc')->first();
+    //             } else {
+    //                 session()->flash('error', 'No hay grupo asignado a la aplicación seleccionada.');
+    //                 return;
+    //             }
+    //         } else {
+    //             session()->flash('error', 'No hay grupo o usuarios asignados a la aplicación seleccionada.');
+    //             return;
+    //         }
+    //     } else {
+    //         // Obtener el grupo asociado a la subcategoría
+    //         $grupo = $subcategoria->grupo;
+
+    //         // Verificar que $grupo no es null
+    //         if (!$grupo) {
+    //             session()->flash('error', 'No hay grupo asignado a la subcategoría seleccionada');
+    //             return;
+    //         }
+
+    //         // Obtener el usuario del grupo con menos tickets asignados
+    //         $usuario = $grupo->usuarios()->withCount('ticketsAsignados')->orderBy('tickets_asignados_count', 'asc')->first();
+    //     }
+
+    //     if (!$usuario) {
+    //         session()->flash('error', 'No hay usuarios disponibles en el grupo');
+    //         return;
+    //     }
+
+    //     // **Lógica de vacaciones**
+    //     // Si el usuario está de vacaciones, reasignamos al agente backup (agente_bk)
+    //     if ($usuario->en_vacaciones) {
+    //         $backupAgente = $usuario->backups()->first(); // Obtenemos el primer agente de respaldo
+
+    //         if ($backupAgente) {
+    //             $usuario = $backupAgente;
+    //         } else {
+    //             session()->flash('error', 'El usuario está en vacaciones y no tiene un agente de respaldo asignado.');
+    //             return;
+    //         }
+    //     }
+
+    //     // Obtenemos el ANS inicial asociado al tipo de solicitud
+    //     $ansInicial = ANS::where('solicitud_id', $this->tipo_solicitud_id)
+    //         ->where('nivel', 'INICIAL')
+    //         ->first();
+
+    //     // Crear el ticket
+    //     $ticket = Ticket::create([
+    //         'titulo' => $this->titulo,
+    //         'descripcion' => $this->descripcion,
+    //         'sociedad_id' => $this->sociedad_id,
+    //         'tipo_solicitud_id' => $this->tipo_solicitud_id,
+    //         'categoria_id' => $this->categoria_id,
+    //         'subcategoria_id' => $this->subcategoria_id,
+    //         'nomenclatura' => $this->generateNomenclatura(),
+    //         'estado_id' => $this->estado_id,
+    //         'creador_id' => Auth::id(),
+    //         'asignado_a' => $usuario->id,
+    //         'usuario_id' => Auth::id(),
+    //         'grupo_id' => $grupo->id, // Grupo de la subcategoría o la aplicación, dependiendo del caso
+    //         'urgencia_id' => $this->urgencia,
+    //         'aplicacion_id' => $this->aplicacion_id,
+    //         'ans_id' => $ansInicial ? $ansInicial->id : null,  // Asignar ANS inicial
+    //     ]);
+
+    //     // Guardar archivos si los hay
+    //     if ($this->archivos) {
+    //         foreach ($this->archivos as $archivo) {
+    //             $nombre_original = $archivo->getClientOriginalName();
+    //             $nombre_sin_extension = pathinfo($nombre_original, PATHINFO_FILENAME);
+    //             $extension = $archivo->getClientOriginalExtension();
+    //             $nombre_db = Str::slug($nombre_sin_extension);
+    //             $nombre_a_guardar = $nombre_db . '.' . $extension;
+    //             $ruta = $archivo->storeAs('public/tickets', $nombre_a_guardar);
+
+    //             $ticket->archivos()->create([
+    //                 'ruta' => $ruta,
+    //             ]);
+    //         }
+    //     }
+
+    //     // Enviar notificaciones
+    //     $ticket->usuario->notify(new TicketCreado($ticket));
+    //     $usuario->notify(new TicketAsignado($ticket));
+
+    //     // Registrar en el historial
+    //     Historial::create([
+    //         'ticket_id' => $ticket->id,
+    //         'user_id' => Auth::id(),
+    //         'accion' => 'Nuevo',
+    //         'detalle' => 'Nuevo ticket',
+    //     ]);
+
+    //     Historial::create([
+    //         'ticket_id' => $ticket->id,
+    //         'user_id' => Auth::id(),
+    //         'accion' => 'Asignado',
+    //         'detalle' => 'Ticket asignado por el sistema a ' . $usuario->name,
+    //     ]);
+
+    //     $this->emit('cargarTickets');
+    //     $this->emit('ok_ticket');
+    //     $this->resetForm();
+    // }
+
     public function submit()
-    {
-        $this->validate();
+{
+    $this->validate();
 
-        if (count($this->archivos) > 2) {
-            $this->addError('archivos', 'No se pueden subir más de dos archivos.');
-            return;
-        }
+    if (count($this->archivos) > 2) {
+        $this->addError('archivos', 'No se pueden subir más de dos archivos.');
+        return;
+    }
 
-        // Obtener la subcategoría seleccionada
-        $subcategoria = Subcategoria::find($this->subcategoria_id);
+    // Obtener la subcategoría seleccionada
+    $subcategoria = Subcategoria::find($this->subcategoria_id);
 
-        // Asegurarse de que $subcategoria no es null
-        if (!$subcategoria) {
-            session()->flash('error', 'Subcategoría no encontrada');
-            return;
-        }
+    if (!$subcategoria) {
+        session()->flash('error', 'Subcategoría no encontrada');
+        return;
+    }
 
-        // Definir el usuario que será asignado al ticket
-        $usuario = null;
-        $grupo = null; // Definir el grupo aquí, porque el grupo dependerá de la subcategoría o aplicación
+    // Definir el usuario que será asignado al ticket
+    $usuario = null;
+    $grupo = null;
 
-        // Si la subcategoría es SOPORTE DE APLICACIONES, asignar según la aplicación seleccionada
-        if ($subcategoria->nombre === 'SOPORTE DE APLICACIONES') {
-            // Obtener la aplicación seleccionada
-            $aplicacion = Aplicaciones::find($this->aplicacion_id);
+    // Si la subcategoría es SOPORTE DE APLICACIONES, asignar según la aplicación seleccionada
+    if ($subcategoria->nombre === 'SOPORTE DE APLICACIONES') {
+        // Obtener la aplicación seleccionada
+        $aplicacion = Aplicaciones::find($this->aplicacion_id);
 
-            // Verificar que la aplicación existe y tiene un grupo asociado
-            if ($aplicacion && $aplicacion->grupo_id) {
-                // Cargar el grupo relacionado con la aplicación a través de la relación grupo_id
-                $grupo = $aplicacion->grupo;
+        // Verificar que la aplicación existe y tiene un grupo asociado
+        if ($aplicacion && $aplicacion->grupo_id) {
+            // Cargar el grupo relacionado con la aplicación
+            $grupo = $aplicacion->grupo;
 
-                // Verificar que el grupo existe
-                if ($grupo) {
-                    // Obtener el usuario con menos tickets en el grupo relacionado con la aplicación
-                    $usuario = $grupo->usuarios()->withCount('ticketsAsignados')->orderBy('tickets_asignados_count', 'asc')->first();
-                } else {
-                    session()->flash('error', 'No hay grupo asignado a la aplicación seleccionada.');
-                    return;
-                }
+            // Verificar que el grupo existe
+            if ($grupo) {
+                // Obtener el usuario con menos tickets en el grupo relacionado con la aplicación
+                $usuario = $grupo->usuarios()->withCount('ticketsAsignados')->orderBy('tickets_asignados_count', 'asc')->first();
             } else {
-                session()->flash('error', 'No hay grupo o usuarios asignados a la aplicación seleccionada.');
+                session()->flash('error', 'No hay grupo asignado a la aplicación seleccionada.');
                 return;
             }
         } else {
-            // Obtener el grupo asociado a la subcategoría
-            $grupo = $subcategoria->grupo;
-
-            // Verificar que $grupo no es null
-            if (!$grupo) {
-                session()->flash('error', 'No hay grupo asignado a la subcategoría seleccionada');
-                return;
-            }
-
-            // Obtener el usuario del grupo con menos tickets asignados
-            $usuario = $grupo->usuarios()->withCount('ticketsAsignados')->orderBy('tickets_asignados_count', 'asc')->first();
+            session()->flash('error', 'No hay grupo o usuarios asignados a la aplicación seleccionada.');
+            return;
         }
+    } else {
+        // Obtener el grupo relacionado con la subcategoría y sociedad seleccionadas
+        $grupo = $subcategoria->gruposPorSociedad($this->sociedad_id)->first();
 
-        if (!$usuario) {
-            session()->flash('error', 'No hay usuarios disponibles en el grupo');
+        if (!$grupo) {
+            session()->flash('error', 'No hay grupo asignado para esta sociedad y subcategoría.');
             return;
         }
 
-        // **Lógica de vacaciones**
-        // Si el usuario está de vacaciones, reasignamos al agente backup (agente_bk)
-        if ($usuario->en_vacaciones) {
-            $backupAgente = $usuario->backups()->first(); // Obtenemos el primer agente de respaldo
-
-            if ($backupAgente) {
-                $usuario = $backupAgente;
-            } else {
-                session()->flash('error', 'El usuario está en vacaciones y no tiene un agente de respaldo asignado.');
-                return;
-            }
-        }
-
-        // Obtenemos el ANS inicial asociado al tipo de solicitud
-        $ansInicial = ANS::where('solicitud_id', $this->tipo_solicitud_id)
-            ->where('nivel', 'INICIAL')
-            ->first();
-
-        // Crear el ticket
-        $ticket = Ticket::create([
-            'titulo' => $this->titulo,
-            'descripcion' => $this->descripcion,
-            'sociedad_id' => $this->sociedad_id,
-            'tipo_solicitud_id' => $this->tipo_solicitud_id,
-            'categoria_id' => $this->categoria_id,
-            'subcategoria_id' => $this->subcategoria_id,
-            'nomenclatura' => $this->generateNomenclatura(),
-            'estado_id' => $this->estado_id,
-            'creador_id' => Auth::id(),
-            'asignado_a' => $usuario->id,
-            'usuario_id' => Auth::id(),
-            'grupo_id' => $grupo->id, // Grupo de la subcategoría o la aplicación, dependiendo del caso
-            'urgencia_id' => $this->urgencia,
-            'aplicacion_id' => $this->aplicacion_id,
-            'ans_id' => $ansInicial ? $ansInicial->id : null,  // Asignar ANS inicial
-        ]);
-
-        // Guardar archivos si los hay
-        if ($this->archivos) {
-            foreach ($this->archivos as $archivo) {
-                $nombre_original = $archivo->getClientOriginalName();
-                $nombre_sin_extension = pathinfo($nombre_original, PATHINFO_FILENAME);
-                $extension = $archivo->getClientOriginalExtension();
-                $nombre_db = Str::slug($nombre_sin_extension);
-                $nombre_a_guardar = $nombre_db . '.' . $extension;
-                $ruta = $archivo->storeAs('public/tickets', $nombre_a_guardar);
-
-                $ticket->archivos()->create([
-                    'ruta' => $ruta,
-                ]);
-            }
-        }
-
-        // Enviar notificaciones
-        $ticket->usuario->notify(new TicketCreado($ticket));
-        $usuario->notify(new TicketAsignado($ticket));
-
-        // Registrar en el historial
-        Historial::create([
-            'ticket_id' => $ticket->id,
-            'user_id' => Auth::id(),
-            'accion' => 'Nuevo',
-            'detalle' => 'Nuevo ticket',
-        ]);
-
-        Historial::create([
-            'ticket_id' => $ticket->id,
-            'user_id' => Auth::id(),
-            'accion' => 'Asignado',
-            'detalle' => 'Ticket asignado por el sistema a ' . $usuario->name,
-        ]);
-
-        $this->emit('cargarTickets');
-        $this->emit('ok_ticket');
-        $this->resetForm();
+        // Obtener el usuario del grupo con menos tickets asignados
+        $usuario = $grupo->usuarios()->withCount('ticketsAsignados')->orderBy('tickets_asignados_count', 'asc')->first();
     }
+
+    if (!$usuario) {
+        session()->flash('error', 'No hay usuarios disponibles en el grupo');
+        return;
+    }
+
+    // Lógica de vacaciones
+    if ($usuario->en_vacaciones) {
+        $backupAgente = $usuario->backups()->first(); // Obtener el primer agente de respaldo
+        if ($backupAgente) {
+            $usuario = $backupAgente;
+        } else {
+            session()->flash('error', 'El usuario está de vacaciones y no tiene un agente de respaldo asignado.');
+            return;
+        }
+    }
+
+    // Obtenemos el ANS inicial asociado al tipo de solicitud
+    $ansInicial = ANS::where('solicitud_id', $this->tipo_solicitud_id)
+        ->where('nivel', 'INICIAL')
+        ->first();
+
+    // Crear el ticket
+    $ticket = Ticket::create([
+        'titulo' => $this->titulo,
+        'descripcion' => $this->descripcion,
+        'sociedad_id' => $this->sociedad_id,
+        'tipo_solicitud_id' => $this->tipo_solicitud_id,
+        'categoria_id' => $this->categoria_id,
+        'subcategoria_id' => $this->subcategoria_id,
+        'nomenclatura' => $this->generateNomenclatura(),
+        'estado_id' => $this->estado_id,
+        'creador_id' => Auth::id(),
+        'asignado_a' => $usuario->id,
+        'usuario_id' => Auth::id(),
+        'grupo_id' => $grupo->id,
+        'urgencia_id' => $this->urgencia,
+        'aplicacion_id' => $this->aplicacion_id,
+        'ans_id' => $ansInicial ? $ansInicial->id : null,
+    ]);
+
+    // Guardar archivos si los hay
+    if ($this->archivos) {
+        foreach ($this->archivos as $archivo) {
+            $nombre_original = $archivo->getClientOriginalName();
+            $nombre_sin_extension = pathinfo($nombre_original, PATHINFO_FILENAME);
+            $extension = $archivo->getClientOriginalExtension();
+            $nombre_db = Str::slug($nombre_sin_extension);
+            $nombre_a_guardar = $nombre_db . '.' . $extension;
+            $ruta = $archivo->storeAs('public/tickets', $nombre_a_guardar);
+
+            $ticket->archivos()->create([
+                'ruta' => $ruta,
+            ]);
+        }
+    }
+
+    // Enviar notificaciones
+    $ticket->usuario->notify(new TicketCreado($ticket));
+    $usuario->notify(new TicketAsignado($ticket));
+
+    // Registrar en el historial
+    Historial::create([
+        'ticket_id' => $ticket->id,
+        'user_id' => Auth::id(),
+        'accion' => 'Nuevo',
+        'detalle' => 'Nuevo ticket',
+    ]);
+
+    Historial::create([
+        'ticket_id' => $ticket->id,
+        'user_id' => Auth::id(),
+        'accion' => 'Asignado',
+        'detalle' => 'Ticket asignado por el sistema a ' . $usuario->name,
+    ]);
+
+    $this->emit('cargarTickets');
+    $this->emit('ok_ticket');
+    $this->resetForm();
+}
+
 
 
     public function generateNomenclatura()
