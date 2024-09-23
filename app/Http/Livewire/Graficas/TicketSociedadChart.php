@@ -71,9 +71,9 @@ class TicketSociedadChart extends Component
             'PANAL' => 'rgba(75, 192, 192, 0.5)',   // verde agua
             'LEVAPAN' => 'rgba(255, 99, 132, 0.5)', // rojo
             'LEVACOL' => 'rgba(54, 162, 235, 0.5)', // azul
-            'TULUA' => 'rgba(153, 102, 255, 0.5)',  // morado
+            'TULUÁ' => 'rgba(153, 102, 255, 0.5)',  // morado
             'ECUADOR' => 'rgba(255, 159, 64, 0.5)', // naranja
-            'REPUBLICA DOMINICANA' => 'rgba(255, 205, 86, 0.5)', // amarillo
+            'REPÚBLICA DOMINICANA' => 'rgba(255, 205, 86, 0.5)', // amarillo
         ];
 
         $data = [];
