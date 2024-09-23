@@ -23,9 +23,9 @@
                 {{-- <div class="col-md-6 col-lg-6 mt-2">
                 @livewire('graficas.ticket-estado-chart')
             </div> --}}
-                <div class="col-md-6 col-lg-6 mt-2">
+                {{-- <div class="col-md-6 col-lg-6 mt-2">
                     @livewire('graficas.ticket-sociedad-chart')
-                </div>
+                </div> --}}
             </div>
         @endif
     </div>
@@ -42,6 +42,6 @@
 
 @push('js')
     <script>
-        console.log("Hi, I'm using the Laravel-AdminLTE package!");
+        // console.log("Hi, I'm using the Laravel-AdminLTE package!");
     </script>
 @endpush
