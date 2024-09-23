@@ -12,11 +12,22 @@
     <div class="container-fluid">
         <div class="row">
             <div class="col-md-12">
-            <p>Bienvenid@ <strong>{{ auth()->user()->name }}</strong> Este es el resumen de tus Tickets</p>
+                <p>Bienvenid@ <strong>{{ auth()->user()->name }}</strong> Este es el resumen de tus Tickets</p>
 
                 @livewire('tarjetas.tarjetas-usuario')
             </div>
         </div>
+        @if (auth()->user()->hasRole('Admin'))
+            <div class="row mt-2">
+                .{{--  punto --}}
+                {{-- <div class="col-md-6 col-lg-6 mt-2">
+                @livewire('graficas.ticket-estado-chart')
+            </div> --}}
+                <div class="col-md-6 col-lg-6 mt-2">
+                    @livewire('graficas.ticket-sociedad-chart')
+                </div>
+            </div>
+        @endif
     </div>
 @stop
 
