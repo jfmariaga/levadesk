@@ -36,20 +36,6 @@
                         <span class="invalid-feedback">{{ $message }}</span>
                     @enderror
                 </div>
-                <div class="form-group">
-                    <label for="grupo">Asignar a Grupo <b style="color: red">*</b></label>
-                    <div wire:ignore>
-                        <select class="select2" id="grupo" >
-                            <option value="">Seleccionar...</option>
-                            @foreach ($grupos as $grupo)
-                                <option value="{{ $grupo->id }}">{{ $grupo->nombre }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    @error('grupo_id')
-                        <span class="invalid-feedback">{{ $message }}</span>
-                    @enderror
-                </div>
                 <div class="form-row">
                     <div class="col-6">
                         <label for="codigo">Nomenclatura <b style="color: red">*</b></label>
@@ -109,21 +95,10 @@
                 }
             })
 
-            Livewire.on('selectGrupo', (id = null) => {
-                if (id) {
-                    $('#grupo').val(id).select2().trigger('change');
-                } else {
-                    $('#grupo').val('').select2().trigger('change');
-                }
-            })
-
             document.addEventListener('livewire:load', function() {
                 $('.select2').select2();
                 $('#categoria').on('change', function() {
                     @this.set('categoria_id', this.value)
-                })
-                $('#grupo').on('change', function() {
-                    @this.set('grupo_id', this.value)
                 })
             });
         </script>

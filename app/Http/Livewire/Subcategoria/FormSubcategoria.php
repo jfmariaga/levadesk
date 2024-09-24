@@ -15,7 +15,6 @@ class FormSubcategoria extends Component
     public $descripcion;
     public $codigo;
     public $categoria_id;
-    public $grupo_id;
     public $estado;
     public $subCategoria_old;
     public $categorias = [];
@@ -26,7 +25,6 @@ class FormSubcategoria extends Component
         'nombre' => 'required|string|max:255',
         'codigo' => 'required|string|max:2',
         'categoria_id' => 'required|exists:categorias,id',
-        'grupo_id' => 'required|exists:grupos,id',
         'descripcion' => 'nullable|string',
     ];
 
@@ -43,11 +41,9 @@ class FormSubcategoria extends Component
         $this->descripcion = $this->subCategoria_old->descripcion;
         $this->codigo = $this->subCategoria_old->codigo;
         $this->categoria_id = $this->subCategoria_old->categoria_id;
-        $this->grupo_id = $this->subCategoria_old->grupo_id;
         $this->estado = $this->subCategoria_old->estado;
 
         $this->emit('selectCategoria', $this->categoria_id);
-        $this->emit('selectGrupo', $this->grupo_id);
     }
 
     public function submit()
@@ -60,7 +56,6 @@ class FormSubcategoria extends Component
                 'descripcion' => $this->descripcion,
                 'codigo' => Str::upper($this->codigo),
                 'categoria_id' => $this->categoria_id,
-                'grupo_id' => $this->grupo_id,
                 'estado' => 0,
             ]);
             if ($create) {
@@ -74,7 +69,6 @@ class FormSubcategoria extends Component
                 'descripcion' => $this->descripcion,
                 'codigo' => Str::upper($this->codigo),
                 'categoria_id' => $this->categoria_id,
-                'grupo_id' => $this->grupo_id,
                 'estado' => $this->estado,
             ]);
 
@@ -91,7 +85,6 @@ class FormSubcategoria extends Component
         $this->descripcion = "";
         $this->codigo = "";
         $this->categoria_id = "";
-        $this->grupo_id = "";
         $this->estado = 0;
         $this->subCategoria_old = null;
     }
