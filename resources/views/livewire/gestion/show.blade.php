@@ -629,7 +629,7 @@
                                                     </div>
                                                 @endif
                                                 @if ($ticket->estado_id != 1)
-                                                    @if ($ticket->categoria->id == 8 || $ticket->categoria->nombre == 'GESTION DE ACCESOS')
+                                                    @if ($ticket->tipoSolicitud->id == 4)
                                                         <p class="ml-2">¿Gestionar acceso?</p>
                                                         <div class="float-right">
                                                             <label class="switch"

@@ -1,5 +1,4 @@
 <div>
-    <!-- Estilos personalizados para mejorar la visualización -->
     <style>
         .card {
             border-radius: 10px;
@@ -26,6 +25,7 @@
             font-weight: bold;
         }
     </style>
+
     <div class="card">
         <div class="card-header bg-info text-white">
             <h4 class="mb-0">
@@ -39,7 +39,7 @@
         <div class="card-body">
             <form wire:submit.prevent="agregarRelacion">
                 <div class="form-row">
-                    <div class="form-group col-md-4">
+                    <div class="form-group col-md-3">
                         <label for="sociedad_id">Sociedad</label>
                         <select wire:model="sociedad_id" id="sociedad_id" class="form-control">
                             <option value="">Selecciona una sociedad</option>
@@ -52,7 +52,20 @@
                         @enderror
                     </div>
 
-                    <div class="form-group col-md-4">
+                    <div class="form-group col-md-3">
+                        <label for="categoria_id">Categoría</label>
+                        <select wire:model="categoria_id" id="categoria_id" class="form-control">
+                            <option value="">Selecciona una categoría</option>
+                            @foreach ($categorias as $categoria)
+                                <option value="{{ $categoria->id }}">{{ $categoria->nombre }}</option>
+                            @endforeach
+                        </select>
+                        @error('categoria_id')
+                            <span class="text-danger">{{ $message }}</span>
+                        @enderror
+                    </div>
+
+                    <div class="form-group col-md-3">
                         <label for="subcategoria_id">Subcategoría</label>
                         <select wire:model="subcategoria_id" id="subcategoria_id" class="form-control">
                             <option value="">Selecciona una subcategoría</option>
@@ -65,7 +78,7 @@
                         @enderror
                     </div>
 
-                    <div class="form-group col-md-4">
+                    <div class="form-group col-md-3">
                         <label for="grupo_id">Grupo</label>
                         <select wire:model="grupo_id" id="grupo_id" class="form-control">
                             <option value="">Selecciona un grupo</option>
@@ -79,7 +92,6 @@
                     </div>
                 </div>
 
-                <!-- Botón para agregar o editar relación -->
                 <div class="text-right">
                     <button type="submit" class="btn btn-outline-info btn-lg">
                         <i class="fas fa-save"></i>
@@ -94,18 +106,14 @@
         </div>
     </div>
 
-
-
-
     <hr>
 
-    <!-- Tabla para mostrar las relaciones existentes -->
     <div wire:ignore class="card-body card-dashboard">
-
         <table class="table table-striped tabla_relaciones d-none" style="width:100%;">
             <thead>
                 <tr>
                     <th>Sociedad</th>
+                    <th>Categoría</th>
                     <th>Subcategoría</th>
                     <th>Grupo</th>
                     <th>Acciones</th>
@@ -135,75 +143,49 @@
             });
 
             function cargarTablaRelaciones(data) {
-                // Destruir la tabla si ya fue inicializada previamente
                 if ($.fn.DataTable.isDataTable('.tabla_relaciones')) {
                     $('.tabla_relaciones').DataTable().destroy();
                 }
-                $('.tabla_relaciones').addClass('d-none'); // ocultar tabla mientras se carga
-                $('.loading_p').removeClass('d-none'); // mostrar el loading
-                $('#content_tabla_relaciones').html(''); // limpiar la tabla
+                $('.tabla_relaciones').addClass('d-none');
+                $('.loading_p').removeClass('d-none');
+                $('#content_tabla_relaciones').html('');
                 llenarTablaRelaciones(data).then(() => {
-                    $('.tabla_relaciones').DataTable({ // inicializar DataTable
+                    $('.tabla_relaciones').DataTable({
                         language: {
-                            "decimal": "",
                             "emptyTable": "No hay información",
-                            "info": "Mostrando _START_ a _END_ de _TOTAL_ Entradas",
-                            "infoEmpty": "Mostrando 0 a 0 de 0 Entradas",
-                            "infoFiltered": "(Filtrado de _MAX_ total entradas)",
-                            "thousands": ",",
-                            "lengthMenu": "Mostrar _MENU_ Entradas",
-                            "loadingRecords": "Cargando...",
-                            "processing": "Procesando...",
-                            "search": "Buscar:",
-                            "zeroRecords": "Sin resultados encontrados",
-                            "paginate": {
-                                "first": "Primero",
-                                "last": "Último",
-                                "next": "Siguiente",
-                                "previous": "Anterior"
-                            }
                         },
                         dom: 'Bfrtip',
-                        buttons: [{
+                        buttons: [
+                            {
                                 extend: 'excelHtml5',
                                 autoFilter: true,
                                 title: 'Relaciones',
-                                exportOptions: {
-                                    columns: [0, 1, 2]
-                                },
+                                exportOptions: { columns: [0, 1, 2, 3] },
                             },
                             {
                                 extend: 'pdfHtml5',
                                 autoFilter: true,
                                 title: 'Relaciones',
-                                exportOptions: {
-                                    columns: [0, 1, 2]
-                                },
+                                exportOptions: { columns: [0, 1, 2, 3] },
                             }
                         ]
                     });
-                    $('.tabla_relaciones').removeClass('d-none'); // mostrar la tabla
-                    $('.loading_p').addClass('d-none'); // ocultar el loading
+                    $('.tabla_relaciones').removeClass('d-none');
+                    $('.loading_p').addClass('d-none');
                 });
             }
-
 
             function llenarTablaRelaciones(data) {
                 data = JSON.parse(data);
                 return new Promise((resolve) => {
                     let body = $('#content_tabla_relaciones');
-                    for (let index = 0; index < data.length; index++) {
-                        const element = data[index];
-                        const {
-                            id,
-                            sociedad,
-                            subcategoria,
-                            grupo
-                        } = element;
+                    data.forEach((element) => {
+                        const { id, sociedad, categoria, subcategoria, grupo } = element;
 
                         body.append(`
                         <tr id="tr_${id}">
                             <td>${sociedad}</td>
+                            <td>${categoria}</td>
                             <td>${subcategoria}</td>
                             <td>${grupo}</td>
                             <td>
@@ -217,23 +199,21 @@
                                 </div>
                             </td>
                         </tr>`);
-                    }
+                    });
                     resolve(body);
                 });
             }
 
             function eliminarRelacion(id) {
-                alertClickCallback('Eliminar',
-                    'Eliminar relación', 'warning',
-                    'Confirmar', 'Cancelar', async () => {
-                        const res = await @this.eliminarRelacion(id);
-                        toastRight('error', 'Se eliminó la relación!');
-                        $(`#tr_${id}`).remove();
-                    });
+                alertClickCallback('Eliminar', 'Eliminar relación', 'warning', 'Confirmar', 'Cancelar', async () => {
+                    const res = await @this.eliminarRelacion(id);
+                    toastRight('error', 'Se eliminó la relación!');
+                    $(`#tr_${id}`).remove();
+                });
             }
 
             function editarRelacion(id) {
-                Livewire.emit('editRelacion', id); // Llamamos a la función para editar en Livewire
+                Livewire.emit('editRelacion', id);
             }
         </script>
     @endpush

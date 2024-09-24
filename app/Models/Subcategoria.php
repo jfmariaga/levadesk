@@ -34,10 +34,11 @@ class Subcategoria extends Model
     //     return $this->belongsTo(Grupo::class);
     // }
 
-    // Nueva relación con grupos a través de la sociedad
-    public function gruposPorSociedad($sociedad_id)
-    {
-        return $this->belongsToMany(Grupo::class, 'sociedad_subcategoria_grupo', 'subcategoria_id', 'grupo_id')
-                    ->wherePivot('sociedad_id', $sociedad_id);
-    }
+    public function gruposPorSociedad($sociedad_id, $categoria_id)
+{
+    return $this->belongsToMany(Grupo::class, 'sociedad_subcategoria_grupo', 'subcategoria_id', 'grupo_id')
+                ->wherePivot('sociedad_id', $sociedad_id)
+                ->wherePivot('categoria_id', $categoria_id);
+}
+
 }

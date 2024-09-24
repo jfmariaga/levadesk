@@ -5,6 +5,7 @@ namespace App\Http\Livewire;
 use App\Models\Sociedad;
 use App\Models\Subcategoria;
 use App\Models\Grupo;
+use App\Models\Categoria; // Agregar el modelo de Categoria
 use Livewire\Component;
 use Illuminate\Support\Facades\DB;
 
@@ -12,9 +13,11 @@ class SociedadSubcategoriaGrupo extends Component
 {
     public $sociedades;
     public $subcategorias;
+    public $categorias; // Nueva propiedad para categorías
     public $grupos;
     public $sociedad_id;
     public $subcategoria_id;
+    public $categoria_id;  // Nueva propiedad para categoría
     public $grupo_id;
     public $edit_mode = false;  // Para verificar si estamos editando
     public $relacion_id;  // ID de la relación que se va a editar
@@ -25,6 +28,7 @@ class SociedadSubcategoriaGrupo extends Component
     // Reglas de validación para el formulario
     protected $rules = [
         'sociedad_id' => 'required',
+        'categoria_id' => 'required', // Validar la categoría
         'subcategoria_id' => 'required',
         'grupo_id' => 'required',
     ];
@@ -32,14 +36,16 @@ class SociedadSubcategoriaGrupo extends Component
     // Mensajes de error personalizados
     protected $messages = [
         'sociedad_id.required' => 'El campo Sociedad es obligatorio.',
+        'categoria_id.required' => 'El campo Categoría es obligatorio.',  // Mensaje para categoría
         'subcategoria_id.required' => 'El campo Subcategoría es obligatorio.',
         'grupo_id.required' => 'El campo Grupo es obligatorio.',
     ];
 
     public function mount()
     {
-        // Cargar sociedades, subcategorías y grupos al iniciar el componente
+        // Cargar sociedades, subcategorías, categorías y grupos al iniciar el componente
         $this->sociedades = Sociedad::all();
+        $this->categorias = Categoria::all();  // Cargar las categorías
         $this->subcategorias = Subcategoria::all();
         $this->grupos = Grupo::all();
     }
@@ -52,6 +58,7 @@ class SociedadSubcategoriaGrupo extends Component
         // Verificar si ya existe la relación antes de agregar o actualizar
         $existe = DB::table('sociedad_subcategoria_grupo')
             ->where('sociedad_id', $this->sociedad_id)
+            ->where('categoria_id', $this->categoria_id) // Verificar categoría
             ->where('subcategoria_id', $this->subcategoria_id)
             ->where('grupo_id', $this->grupo_id)
             ->exists();
@@ -65,6 +72,7 @@ class SociedadSubcategoriaGrupo extends Component
                 ->where('id', $this->relacion_id)
                 ->update([
                     'sociedad_id' => $this->sociedad_id,
+                    'categoria_id' => $this->categoria_id,  // Actualizar la categoría
                     'subcategoria_id' => $this->subcategoria_id,
                     'grupo_id' => $this->grupo_id,
                 ]);
@@ -74,6 +82,7 @@ class SociedadSubcategoriaGrupo extends Component
             // Si no estamos en modo de edición y la relación no existe, insertamos la nueva relación
             DB::table('sociedad_subcategoria_grupo')->insert([
                 'sociedad_id' => $this->sociedad_id,
+                'categoria_id' => $this->categoria_id,  // Agregar la categoría
                 'subcategoria_id' => $this->subcategoria_id,
                 'grupo_id' => $this->grupo_id,
             ]);
@@ -107,12 +116,19 @@ class SociedadSubcategoriaGrupo extends Component
 
     public function obtenerRelaciones()
     {
-        // Obtener las relaciones entre sociedades, subcategorías y grupos
+        // Obtener las relaciones entre sociedades, categorías, subcategorías y grupos
         return DB::table('sociedad_subcategoria_grupo')
             ->join('sociedades', 'sociedad_subcategoria_grupo.sociedad_id', '=', 'sociedades.id')
+            ->join('categorias', 'sociedad_subcategoria_grupo.categoria_id', '=', 'categorias.id')  // Relación con la categoría
             ->join('subcategorias', 'sociedad_subcategoria_grupo.subcategoria_id', '=', 'subcategorias.id')
             ->join('grupos', 'sociedad_subcategoria_grupo.grupo_id', '=', 'grupos.id')
-            ->select('sociedad_subcategoria_grupo.id', 'sociedades.nombre as sociedad', 'subcategorias.nombre as subcategoria', 'grupos.nombre as grupo')
+            ->select(
+                'sociedad_subcategoria_grupo.id',
+                'sociedades.nombre as sociedad',
+                'categorias.nombre as categoria',  // Mostrar el nombre de la categoría
+                'subcategorias.nombre as subcategoria',
+                'grupos.nombre as grupo'
+            )
             ->get()->toArray();
     }
 
@@ -123,6 +139,7 @@ class SociedadSubcategoriaGrupo extends Component
 
         // Cargar los datos en los formularios para editar
         $this->sociedad_id = $relacion->sociedad_id;
+        $this->categoria_id = $relacion->categoria_id;  // Cargar la categoría
         $this->subcategoria_id = $relacion->subcategoria_id;
         $this->grupo_id = $relacion->grupo_id;
         $this->relacion_id = $relacion->id;
@@ -138,6 +155,7 @@ class SociedadSubcategoriaGrupo extends Component
     {
         // Restablecer los campos del formulario
         $this->sociedad_id = null;
+        $this->categoria_id = null;  // Resetear la categoría
         $this->subcategoria_id = null;
         $this->grupo_id = null;
         $this->edit_mode = false;

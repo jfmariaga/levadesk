@@ -453,7 +453,12 @@ class Show extends Component
 
     // public function actualizarCategoria()
     // {
-    //     $this->validate();
+    //     // Validar campos obligatorios
+    //     $this->validate([
+    //         'categoria_id' => 'required',
+    //         'subcategoria_id' => 'required',
+    //         'solicitud_id' => 'required'
+    //     ]);
 
     //     // Obtener la nueva subcategoría seleccionada
     //     $subcategoria = Subcategoria::find($this->subcategoria_id);
@@ -478,6 +483,17 @@ class Show extends Component
     //             if ($grupo) {
     //                 // Obtener el usuario con menos tickets en el grupo relacionado con la aplicación
     //                 $usuario = $grupo->usuarios()->withCount('ticketsAsignados')->orderBy('tickets_asignados_count', 'asc')->first();
+
+    //                 // Lógica de vacaciones
+    //                 if ($usuario->en_vacaciones) {
+    //                     $backupAgente = $usuario->backups()->first(); // Obtener el primer agente de respaldo
+    //                     if ($backupAgente) {
+    //                         $usuario = $backupAgente;
+    //                     } else {
+    //                         $this->emit('showToast', ['type' => 'error', 'message' => 'El usuario está de vacaciones y no tiene un agente de respaldo asignado.']);
+    //                         return;
+    //                     }
+    //                 }
 
     //                 if (!$usuario) {
     //                     $this->emit('showToast', ['type' => 'error', 'message' => 'No hay usuarios disponibles en el grupo de la aplicación seleccionada']);
@@ -514,97 +530,77 @@ class Show extends Component
     //     }
 
     //     // Lógica general para las subcategorías que no sean "SOPORTE DE APLICACIONES"
-    //     $nuevoGrupo = $subcategoria->grupo;
+    //     // Obtener el grupo relacionado con la subcategoría y sociedad seleccionadas a través de la relación en el modelo Subcategoria
+    //     $grupo = $subcategoria->gruposPorSociedad($this->sociedad_id)->first();
 
-    //     // Asegurarse de que $nuevoGrupo no es null
-    //     if (!$nuevoGrupo) {
-    //         $this->emit('showToast', ['type' => 'error', 'message' => 'No hay grupo de atención asignado a la subcategoría seleccionada, reportar al administrador del sistema']);
+    //     // Asegurarse de que $grupo no es null
+    //     if (!$grupo) {
+    //         $this->emit('showToast', ['type' => 'error', 'message' => 'No hay grupo de atención asignado a la subcategoría seleccionada para esta sociedad.']);
     //         return;
     //     }
 
-    //     // Obtener el usuario asignado al ticket
+    //     // Obtener el usuario del grupo con menos tickets asignados
+    //     $usuario = $grupo->usuarios()->withCount('ticketsAsignados')->orderBy('tickets_asignados_count', 'asc')->first();
+
+    //     // Verificar si el usuario actual del ticket tiene un grupo asignado
     //     $usuarioAsignado = User::find($this->ticket->asignado_a);
 
-    //     // Verificar si el usuario asignado existe y tiene un grupo
-    //     if ($usuarioAsignado && $usuarioAsignado->grupo) {
-    //         $grupoActual = $usuarioAsignado->grupo;
-
-    //         // Verificar si el grupo de la nueva subcategoría es diferente al grupo actual
-    //         if ($grupoActual->id !== $nuevoGrupo->id) {
-    //             // Obtener el usuario del nuevo grupo con menos tickets asignados
-    //             $nuevoUsuario = $nuevoGrupo->usuarios()->withCount('ticketsAsignados')->orderBy('tickets_asignados_count', 'asc')->first();
-
-    //             if (!$nuevoUsuario) {
-    //                 $this->emit('showToast', ['type' => 'error', 'message' => 'No hay usuarios disponibles en el nuevo grupo']);
-    //                 return;
-    //             }
-
-    //             // Emitir un evento para notificar sobre la reasignación del ticket
-    //             $this->emit('showToast', ['type' => 'warning', 'message' => "El ticket será reasignado de {$usuarioAsignado->name} a {$nuevoUsuario->name}."]);
-
-    //             // Actualizar el ticket con la nueva información
-    //             $this->ticket->update([
-    //                 'categoria_id' => $this->categoria_id,
-    //                 'subcategoria_id' => $this->subcategoria_id,
-    //                 'tipo_solicitud_id' => $this->solicitud_id,
-    //                 'asignado_a' => $nuevoUsuario->id,  // Reasignar al nuevo usuario
-    //                 'grupo_id' => $nuevoGrupo->id,       // Actualizar el grupo
-    //             ]);
-
-    //             // Registrar en el historial la recategorización y reasignación
-    //             Historial::create([
-    //                 'ticket_id' => $this->ticket_id,
-    //                 'user_id' => Auth::id(),
-    //                 'accion' => 'Recategorizado y Reasignado',
-    //                 'detalle' => "Ticket recategorizado y reasignado de {$usuarioAsignado->name} a {$nuevoUsuario->name} en el grupo {$nuevoGrupo->nombre}.",
-    //             ]);
+    //     // Lógica de vacaciones
+    //     if ($usuario->en_vacaciones) {
+    //         $backupAgente = $usuario->backups()->first(); // Obtener el primer agente de respaldo
+    //         if ($backupAgente) {
+    //             $usuario = $backupAgente;
     //         } else {
-    //             // El grupo no cambió, solo actualiza la categoría y subcategoría
-    //             $this->ticket->update([
-    //                 'categoria_id' => $this->categoria_id,
-    //                 'subcategoria_id' => $this->subcategoria_id,
-    //                 'tipo_solicitud_id' => $this->solicitud_id,
-    //             ]);
-
-    //             // Registrar en el historial la recategorización
-    //             Historial::create([
-    //                 'ticket_id' => $this->ticket_id,
-    //                 'user_id' => Auth::id(),
-    //                 'accion' => 'Recategorizado',
-    //                 'detalle' => "Ticket recategorizado por el usuario {$usuarioAsignado->name}.",
-    //             ]);
+    //             $this->emit('showToast', ['type' => 'error', 'message' => 'El usuario asignado está de vacaciones y no tiene un agente de respaldo.']);
+    //             return;
     //         }
-    //     } else {
-    //         // Si no hay usuario asignado o el usuario no tiene grupo, reasignar al nuevo grupo y usuario
-    //         $nuevoUsuario = $nuevoGrupo->usuarios()->withCount('ticketsAsignados')->orderBy('tickets_asignados_count', 'asc')->first();
+    //     }
 
-    //         if (!$nuevoUsuario) {
+    //     // Verificar si el grupo de la nueva subcategoría es diferente al grupo actual
+    //     if ($usuarioAsignado && $usuarioAsignado->grupo_id !== $grupo->id) {
+    //         if (!$usuario) {
     //             $this->emit('showToast', ['type' => 'error', 'message' => 'No hay usuarios disponibles en el nuevo grupo']);
     //             return;
     //         }
 
     //         // Emitir un evento para notificar sobre la reasignación del ticket
-    //         $this->emit('showToast', ['type' => 'warning', 'message' => "El ticket será asignado a {$nuevoUsuario->name} en el grupo {$nuevoGrupo->nombre}."]);
+    //         $this->emit('showToast', ['type' => 'warning', 'message' => "El ticket será reasignado de {$usuarioAsignado->name} a {$usuario->name}."]);
 
     //         // Actualizar el ticket con la nueva información
     //         $this->ticket->update([
     //             'categoria_id' => $this->categoria_id,
     //             'subcategoria_id' => $this->subcategoria_id,
     //             'tipo_solicitud_id' => $this->solicitud_id,
-    //             'asignado_a' => $nuevoUsuario->id,  // Asignar al nuevo usuario
-    //             'grupo_id' => $nuevoGrupo->id,       // Asignar al nuevo grupo
+    //             'asignado_a' => $usuario->id,  // Reasignar al nuevo usuario
+    //             'grupo_id' => $grupo->id,       // Actualizar el grupo
     //         ]);
 
-    //         // Registrar en el historial la recategorización y asignación
+    //         // Registrar en el historial la recategorización y reasignación
     //         Historial::create([
     //             'ticket_id' => $this->ticket_id,
     //             'user_id' => Auth::id(),
-    //             'accion' => 'Recategorizado y Asignado',
-    //             'detalle' => "Ticket recategorizado y reasignado a {$nuevoUsuario->name} en el grupo {$nuevoGrupo->nombre}.",
+    //             'accion' => 'Recategorizado y Reasignado',
+    //             'detalle' => "Ticket recategorizado y reasignado de {$usuarioAsignado->name} a {$usuario->name} en el grupo {$grupo->nombre}.",
+    //         ]);
+    //     } else {
+    //         // El grupo no cambió, solo actualizar la categoría y subcategoría
+    //         $this->ticket->update([
+    //             'categoria_id' => $this->categoria_id,
+    //             'subcategoria_id' => $this->subcategoria_id,
+    //             'tipo_solicitud_id' => $this->solicitud_id,
+    //         ]);
+
+    //         // Registrar en el historial la recategorización
+    //         Historial::create([
+    //             'ticket_id' => $this->ticket_id,
+    //             'user_id' => Auth::id(),
+    //             'accion' => 'Recategorizado',
+    //             'detalle' => "Ticket recategorizado por el usuario {$usuarioAsignado->name}.",
     //         ]);
     //     }
 
-    //     $nuevoUsuario->notify(new Reasignado($usuarioAsignado, $this->ticket));
+    //     // Notificar al nuevo usuario
+    //     $usuario->notify(new Reasignado($usuarioAsignado, $this->ticket));
 
     //     // Recargar los datos del ticket para reflejar los cambios
     //     $this->loadTicket();
@@ -689,12 +685,12 @@ class Show extends Component
         }
 
         // Lógica general para las subcategorías que no sean "SOPORTE DE APLICACIONES"
-        // Obtener el grupo relacionado con la subcategoría y sociedad seleccionadas a través de la relación en el modelo Subcategoria
-        $grupo = $subcategoria->gruposPorSociedad($this->sociedad_id)->first();
+        // Obtener el grupo relacionado con la subcategoría, categoría y sociedad seleccionadas a través de la relación en el modelo Subcategoria
+        $grupo = $subcategoria->gruposPorSociedad($this->sociedad_id, $this->categoria_id)->first();
 
         // Asegurarse de que $grupo no es null
         if (!$grupo) {
-            $this->emit('showToast', ['type' => 'error', 'message' => 'No hay grupo de atención asignado a la subcategoría seleccionada para esta sociedad.']);
+            $this->emit('showToast', ['type' => 'error', 'message' => 'No hay grupo de atención asignado para esta combinación de sociedad, subcategoría y categoría.']);
             return;
         }
 
@@ -764,7 +760,6 @@ class Show extends Component
         // Recargar los datos del ticket para reflejar los cambios
         $this->loadTicket();
     }
-
 
 
     public function actualizarImpacto()
