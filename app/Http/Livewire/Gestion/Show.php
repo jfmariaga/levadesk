@@ -82,7 +82,7 @@ class Show extends Component
     public $aplicacion_id;
     public $aplicaciones;
     public $sociedad_id;
-    public $agentes =[];
+    public $agentes = [];
 
     protected $rules = [
         'categoria_id' => 'required',
@@ -100,23 +100,46 @@ class Show extends Component
         $this->calcularTiempoRestante();
     }
 
+    // public function calcularTiempoRestante()
+    // {
+    //     $ans = $this->ticket->ans;
+
+    //     // Verificamos si estamos calculando para el ANS inicial o el de solución
+    //     $tiempoInicio = $this->ticket->impacto_id ? $this->ticket->updated_at : $this->ticket->created_at;
+
+    //     $tiempoPasado = now()->diffInSeconds($tiempoInicio);
+
+    //     if ($this->ticket->prioridad === null) {
+    //         // ANS inicial
+    //         $this->tiempoRestante = $ans->t_asignacion_segundos - $tiempoPasado;
+    //     } else {
+    //         // ANS de solución
+    //         $this->tiempoRestante = $ans->t_resolucion_segundos - $tiempoPasado;
+    //     }
+    // }
+
     public function calcularTiempoRestante()
     {
         $ans = $this->ticket->ans;
 
-        // Verificamos si estamos calculando para el ANS inicial o el de solución
-        $tiempoInicio = $this->ticket->impacto_id ? $this->ticket->updated_at : $this->ticket->created_at;
-
-        $tiempoPasado = now()->diffInSeconds($tiempoInicio);
-
         if ($this->ticket->prioridad === null) {
-            // ANS inicial
+            // ANS inicial (el tiempo empieza a contar desde la creación del ticket)
+            $tiempoInicio = $this->ticket->created_at;
+            $tiempoPasado = now()->diffInSeconds($tiempoInicio);
             $this->tiempoRestante = $ans->t_asignacion_segundos - $tiempoPasado;
         } else {
-            // ANS de solución
+            // ANS de solución (el tiempo empieza a contar desde que se asigna el impacto y se define la prioridad)
+            $tiempoInicio = $this->ticket->tiempo_inicio_resolucion ?? $this->ticket->updated_at;  // Asegúrate de usar una columna que almacene el inicio del ANS de resolución
+            $tiempoPasado = now()->diffInSeconds($tiempoInicio);
             $this->tiempoRestante = $ans->t_resolucion_segundos - $tiempoPasado;
         }
+
+        // Asegúrate de que el tiempo restante no sea negativo
+        if ($this->tiempoRestante < 0) {
+            $this->tiempoRestante = 0;
+        }
     }
+
 
     public function formatTiempoRestante($segundos)
     {
@@ -914,7 +937,7 @@ class Show extends Component
                 'ticket_id' => $this->ticket->id,
                 'user_id' => Auth::id(),
                 'accion' => 'Cambio de estado',
-                'detalle' =>  Auth::user()->name.' Cambio el estado del ticket a: Pruebas en ambiente productivo',
+                'detalle' =>  Auth::user()->name . ' Cambio el estado del ticket a: Pruebas en ambiente productivo',
             ]);
 
             $this->ticket->usuario->notify(new PruebasProductivo($comentario));

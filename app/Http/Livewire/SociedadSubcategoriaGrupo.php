@@ -45,7 +45,7 @@ class SociedadSubcategoriaGrupo extends Component
     {
         // Cargar sociedades, subcategorías, categorías y grupos al iniciar el componente
         $this->sociedades = Sociedad::all();
-        $this->categorias = Categoria::all();  // Cargar las categorías
+        $this->categorias = Categoria::where('estado', 0)->get();  // Cargar las categorías
         $this->subcategorias = Subcategoria::all();
         $this->grupos = Grupo::all();
     }
@@ -114,23 +114,44 @@ class SociedadSubcategoriaGrupo extends Component
         $this->emit('cargarRelacionesTabla', json_encode($relaciones));
     }
 
+    // public function obtenerRelaciones()
+    // {
+    //     // Obtener las relaciones entre sociedades, categorías, subcategorías y grupos
+    //     return DB::table('sociedad_subcategoria_grupo')
+    //         ->join('sociedades', 'sociedad_subcategoria_grupo.sociedad_id', '=', 'sociedades.id')
+    //         ->join('categorias', 'sociedad_subcategoria_grupo.categoria_id', '=', 'categorias.id')  // Relación con la categoría
+    //         ->join('subcategorias', 'sociedad_subcategoria_grupo.subcategoria_id', '=', 'subcategorias.id')
+    //         ->join('grupos', 'sociedad_subcategoria_grupo.grupo_id', '=', 'grupos.id')
+    //         ->select(
+    //             'sociedad_subcategoria_grupo.id',
+    //             'sociedades.nombre as sociedad',
+    //             'categorias.nombre as categoria',  // Mostrar el nombre de la categoría
+    //             'subcategorias.nombre as subcategoria',
+    //             'grupos.nombre as grupo'
+    //         )
+    //         ->get()->toArray();
+    // }
+
     public function obtenerRelaciones()
     {
         // Obtener las relaciones entre sociedades, categorías, subcategorías y grupos
         return DB::table('sociedad_subcategoria_grupo')
             ->join('sociedades', 'sociedad_subcategoria_grupo.sociedad_id', '=', 'sociedades.id')
             ->join('categorias', 'sociedad_subcategoria_grupo.categoria_id', '=', 'categorias.id')  // Relación con la categoría
+            ->join('tipo_solicitudes', 'categorias.solicitud_id', '=', 'tipo_solicitudes.id') // Unir con solicitudes
             ->join('subcategorias', 'sociedad_subcategoria_grupo.subcategoria_id', '=', 'subcategorias.id')
             ->join('grupos', 'sociedad_subcategoria_grupo.grupo_id', '=', 'grupos.id')
             ->select(
                 'sociedad_subcategoria_grupo.id',
                 'sociedades.nombre as sociedad',
-                'categorias.nombre as categoria',  // Mostrar el nombre de la categoría
+                'categorias.nombre as categoria',
+                'tipo_solicitudes.nombre as solicitud', // Añadir la solicitud asociada
                 'subcategorias.nombre as subcategoria',
                 'grupos.nombre as grupo'
             )
             ->get()->toArray();
     }
+
 
     public function editRelacion($relacionId)
     {

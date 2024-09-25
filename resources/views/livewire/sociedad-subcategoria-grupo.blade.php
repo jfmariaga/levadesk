@@ -57,7 +57,7 @@
                         <select wire:model="categoria_id" id="categoria_id" class="form-control">
                             <option value="">Selecciona una categoría</option>
                             @foreach ($categorias as $categoria)
-                                <option value="{{ $categoria->id }}">{{ $categoria->nombre }}</option>
+                                <option value="{{ $categoria->id }}">{{ $categoria->nombre }}- {{$categoria->solicitud->nombre}}</option>
                             @endforeach
                         </select>
                         @error('categoria_id')
@@ -155,18 +155,21 @@
                             "emptyTable": "No hay información",
                         },
                         dom: 'Bfrtip',
-                        buttons: [
-                            {
+                        buttons: [{
                                 extend: 'excelHtml5',
                                 autoFilter: true,
                                 title: 'Relaciones',
-                                exportOptions: { columns: [0, 1, 2, 3] },
+                                exportOptions: {
+                                    columns: [0, 1, 2, 3]
+                                },
                             },
                             {
                                 extend: 'pdfHtml5',
                                 autoFilter: true,
                                 title: 'Relaciones',
-                                exportOptions: { columns: [0, 1, 2, 3] },
+                                exportOptions: {
+                                    columns: [0, 1, 2, 3]
+                                },
                             }
                         ]
                     });
@@ -180,25 +183,33 @@
                 return new Promise((resolve) => {
                     let body = $('#content_tabla_relaciones');
                     data.forEach((element) => {
-                        const { id, sociedad, categoria, subcategoria, grupo } = element;
+                        const {
+                            id,
+                            sociedad,
+                            categoria,
+                            solicitud,
+                            subcategoria,
+                            grupo
+                        } = element; // Ahora también tienes la solicitud
 
+                        // Mostrar categoría junto con la solicitud
                         body.append(`
-                        <tr id="tr_${id}">
-                            <td>${sociedad}</td>
-                            <td>${categoria}</td>
-                            <td>${subcategoria}</td>
-                            <td>${grupo}</td>
-                            <td>
-                                <div class="d-flex">
-                                    <button onclick="editarRelacion(${id})" class="btn btn-xs btn-default text-primary mx-1 shadow" title="Editar">
-                                        <i class="fa fa-lg fa-fw fa-pen"></i>
-                                    </button>
-                                    <button onclick="eliminarRelacion(${id})" class="btn btn-xs btn-default text-danger mx-1 shadow" title="Eliminar">
-                                        <i class="fa fa-lg fa-fw fa-trash"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>`);
+                            <tr id="tr_${id}">
+                                <td>${sociedad}</td>
+                                <td>${categoria} - ${solicitud}</td> <!-- Pinta categoria-solicitud -->
+                                <td>${subcategoria}</td>
+                                <td>${grupo}</td>
+                                <td>
+                                    <div class="d-flex">
+                                        <button onclick="editarRelacion(${id})" class="btn btn-xs btn-default text-primary mx-1 shadow" title="Editar">
+                                            <i class="fa fa-lg fa-fw fa-pen"></i>
+                                        </button>
+                                        <button onclick="eliminarRelacion(${id})" class="btn btn-xs btn-default text-danger mx-1 shadow" title="Eliminar">
+                                            <i class="fa fa-lg fa-fw fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>`);
                     });
                     resolve(body);
                 });
