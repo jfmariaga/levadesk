@@ -1121,7 +1121,7 @@
                                                                     <option value="0">Público</option>
                                                                     <option value="1">Privado</option>
                                                                     @if (Auth::id() == $ticket->asignado_a)
-                                                                        @if ($ticket->estado_id != 9 && $ticket->estado_id != 10)
+                                                                        @if ($ticket->estado_id != 9 && $ticket->estado_id != 10 && $ticket->estado_id != 15)
                                                                             @if (!$ticket->solucion())
                                                                                 <option value="2">Solución
                                                                                 </option>
@@ -1137,6 +1137,12 @@
                                                                     @if ($ticket->cambio && $ticket->cambio->check_aprobado_ti == true && $ticket->colaboradores->contains('id', Auth::id()))
                                                                         @if (!$ticket->solucion())
                                                                             <option value="6">Validar Productivo
+                                                                            </option>
+                                                                        @endif
+                                                                    @endif
+                                                                    @if ($ticket->aprobacion && $ticket->estado_id == 15 && ($ticket->colaboradores->contains('id', Auth::id()) || $ticket->asignado_a == Auth::id()))
+                                                                        @if (!$ticket->solucion())
+                                                                            <option value="7">Validar Acceso
                                                                             </option>
                                                                         @endif
                                                                     @endif

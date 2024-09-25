@@ -28,6 +28,7 @@ use App\Notifications\NuevoColaborador;
 use App\Notifications\NuevoComentario;
 use App\Notifications\NuevoComentarioPrivado;
 use App\Notifications\NuevoComentarioSolucion;
+use App\Notifications\PruebasAccesos;
 use App\Notifications\PruebasProductivo;
 use App\Notifications\PruebasSet;
 use App\Notifications\Reasignado;
@@ -863,7 +864,7 @@ class Show extends Component
 
     public function addComment()
     {
-        $this->validate(['newComment' => 'required|string', 'commentType' => 'required|integer|in:0,1,2,3,4,5,6']);
+        $this->validate(['newComment' => 'required|string', 'commentType' => 'required|integer|in:0,1,2,3,4,5,6,7']);
 
         // Crear el comentario y guardarlo en la variable $comentario
         $comentario = $this->ticket->comentarios()->create([
@@ -928,7 +929,7 @@ class Show extends Component
                     $colaborador->user->notify(new NuevoComentario($comentario));
                 }
             }
-        } else {
+        } elseif($this->commentType == 6) {
             $this->ticket->update([
                 'estado_id' => 12
             ]);
@@ -942,11 +943,20 @@ class Show extends Component
 
             $this->ticket->usuario->notify(new PruebasProductivo($comentario));
             $this->ticket->asignado->notify(new PruebasProductivo($comentario));
-            if ($this->ticket->colaboradors) {
-                foreach ($this->ticket->colaboradors as $colaborador) {
-                    $colaborador->user->notify(new NuevoComentario($comentario));
-                }
-            }
+        }else{
+            $this->ticket->update([
+                'estado_id' => 16
+            ]);
+
+            Historial::create([
+                'ticket_id' => $this->ticket->id,
+                'user_id' => Auth::id(),
+                'accion' => 'Cambio de estado',
+                'detalle' =>  Auth::user()->name . ' Cambio el estado del ticket a: Prueba de acceso',
+            ]);
+
+            $this->ticket->usuario->notify(new PruebasAccesos($comentario));
+            $this->ticket->asignado->notify(new PruebasAccesos($comentario));
         }
 
 

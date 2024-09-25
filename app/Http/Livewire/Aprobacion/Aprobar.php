@@ -177,14 +177,14 @@ class Aprobar extends Component
                 ]);
 
                 $this->ticket->update([
-                    'estado_id' => 3
+                    'estado_id' => 15
                 ]);
 
                 Historial::create([
                     'ticket_id' => $this->ticket_id,
                     'user_id' => Auth::id(),
                     'accion' => 'Cambio de estado',
-                    'detalle' => 'El ticket cambio de estado En espera a En atención',
+                    'detalle' => 'El ticket cambio de estado En espera a configuración de acceso',
                 ]);
                 $this->ticket->usuario->notify(new CambioEstado($this->ticket));
                 $this->ticket->asignado->notify(new FinFlujo($this->ticket));

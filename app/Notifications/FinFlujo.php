@@ -30,6 +30,7 @@ class FinFlujo extends Notification implements ShouldQueue
             ->subject('Flujo de gestión de acceso finalizado')
             ->line('El flujo de gestión de acceso relacionado con el Ticket: ' . $this->ticket->nomenclatura . ' Ha finalizado')
             ->line('Resultado: ' . $this->ticket->aprobacion->estado)
+            ->line('Estado del ticket: '. $this->ticket->estado->nombre)
             ->action('Ver Ticket', url('/tickets/' . $this->ticket->id));
     }
 
@@ -39,6 +40,7 @@ class FinFlujo extends Notification implements ShouldQueue
             'ticket_id' => $this->ticket->id,
             'nomenclatura' => $this->ticket->nomenclatura,
             'estado' => $this->ticket->aprobacion->estado,
+            'estado_ticket' => $this->ticket->estado->nombre,
         ];
     }
 }
