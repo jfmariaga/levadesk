@@ -294,9 +294,11 @@ class FormTickets extends Component
         $tipoSolicitud = TipoSolicitud::find($this->tipo_solicitud_id)->codigo;
         $categoria = Categoria::find($this->categoria_id)->codigo;
         $subcategoria = Subcategoria::find($this->subcategoria_id)->codigo;
-        $numeroTicket = Ticket::where('sociedad_id', $this->sociedad_id)->count() + 1;
+        // Contar tickets que tienen la misma nomenclatura base
+        $baseNomenclatura = "{$sociedad}{$tipoSolicitud}{$categoria}{$subcategoria}";
+        $numeroTicket = Ticket::where('nomenclatura', 'LIKE', "{$baseNomenclatura}%")->count() + 1;
 
-        return "{$sociedad}{$tipoSolicitud}{$categoria}{$subcategoria}{$numeroTicket}";
+        return "{$baseNomenclatura}{$numeroTicket}";
     }
 
     public function resetForm()
