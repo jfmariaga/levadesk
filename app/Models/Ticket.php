@@ -142,4 +142,9 @@ class Ticket extends Model
     {
         return $this->belongsTo(Aplicaciones::class);
     }
+
+    public function excepcion()
+    {
+        return $this->hasOne(Excepciones::class);
+    }
 }

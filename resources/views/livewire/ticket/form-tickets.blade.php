@@ -76,6 +76,50 @@
                         </div>
                     </div>
 
+                    <div class="form-row">
+                        <!-- Mostrar campos de excepción si es una excepción -->
+                        @if ($esExcepcion)
+                            <div class="form-group col-md-6">
+                                <label for="usuario_sap"><i class="fas fa-user"></i> Usuario<b
+                                        class="text-danger">*</b></label>
+                                <input type="text" id="usuario_sap" class="form-control" wire:model="usuario_sap"
+                                    placeholder="Usuario de la excepción">
+                                @error('usuario_sap')
+                                    <span class="text-danger">{{ $message }}</span>
+                                @enderror
+                            </div>
+
+                            <div class="form-group col-md-6">
+                                <label for="modulo"><i class="fas fa-cubes"></i> Módulo <b
+                                    class="text-danger">*</b></label>
+                                <input type="text" id="modulo" class="form-control" wire:model="modulo"
+                                    placeholder="Ingresa el módulo">
+                                @error('modulo')
+                                    <span class="text-danger">{{ $message }}</span>
+                                @enderror
+                            </div>
+
+                            <div class="form-group col-md-6">
+                                <label for="fecha_inicio"><i class="fas fa-calendar-alt"></i> Fecha de Inicio <b
+                                        class="text-danger">*</b></label>
+                                <input type="date" id="fecha_inicio" class="form-control" wire:model="fecha_inicio">
+                                @error('fecha_inicio')
+                                    <span class="text-danger">{{ $message }}</span>
+                                @enderror
+                            </div>
+
+                            <div class="form-group col-md-6">
+                                <label for="fecha_fin"><i class="fas fa-calendar-alt"></i> Fecha de Fin <b
+                                        class="text-danger">*</b></label>
+                                <input type="date" id="fecha_fin" class="form-control" wire:model="fecha_fin">
+                                @error('fecha_fin')
+                                    <span class="text-danger">{{ $message }}</span>
+                                @enderror
+                            </div>
+                        @endif
+                    </div>
+
+
 
                     <!-- Aplicación (condicional) y Urgencia -->
                     @if (!empty($aplicaciones))
@@ -128,7 +172,8 @@
 
                     <!-- Título -->
                     <div class="form-group">
-                        <label for="titulo"><i class="fas fa-heading"></i> Título <b class="text-danger">*</b></label>
+                        <label for="titulo"><i class="fas fa-heading"></i> Título <b
+                                class="text-danger">*</b></label>
                         <input type="text" id="titulo" class="form-control" wire:model="titulo"
                             placeholder="Ingresa el título del ticket">
                         @error('titulo')
@@ -138,7 +183,8 @@
 
                     <!-- Descripción -->
                     <div class="form-group">
-                        <label for="descripcion"><i class="fas fa-align-left"></i> Descripción</label>
+                        <label for="descripcion"><i class="fas fa-align-left"></i> Descripción <b
+                            class="text-danger">*</b></label>
                         <textarea id="descripcion" class="form-control" wire:model="descripcion" placeholder="Describe el ticket"></textarea>
                         @error('descripcion')
                             <span class="text-danger">{{ $message }}</span>

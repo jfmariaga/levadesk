@@ -301,8 +301,26 @@
                                 </div>
                                 <h5>{{ $ticket->titulo }}, {{ $ticket->descripcion }}</h5>
                                 <p><i
-                                        class="text-muted">{{ $ticket->sociedad->nombre }}>>{{ $ticket->tipoSolicitud->nombre }}>>{{ $ticket->categoria->nombre }}>>{{ $ticket->subcategoria->nombre }}</i>
+                                        class="text-muted">{{ $ticket->sociedad->nombre }}>>{{ $ticket->tipoSolicitud->nombre }}>>{{ $ticket->categoria->nombre }}>>{{ $ticket->subcategoria->nombre }}{{ $ticket->aplicacion ? '>>' . $ticket->aplicacion->nombre : '' }}</i>
                                 </p>
+                                @if ($ticket->excepcion)
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <p><strong>Usuario:</strong> {{ $ticket->excepcion->usuario_sap }}</p>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <p><strong>Modulo:</strong> {{ $ticket->excepcion->modulo }}</p>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <p><strong>Fecha inicio:</strong> {{ $ticket->excepcion->fecha_inicio }}
+                                            </p>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <p><strong>Fecha fin:</strong> {{ $ticket->excepcion->fecha_fin }}</p>
+                                        </div>
+                                    </div>
+                                    <hr>
+                                @endif
                                 <div class="row">
                                     <div class="col-md-3">
                                         <p><strong>Urgencia:</strong> {{ $ticket->urgencia->nombre }}</p>
