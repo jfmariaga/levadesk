@@ -65,10 +65,10 @@ class FormTickets extends Component
         'urgencia'          => 'required',
         'archivos'          => 'array|max:2',
         'aplicacion_id'     => 'nullable|exists:aplicaciones,id',
-        'usuario_sap'       => 'required_if:esExcepcion,true|string',  // Solo requerido si es una excepción
-        'modulo'            => 'required_if:esExcepcion,true|string',
-        'fecha_inicio'      => 'required_if:esExcepcion,true|date',
-        'fecha_fin'         => 'required_if:esExcepcion,true|date|after_or_equal:fecha_inicio',
+        // 'usuario_sap'       => 'required_if:esExcepcion,true|string',  // Solo requerido si es una excepción
+        // 'modulo'            => 'required_if:esExcepcion,true|string',
+        // 'fecha_inicio'      => 'required_if:esExcepcion,true|date',
+        // 'fecha_fin'         => 'required_if:esExcepcion,true|date|after_or_equal:fecha_inicio',
     ];
 
 

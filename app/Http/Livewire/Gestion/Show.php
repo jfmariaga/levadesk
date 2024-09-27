@@ -101,24 +101,6 @@ class Show extends Component
         $this->calcularTiempoRestante();
     }
 
-    // public function calcularTiempoRestante()
-    // {
-    //     $ans = $this->ticket->ans;
-
-    //     // Verificamos si estamos calculando para el ANS inicial o el de solución
-    //     $tiempoInicio = $this->ticket->impacto_id ? $this->ticket->updated_at : $this->ticket->created_at;
-
-    //     $tiempoPasado = now()->diffInSeconds($tiempoInicio);
-
-    //     if ($this->ticket->prioridad === null) {
-    //         // ANS inicial
-    //         $this->tiempoRestante = $ans->t_asignacion_segundos - $tiempoPasado;
-    //     } else {
-    //         // ANS de solución
-    //         $this->tiempoRestante = $ans->t_resolucion_segundos - $tiempoPasado;
-    //     }
-    // }
-
     public function calcularTiempoRestante()
     {
         $ans = $this->ticket->ans;
@@ -129,9 +111,11 @@ class Show extends Component
             $tiempoPasado = now()->diffInSeconds($tiempoInicio);
             $this->tiempoRestante = $ans->t_asignacion_segundos - $tiempoPasado;
         } else {
-            // ANS de solución (el tiempo empieza a contar desde que se asigna el impacto y se define la prioridad)
-            $tiempoInicio = $this->ticket->tiempo_inicio_resolucion ?? $this->ticket->updated_at;  // Asegúrate de usar una columna que almacene el inicio del ANS de resolución
-            $tiempoPasado = now()->diffInSeconds($tiempoInicio);
+            // Verifica si ya existe una marca de tiempo para el inicio de la resolución
+            $tiempoInicioResolucion = $this->ticket->tiempo_inicio_resolucion;
+
+            // Calcular el tiempo pasado desde el inicio de la resolución
+            $tiempoPasado = now()->diffInSeconds($tiempoInicioResolucion);
             $this->tiempoRestante = $ans->t_resolucion_segundos - $tiempoPasado;
         }
 
@@ -830,6 +814,14 @@ class Show extends Component
                 ->where('nivel', $prioridadCategoria)
                 ->first();
 
+            // Verificar si el tiempo de resolución ya ha sido iniciado
+            if ($this->ticket->tiempo_inicio_resolucion === null) {
+                // Si no ha sido iniciado, lo inicializamos ahora
+                $this->ticket->update([
+                    'tiempo_inicio_resolucion' => now()
+                ]);
+            }
+
             // Actualizar el ticket con la nueva prioridad y ANS
             $this->ticket->update([
                 'prioridad' => $prioridadCategoria,
@@ -929,7 +921,7 @@ class Show extends Component
                     $colaborador->user->notify(new NuevoComentario($comentario));
                 }
             }
-        } elseif($this->commentType == 6) {
+        } elseif ($this->commentType == 6) {
             $this->ticket->update([
                 'estado_id' => 12
             ]);
@@ -943,7 +935,7 @@ class Show extends Component
 
             $this->ticket->usuario->notify(new PruebasProductivo($comentario));
             $this->ticket->asignado->notify(new PruebasProductivo($comentario));
-        }else{
+        } else {
             $this->ticket->update([
                 'estado_id' => 16
             ]);
