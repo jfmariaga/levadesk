@@ -30,6 +30,8 @@ class Ticket extends Model
         'ans_inicial_vencido',
         'escalar',
         'aplicacion_id',
+        'tiempo_inicio_resolucion',
+        'tiempo_inicio_aceptacion',
     ];
 
     public function usuario()
