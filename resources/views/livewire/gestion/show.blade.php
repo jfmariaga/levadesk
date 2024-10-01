@@ -636,7 +636,7 @@
                                                             <span class="slider round"></span>
                                                         </label>
                                                     </div>
-                                                    <p class="ml-2">Reasignar?</p>
+                                                    <p class="ml-2">¿Reasignar?</p>
                                                     <div class="float-right">
                                                         <label class="switch"
                                                             style="margin-left:10px; margin-top: 5px">
@@ -1412,7 +1412,7 @@
                 Livewire.on('redirectAfterDelay', function() {
                     setTimeout(function() {
                         window.location.href = '/gestion';
-                    }, 3000); 
+                    }, 3000);
                 });
             });
         </script>
