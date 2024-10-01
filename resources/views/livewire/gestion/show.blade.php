@@ -548,23 +548,23 @@
                             <p><i class="text-muted">{{ $ticket->sociedad->nombre }}>>{{ $ticket->tipoSolicitud->nombre }}>>{{ $ticket->categoria->nombre }}>>
                                     {{ $ticket->subcategoria->nombre }}
                                     {{ $ticket->aplicacion ? '>>' . $ticket->aplicacion->nombre : '' }}</i></p>
-                             @if ($ticket->excepcion)
+                            @if ($ticket->excepcion)
                                 <div class="row">
                                     <div class="col-md-3">
-                                        <p><strong>Usuario:</strong> {{$ticket->excepcion->usuario_sap}}</p>
+                                        <p><strong>Usuario:</strong> {{ $ticket->excepcion->usuario_sap }}</p>
                                     </div>
                                     <div class="col-md-3">
-                                        <p><strong>Modulo:</strong> {{$ticket->excepcion->modulo}}</p>
+                                        <p><strong>Modulo:</strong> {{ $ticket->excepcion->modulo }}</p>
                                     </div>
                                     <div class="col-md-3">
-                                        <p><strong>Fecha inicio:</strong> {{$ticket->excepcion->fecha_inicio}}</p>
+                                        <p><strong>Fecha inicio:</strong> {{ $ticket->excepcion->fecha_inicio }}</p>
                                     </div>
                                     <div class="col-md-3">
-                                        <p><strong>Fecha fin:</strong> {{$ticket->excepcion->fecha_fin}}</p>
+                                        <p><strong>Fecha fin:</strong> {{ $ticket->excepcion->fecha_fin }}</p>
                                     </div>
                                 </div>
                                 <hr>
-                             @endif
+                            @endif
                             <div class="row">
                                 <div class="col-md-3">
                                     <p><strong>Urgencia:</strong> {{ $ticket->urgencia->nombre }}</p>
@@ -633,6 +633,14 @@
                                                         <label class="switch"
                                                             style="margin-left:10px; margin-top: 5px">
                                                             <input type="checkbox" wire:model="recategorizar">
+                                                            <span class="slider round"></span>
+                                                        </label>
+                                                    </div>
+                                                    <p class="ml-2">Reasignar?</p>
+                                                    <div class="float-right">
+                                                        <label class="switch"
+                                                            style="margin-left:10px; margin-top: 5px">
+                                                            <input type="checkbox" wire:model="asignar">
                                                             <span class="slider round"></span>
                                                         </label>
                                                     </div>
@@ -745,6 +753,33 @@
                                                     </div>
                                                 </div>
                                                 <hr>
+                                            @endif
+                                            @if ($asignar)
+                                                <div class="row">
+                                                    <div class="form-group col-5">
+                                                        <p><strong>Reasignar el ticket a:</strong><b
+                                                                style="color: red"> *</b></p>
+                                                        <div wire:ignore>
+                                                            <select class="select2" id="newAgente">
+                                                                <option value="">Seleccionar...</option>
+                                                                @foreach ($agentes as $agente)
+                                                                    <option value="{{ $agente->id }}">
+                                                                        {{ $agente->name }}
+                                                                    </option>
+                                                                @endforeach
+                                                            </select>
+                                                        </div>
+                                                        @error('selectedNewAgente')
+                                                            <span class="invalid-feedback">{{ $message }}</span>
+                                                        @enderror
+                                                    </div>
+                                                    <div class="col-12">
+                                                        <input type="submit"
+                                                            class="btn btn-outline-info btn-sm float-left"
+                                                            value="Asignar" wire:click="AsignarNewAgente">
+                                                    </div>
+                                                    <hr>
+                                                </div>
                                             @endif
                                             @if ($impacto)
                                                 <div class="row select-categorias">
@@ -1157,7 +1192,10 @@
                                                                             </option>
                                                                         @endif
                                                                     @endif
-                                                                    @if ($ticket->aprobacion && $ticket->estado_id == 15 && ($ticket->colaboradores->contains('id', Auth::id()) || $ticket->asignado_a == Auth::id()))
+                                                                    @if (
+                                                                        $ticket->aprobacion &&
+                                                                            $ticket->estado_id == 15 &&
+                                                                            ($ticket->colaboradores->contains('id', Auth::id()) || $ticket->asignado_a == Auth::id()))
                                                                         @if (!$ticket->solucion())
                                                                             <option value="7">Validar Acceso
                                                                             </option>
@@ -1288,6 +1326,11 @@
                     $('#colaborador').on('change', function() {
                         @this.set('selectedUser', $(this).val());
                     });
+
+                    $('#newAgente').on('change', function() {
+                        @this.set('selectedNewAgente', $(this).val());
+                    });
+
                     $('#aprobadorFuncional').on('change', function() {
                         @this.set('selectedFuncional', $(this).val());
                     });
@@ -1364,6 +1407,12 @@
 
                 Livewire.on('showToast', (data) => {
                     toastRight(data.type, data.message);
+                });
+
+                Livewire.on('redirectAfterDelay', function() {
+                    setTimeout(function() {
+                        window.location.href = '/gestion';
+                    }, 3000); 
                 });
             });
         </script>
