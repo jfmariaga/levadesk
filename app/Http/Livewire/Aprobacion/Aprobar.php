@@ -131,8 +131,8 @@ class Aprobar extends Component
                 Comentario::create([
                     'ticket_id' => $this->ticket->id,
                     'user_id' => 16,
-                    'comentario' => 'Debido a que el líder funcional no aprobó la solicitud de acceso, se rechaza el ticket con una calificación de 4/5⭐',
-                    'calificacion' => 4,
+                    'comentario' => 'Debido a que el líder funcional no aprobó la solicitud de acceso, se rechaza el ticket con una calificación de 5/5⭐',
+                    'calificacion' => 5,
                 ]);
 
                 $this->ticket->usuario->notify(new RechazoFlujo($this->ticket));

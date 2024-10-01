@@ -56,7 +56,7 @@ class FormTickets extends Component
 
     protected $rules = [
         'titulo'            => 'required|string|max:255',
-        'descripcion'       => 'required|string|min:20',
+        'descripcion'       => 'required|string|min:20|max:325',
         'sociedad_id'       => 'required|exists:sociedades,id',
         'tipo_solicitud_id' => 'required|exists:tipo_solicitudes,id',
         'categoria_id'      => 'required|exists:categorias,id',
@@ -69,6 +69,46 @@ class FormTickets extends Component
         // 'modulo'            => 'required_if:esExcepcion,true|string',
         // 'fecha_inicio'      => 'required_if:esExcepcion,true|date',
         // 'fecha_fin'         => 'required_if:esExcepcion,true|date|after_or_equal:fecha_inicio',
+    ];
+
+    // Mensajes de error personalizados
+    protected $messages = [
+        'titulo.required'            => 'El campo Título es obligatorio.',
+        'titulo.string'              => 'El campo Título debe ser una cadena de texto.',
+        'titulo.max'                 => 'El campo Título no debe exceder los 255 caracteres.',
+
+        'descripcion.required'       => 'El campo Descripción es obligatorio.',
+        'descripcion.string'         => 'El campo Descripción debe ser una cadena de texto.',
+        'descripcion.min'            => 'El campo Descripción debe tener al menos 20 caracteres.',
+        'descripcion.max'            => 'El campo Descripción no debe exceder los 325 caracteres.',
+
+        'sociedad_id.required'       => 'El campo Sociedad es obligatorio.',
+        'sociedad_id.exists'         => 'La Sociedad seleccionada no es válida.',
+
+        'tipo_solicitud_id.required' => 'El campo Tipo de Solicitud es obligatorio.',
+        'tipo_solicitud_id.exists'   => 'El Tipo de Solicitud seleccionado no es válido.',
+
+        'categoria_id.required'      => 'El campo Categoría es obligatorio.',
+        'categoria_id.exists'        => 'La Categoría seleccionada no es válida.',
+
+        'subcategoria_id.required'   => 'El campo Subcategoría es obligatorio.',
+        'subcategoria_id.exists'     => 'La Subcategoría seleccionada no es válida.',
+
+        'archivos.*.file'            => 'Cada archivo debe ser un archivo válido.',
+        'archivos.*.mimes'           => 'Los archivos deben ser de tipo: jpg, png, pdf, doc, docx, xlsx, xls.',
+        'archivos.array'             => 'El campo Archivos debe ser un arreglo.',
+        'archivos.max'               => 'No se pueden subir más de 2 archivos.',
+
+        'urgencia.required'          => 'El campo Urgencia es obligatorio.',
+
+        'aplicacion_id.exists'       => 'La Aplicación seleccionada no es válida.',
+
+        // Mensajes opcionales para los campos condicionales
+        // 'usuario_sap.required_if'   => 'El campo Usuario SAP es obligatorio cuando es una excepción.',
+        // 'modulo.required_if'        => 'El campo Módulo es obligatorio cuando es una excepción.',
+        // 'fecha_inicio.required_if'  => 'El campo Fecha de Inicio es obligatorio cuando es una excepción.',
+        // 'fecha_fin.required_if'     => 'El campo Fecha de Fin es obligatorio cuando es una excepción.',
+        // 'fecha_fin.after_or_equal'  => 'La Fecha de Fin debe ser igual o posterior a la Fecha de Inicio.',
     ];
 
 

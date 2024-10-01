@@ -87,6 +87,7 @@ class Show extends Component
     public $aplicaciones;
     public $sociedad_id;
     public $agentes = [];
+    public $tipoANS;
 
     protected $rules = [
         'categoria_id' => 'required',
@@ -113,13 +114,21 @@ class Show extends Component
             $tiempoInicio = $this->ticket->created_at;
             $tiempoPasado = now()->diffInSeconds($tiempoInicio);
             $this->tiempoRestante = $ans->t_asignacion_segundos - $tiempoPasado;
-        } else {
+            $this->tipoANS = 'inicial';
+        } elseif ($this->ticket->tiempo_inicio_aceptacion === null) {
             // Verifica si ya existe una marca de tiempo para el inicio de la resolución
             $tiempoInicioResolucion = $this->ticket->tiempo_inicio_resolucion;
 
             // Calcular el tiempo pasado desde el inicio de la resolución
             $tiempoPasado = now()->diffInSeconds($tiempoInicioResolucion);
             $this->tiempoRestante = $ans->t_resolucion_segundos - $tiempoPasado;
+            $this->tipoANS = 'solución';
+        } else {
+            $tiempoInicioAceptacion = $this->ticket->tiempo_inicio_aceptacion;
+
+            $tiempoPasado = now()->diffInSeconds($tiempoInicioAceptacion);
+            $this->tiempoRestante = $ans->t_aceptacion_segundos - $tiempoPasado;
+            $this->tipoANS = 'aceptación';
         }
 
         // Asegúrate de que el tiempo restante no sea negativo
@@ -662,13 +671,14 @@ class Show extends Component
             'impacto_id' => 'required',
         ]);
 
+        $ansCumplido = $this->tiempoRestante > 0;
+
         $this->ticket->update([
             'impacto_id' => $this->impacto_id
         ]);
 
         $this->ticket->load('impacto');
 
-        $ansCumplido = $this->tiempoRestante > 0;
 
         Historial::create([
             'ticket_id' => $this->ticket->id,
@@ -713,6 +723,7 @@ class Show extends Component
                 'prioridad' => $prioridadCategoria,
                 'estado_id' => 3,
                 'ans_id' => $nuevoAns ? $nuevoAns->id : $this->ticket->ans_id,  // Actualizar el ANS
+                'ans_inicial_vencido' => $ansCumplido ? false : true,  // Actualizar el ANS
             ]);
 
             // Recalcular el tiempo restante en base al nuevo ANS
@@ -772,15 +783,22 @@ class Show extends Component
             }
         } elseif ($this->commentType == 2) {
 
+            $ansCumplido = $this->tiempoRestante > 0;
+
+
             $this->ticket->update([
-                'estado_id' => 6
+                'estado_id' => 6,
+                'ans_vencido' => $ansCumplido ? 0 : 1,
+                'notificadoSolucion' => true,
+                'tiempo_inicio_aceptacion' => now()
+
             ]);
 
             Historial::create([
                 'ticket_id' => $this->ticket->id,
                 'user_id' => Auth::id(),
                 'accion' => 'Cambio de estado',
-                'detalle' => 'El sistema cambio el estado del ticket a: Por aceptación',
+                'detalle' => 'El sistema cambio el estado del ticket a: Por aceptación y el ANS de solución ' . ($ansCumplido ? 'se cumplió' : 'no se cumplió'),
             ]);
 
             $this->ticket->usuario->notify(new NuevoComentarioSolucion($comentario));
