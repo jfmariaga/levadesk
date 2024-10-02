@@ -37,7 +37,7 @@
                                     <th>Titulo</th>
                                     <th>Prioridad</th>
                                     <th>Estado</th>
-                                    <th>Rol</th>
+                                    <th>Agente</th>
                                     <th>Acc</th>
                                 </tr>
                             </thead>
