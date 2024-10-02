@@ -403,6 +403,12 @@ return [
             'icon' => 'fas fa-users',
             'can' => 'usuarios',
         ],
+        [
+            'text' => 'Roles',
+            'route' => 'roles',
+            'icon' => 'fas fa-users-cog',
+            'can' => 'usuarios',
+        ],
 
         ['header' => 'CONFIGURACIÓN DE LA CUENTA'],
         [

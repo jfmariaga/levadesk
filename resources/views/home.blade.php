@@ -19,13 +19,9 @@
         </div>
         @if (auth()->user()->hasRole('Admin'))
             <div class="row mt-2">
-                .{{--  punto --}}
-                {{-- <div class="col-md-6 col-lg-6 mt-2">
-                @livewire('graficas.ticket-estado-chart')
-            </div> --}}
-                {{-- <div class="col-md-6 col-lg-6 mt-2">
-                    @livewire('graficas.ticket-sociedad-chart')
-                </div> --}}
+                <div class="col-md-7">
+                    @livewire('home.tickets-home')
+                </div>
             </div>
         @endif
     </div>

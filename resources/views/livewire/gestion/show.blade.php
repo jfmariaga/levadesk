@@ -1090,7 +1090,7 @@
                                                                             <h5 class="badge text-white"
                                                                                 style="background-color: #666">Enviado
                                                                                 para aprobación de set de
-                                                                                priebas</h5>
+                                                                                pruebas</h5>
                                                                         @elseif($ticket->cambio->check_aprobado_ti == true && $comentario->check_comentario == true)
                                                                             <h5 class="badge text-bg-dark"
                                                                                 style="background-color: #a3da92;">Se

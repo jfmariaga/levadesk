@@ -19,7 +19,7 @@ class CheckAnsVencimiento implements ShouldQueue
     public function handle()
     {
         // Obtener todos los tickets que no están en estado 'Cumplido' (o el estado que uses)
-        $tickets = Ticket::whereIn('estado_id', ['3','7', '8', '9', '10', '11', '12', '13', '14','15','16'])->get();
+        $tickets = Ticket::whereIn('estado_id', ['3','6','7', '8', '9', '10', '11', '12', '13', '14','15','16'])->get();
         $aceptacion = Ticket::where('estado_id', 6)->get();
 
 
@@ -53,8 +53,8 @@ class CheckAnsVencimiento implements ShouldQueue
 
             $tiempoRestanteAceptacion = $ans->t_aceptacion_segundos - $tiempoPasadoAceptacion;
 
-            if ($tiempoRestanteAceptacion < 0 && $ticket->estado_id != 4) {
-                $ticket->update(['estado_id' => 4]); 
+            if ($tiempoRestanteAceptacion < 0 && $ticket->estado_id == 6) {
+                $ticket->update(['estado_id' => 4]);
                 Comentario::create([
                     'ticket_id' => $ticket->id,
                     'user_id' => 16,
