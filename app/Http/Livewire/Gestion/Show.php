@@ -369,11 +369,14 @@ class Show extends Component
 
         $usuario->notify(new TicketAsignado($this->ticket));
 
+        $usuario_logueado = Auth::user();
+        $usuario_reasigno = $usuario_logueado->hasRole('Admin') ? $usuario_logueado->name : $usuario_old->name;
+
         Historial::create([
             'ticket_id' => $this->ticket->id,
             'user_id' => Auth::id(),
             'accion' => 'Ticket reasignado',
-            'detalle' => $usuario_old->name . ' Reasigno el ticket manualmente a  ' . $usuario->name,
+            'detalle' => $usuario_reasigno . ' Reasigno el ticket manualmente a  ' . $usuario->name,
         ]);
         $this->emit('showToast', ['type' => 'success', 'message' => "Ticket reasignado a {$usuario->name}."]);
         $this->loadTicket();
