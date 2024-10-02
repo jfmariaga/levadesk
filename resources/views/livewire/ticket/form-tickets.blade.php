@@ -91,7 +91,7 @@
 
                             <div class="form-group col-md-6">
                                 <label for="modulo"><i class="fas fa-cubes"></i> Módulo <b
-                                    class="text-danger">*</b></label>
+                                        class="text-danger">*</b></label>
                                 <input type="text" id="modulo" class="form-control" wire:model="modulo"
                                     placeholder="Ingresa el módulo">
                                 @error('modulo')
@@ -184,7 +184,7 @@
                     <!-- Descripción -->
                     <div class="form-group">
                         <label for="descripcion"><i class="fas fa-align-left"></i> Descripción <b
-                            class="text-danger">*</b></label>
+                                class="text-danger">*</b></label>
                         <textarea id="descripcion" class="form-control" wire:model="descripcion" placeholder="Describe el ticket"></textarea>
                         @error('descripcion')
                             <span class="text-danger">{{ $message }}</span>
@@ -341,6 +341,10 @@
 
             $('#form_ticket').on('hidden.bs.modal', function() {
                 @this.resetForm();
+            });
+
+            Livewire.on('showToast', (data) => {
+                toastRight(data.type, data.message);
             });
 
 

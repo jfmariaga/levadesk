@@ -186,7 +186,8 @@ class FormTickets extends Component
         $subcategoria = Subcategoria::find($this->subcategoria_id);
 
         if (!$subcategoria) {
-            session()->flash('error', 'Subcategoría no encontrada');
+            // session()->flash('error', 'Subcategoría no encontrada');
+            $this->emit('showToast', ['type' => 'warning', 'message' => "Subcategoría no encontrada."]);
             return;
         }
 
@@ -194,7 +195,8 @@ class FormTickets extends Component
         $categoria = Categoria::find($this->categoria_id);
 
         if (!$categoria) {
-            session()->flash('error', 'Categoría no encontrada');
+            $this->emit('showToast', ['type' => 'warning', 'message' => "Categoría no encontrada."]);
+
             return;
         }
 
@@ -217,11 +219,11 @@ class FormTickets extends Component
                     // Obtener el usuario con menos tickets en el grupo relacionado con la aplicación
                     $usuario = $grupo->usuarios()->withCount('ticketsAsignados')->orderBy('tickets_asignados_count', 'asc')->first();
                 } else {
-                    session()->flash('error', 'No hay grupo asignado a la aplicación seleccionada.');
+                    $this->emit('showToast', ['type' => 'warning', 'message' => "No hay grupo asignado a la aplicación seleccionada."]);
                     return;
                 }
             } else {
-                session()->flash('error', 'No hay grupo o usuarios asignados a la aplicación seleccionada.');
+                $this->emit('showToast', ['type' => 'warning', 'message' => "No hay grupo o usuarios asignados a la aplicación seleccionada."]);
                 return;
             }
         } else {
@@ -229,7 +231,7 @@ class FormTickets extends Component
             $grupo = $subcategoria->gruposPorSociedad($this->sociedad_id, $this->categoria_id)->first();
 
             if (!$grupo) {
-                session()->flash('error', 'No hay grupo asignado para esta combinación de sociedad, subcategoría y categoría.');
+                $this->emit('showToast', ['type' => 'warning', 'message' => "No hay grupo asignado para esta combinación de sociedad, subcategoría y categoría."]);
                 return;
             }
 
@@ -238,7 +240,7 @@ class FormTickets extends Component
         }
 
         if (!$usuario) {
-            session()->flash('error', 'No hay usuarios disponibles en el grupo');
+            $this->emit('showToast', ['type' => 'warning', 'message' => "No hay usuarios disponibles en el grupo."]);
             return;
         }
 
@@ -248,7 +250,7 @@ class FormTickets extends Component
             if ($backupAgente) {
                 $usuario = $backupAgente;
             } else {
-                session()->flash('error', 'El usuario está de vacaciones y no tiene un agente de respaldo asignado.');
+            $this->emit('showToast', ['type' => 'warning', 'message' => "El usuario está de vacaciones y no tiene un agente de respaldo asignado."]);
                 return;
             }
         }
