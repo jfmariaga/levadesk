@@ -1,4 +1,39 @@
 <div>
+    <style>
+        .card {
+            border: none;
+            border-radius: 10px;
+        }
+
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: none;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            overflow-y: auto;
+        }
+
+        .table thead th {
+            border-bottom: none;
+            font-weight: bold;
+            background-color: #f8f9fa;
+        }
+
+        .table tbody tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        .badge {
+            font-size: 100%;
+        }
+
+        .dt-buttons {
+            display: none !important;
+        }
+    </style>
     <div class="col-lg-12 col-md-12 mb-3">
         <div class="card">
             <div class="card-header">
@@ -168,7 +203,7 @@
                         let anio = fecha.getFullYear();
                         let fechaFormateada = `${dia}-${mes}-${anio}`;
 
-                                    body.append(`<tr id="tr_${id}">
+                        body.append(`<tr id="tr_${id}">
                                 <td class="pointer">${fechaFormateada}</td>
                                 <td class="pointer">${nomenclatura}</td>
                                 <td class="pointer">${titulo}</td>
