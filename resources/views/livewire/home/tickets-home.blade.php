@@ -168,20 +168,20 @@
                         let anio = fecha.getFullYear();
                         let fechaFormateada = `${dia}-${mes}-${anio}`;
 
-                        body.append(`<tr id="tr_${id}">
-                    <td class="pointer">${fechaFormateada}</td>
-                    <td class="pointer">${nomenclatura}</td>
-                    <td class="pointer">${titulo}</td>
-                    <td class="pointer">${urgencia ? urgencia.nombre :''}</td>
-                    <td class="pointer">${estado ? estado.nombre:''}</td>
+                                    body.append(`<tr id="tr_${id}">
+                                <td class="pointer">${fechaFormateada}</td>
+                                <td class="pointer">${nomenclatura}</td>
+                                <td class="pointer">${titulo}</td>
+                                <td class="pointer">${urgencia ? urgencia.nombre :''}</td>
+                                <td class="pointer">${estado ? estado.nombre:''}</td>
 
-                    <td class="pointer">${asignado.name}</td>
-                    <td>
-                        <div class="d-flex">
-                            <a href="gestionar?ticket_id=${id}" class="btn btn-xs btn-default text-primary mx-1 shadow" title="Edit"><i class="far fa-eye"></i></a>
-                        </div>
-                    </td>
-                </tr>`);
+                                <td class="pointer">${asignado.name}</td>
+                                <td>
+                                    <div class="d-flex">
+                                        <a href="gestionar?ticket_id=${id}" class="btn btn-xs btn-default text-primary mx-1 shadow" title="Edit"><i class="far fa-eye"></i></a>
+                                    </div>
+                                </td>
+                            </tr>`);
                     }
                     resolve(body);
                 });

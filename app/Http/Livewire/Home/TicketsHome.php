@@ -29,20 +29,24 @@ class TicketsHome extends Component
 
     public function cargarDatos()
     {
-        $tickets = Ticket::with('urgencia', 'estado', 'colaboradores','asignado')->get();
+        // Empieza la consulta base con los filtros de relaciones
+        $tickets = Ticket::with('urgencia', 'estado', 'colaboradores', 'asignado');
 
+        // Verifica si ambas fechas están presentes
         if ($this->fecha_desde && $this->fecha_hasta) {
-            // Formatear las fechas en el formato 'Y-m-d'
+            // Formatea las fechas en el formato 'Y-m-d'
             $fecha_desde = date('Y-m-d', strtotime($this->fecha_desde));
-            $fecha_hasta = date('Y-m-d', strtotime($this->fecha_hasta));
-            $tickets->whereBetween(DB::raw('DATE(created_at)'), [$fecha_desde, $fecha_hasta]);
+            // Agrega la hora final al día de la fecha_hasta
+            $fecha_hasta = date('Y-m-d 23:59:59', strtotime($this->fecha_hasta));
+
+            // Aplica el filtro de fechas a la consulta
+            $tickets = $tickets->whereBetween('created_at', [$fecha_desde, $fecha_hasta]);
         }
 
-        // $this->ticketsSolucionados = $tickets->where('estado_id', 4);
-        // $this->ticketsEnProceso = $tickets->where('estado_id', 3)->count();
-        // $this->ticketsPorIniciar = $tickets->where('estado_id', 1)->count();
-        // $this->totalHorasSoporte = $this->calcularHorasSoporte($tickets);
+        // Ejecuta la consulta y obtiene los tickets
+        $tickets = $tickets->get();
 
+        // Envía los datos a la tabla usando el evento Livewire
         $this->emit('cargarGestioTicketTabla', json_encode($tickets));
     }
 
