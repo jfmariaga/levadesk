@@ -193,7 +193,7 @@
 
                     <!-- Adjuntos -->
                     <div class="form-group">
-                        <label><i class="fas fa-paperclip"></i> Adjuntos (jpg, png, pdf, doc, docx, xlsx, xls)</label>
+                        <label><i class="fas fa-paperclip"></i> Adjuntos (jpg, png, pdf, doc, docx, xlsx, xls, msg)</label>
                         <x-adminlte-input-file id="{{ $identificar }}" multiple wire:model="archivos"
                             name="ifPholder" igroup-size="sm" placeholder="Seleccionar un archivo...">
                             <x-slot name="prependSlot">

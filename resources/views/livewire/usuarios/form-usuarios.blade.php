@@ -60,17 +60,30 @@
                     </div>
                 </div>
 
-                <!-- Estado -->
-                <div class="form-group col-md-6">
-                    <label for="estado"><i class="fas fa-toggle-on"></i> Estado <b class="text-danger">*</b></label>
-                    <select id="estado" class="form-control" wire:model="estado">
-                        <option value="">Seleccionar...</option>
-                        <option value="1">Activo</option>
-                        <option value="0">Inactivo</option>
-                    </select>
-                    @error('estado')
-                        <span class="text-danger">{{ $message }}</span>
-                    @enderror
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <label for="estado"><i class="fas fa-toggle-on"></i> Estado <b class="text-danger">*</b></label>
+                        <select id="estado" class="form-control" wire:model="estado">
+                            <option value="">Seleccionar...</option>
+                            <option value="1">Activo</option>
+                            <option value="0">Inactivo</option>
+                        </select>
+                        @error('estado')
+                            <span class="text-danger">{{ $message }}</span>
+                        @enderror
+                    </div>
+
+                    <div class="form-group col-md-6">
+                        <label for="estado"><i class="fas fa-toggle-on"></i> Aprobador TI <b class="text-danger">*</b></label>
+                        <select id="estado" class="form-control" wire:model="aprobador_ti">
+                            <option value="">Seleccionar...</option>
+                            <option value="1">Si</option>
+                            <option value="0">No</option>
+                        </select>
+                        @error('estado')
+                            <span class="text-danger">{{ $message }}</span>
+                        @enderror
+                    </div>
                 </div>
 
                 <!-- Botones de acción -->

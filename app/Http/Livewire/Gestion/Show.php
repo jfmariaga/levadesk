@@ -73,6 +73,7 @@ class Show extends Component
     public $newFileCambio;
     public $commentType = 0; // Valor por defecto es 'Público'
     public $usuarios = [];
+    public $aprobadores = [];
     public $selectedUser;
     public $selectedNewAgente;
     public $selectedFuncional;
@@ -100,7 +101,8 @@ class Show extends Component
     public function mount()
     {
         $this->loadTicket();
-        $this->usuarios = User::where('estado', 1)->where('id', '!=', Auth::id())->get();  // Obtener todos los usuarios activos
+        $this->usuarios = User::where('estado', 1)->where('id', '!=', Auth::id())->get();
+        $this->aprobadores = User::where('estado', 1)->where('id', '!=', Auth::id())->where('aprobador_ti', true)->get();
         $this->agentes = User::role(['Admin', 'Agente'])->where('id', '!=', Auth::id())->get();
         $this->calcularTiempoRestante();
     }

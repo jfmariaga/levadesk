@@ -30,7 +30,7 @@ class NoSolucion extends Notification implements ShouldQueue
             ->greeting('¡Hola! ' . $this->comentario->ticket->asignado->name)
             ->subject('Solución no aceptada ' . $this->comentario->ticket->nomenclatura)
             ->line($this->comentario->user->name . ' No Acepto la solución que proporcionaste para el ticket ' . $this->comentario->ticket->nomenclatura)
-            ->action('Ver Ticket', url('/tickets/' . $this->comentario->ticket->id));
+            ->action('Ver Ticket', url('/gestionar?ticket_id='  . $this->comentario->ticket->id));
     }
 
     public function toArray($notifiable)

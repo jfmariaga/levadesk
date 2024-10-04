@@ -34,7 +34,7 @@ implements ShouldQueue
             ->line('Cambio de estado para la tarea: ' . $this->tarea->titulo)
             ->line('La tarea pertenece al ticket: ' . $this->ticket->nomenclatura)
             ->line('Estado: ' . $this->tarea->estado)
-            ->action('Ver Tarea', url('/tickets/' . $this->ticket->id));
+            ->action('Ver Tarea', url('/gestionar?ticket_id='  . $this->ticket->id));
     }
 
     public function toArray($notifiable)

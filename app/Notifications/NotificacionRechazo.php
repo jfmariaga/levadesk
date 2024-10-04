@@ -28,7 +28,7 @@ class NotificacionRechazo extends Notification implements ShouldQueue
         return (new MailMessage)
                     ->subject('Flujo de gestión de acceso ticket ' .$this->ticket->nomenclatura)
                     ->line('El aprobador TI '. $this->ticket->aprobacion->aprobadorTi->name .' No aprobó los accesos solicitados por el usuario en el ticket '. $this->ticket->nomenclatura)
-                    ->action('Ver Ticket', url('/tickets/' . $this->ticket->id));
+                    ->action('Ver Ticket', url('/aprobar?ticket_id='  . $this->ticket->id));
     }
 
     public function toArray($notifiable)

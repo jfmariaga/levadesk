@@ -32,7 +32,7 @@ class NuevoComentarioSolucion extends Notification implements ShouldQueue
             ->line($this->comentario->user->name . ' Ha marcado la siguiente respuesta como solución: ')
             ->line(new HtmlString($this->comentario->comentario))
             ->line('Por favor ingresa al sistema de tickets para confirmar o rechazar la solución')
-            ->action('Ver Ticket', url('/tickets/' . $this->comentario->ticket->id));
+            ->action('Ver Ticket', url('/verTicket?ticket_id='  . $this->comentario->ticket->id));
     }
 
     public function toArray($notifiable)

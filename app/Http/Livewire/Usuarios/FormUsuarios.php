@@ -9,7 +9,7 @@ use Spatie\Permission\Models\Role;
 
 class FormUsuarios extends Component
 {
-    public $name, $email, $rol, $sociedad_id, $estado;
+    public $name, $email, $rol, $sociedad_id, $estado, $aprobador_ti;
     public $usuario_old;
     public $sociedades =[];
     public $roles =[];
@@ -38,6 +38,7 @@ class FormUsuarios extends Component
         $this->rol  = $this->usuario_old->roles->pluck('id');
         $this->sociedad_id  = $this->usuario_old->sociedad_id;
         $this->estado  = $this->usuario_old->estado;
+        $this->aprobador_ti  = $this->usuario_old->aprobador_ti;
         // dd($this->rol);
 
         $this->emit('selectSociedad', $this->sociedad_id);
@@ -52,6 +53,7 @@ class FormUsuarios extends Component
              $this->usuario_old->email = $this->email;
              $this->usuario_old->sociedad_id = $this->sociedad_id;
              $this->usuario_old->estado = $this->estado;
+             $this->usuario_old->aprobador_ti = $this->aprobador_ti ? $this->aprobador_ti: 0;
              $this->usuario_old->roles()->sync($this->rol);
              $this->usuario_old->update();
              $this->emit('usuario_actualizado');

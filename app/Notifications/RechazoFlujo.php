@@ -30,7 +30,7 @@ class RechazoFlujo extends Notification implements ShouldQueue
                     ->line('No fue aprobada por ' . $this->ticket->aprobacion->aprobadorFuncional->name)
                     ->line('Motivo: ' . $this->ticket->aprobacion->comentarios_funcional)
                     ->line('El estado del ticket es '. $this->ticket->estado->nombre)
-                    ->action('Ver Ticket', url('/tickets/' . $this->ticket->id));
+                    ->action('Ver Ticket', url('/gestionar?ticket_id=' . $this->ticket->id));
     }
 
     public function toArray($notifiable)

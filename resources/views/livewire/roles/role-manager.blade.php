@@ -162,7 +162,7 @@
 
             function editar(id) {
                 $('#btn_form_roles').click(); // Mostramos el modal para editar roles
-                 @this.editRole(id)
+                 Livewire.emit('editRole',id)
             }
         </script>
     @endpush

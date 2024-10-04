@@ -29,7 +29,7 @@ class NotificacionRechazoCambio extends Notification implements ShouldQueue
                     ->subject('Flujo de aprobación cambios de acceso ticket ' .$this->ticket->nomenclatura)
                     ->line('El aprobador TI '. $this->ticket->cambio->aprobadorTiCambio->name .' No aprobó el requerimiento solicitado por el usuario en el ticket '. $this->ticket->nomenclatura)
                     ->line('Motivo: ' . $this->ticket->cambio->comentarios_funcional)
-                    ->action('Ver Ticket', url('/tickets/' . $this->ticket->id));
+                    ->action('Ver Ticket', url('/cambio?ticket_id='  . $this->ticket->id));
     }
 
     public function toArray($notifiable)

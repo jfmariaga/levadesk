@@ -108,7 +108,7 @@ class Aprobar extends Component
                 'ticket_id' => $this->ticket_id,
                 'user_id' => Auth::id(),
                 'accion' => 'Aprobación funcional',
-                'detalle' => $this->estado_aprobacion === 'aprobado_funcional' ? 'Aprobado  por el líder funcional.' : 'Rechazado por el líder funcional',
+                'detalle' => $this->estado_aprobacion === 'aprobado_funcional' ? 'Aprobado  por el líder funcional ' . Auth::user()->name : 'Rechazado por el líder funcional ' . Auth::user()->name,
             ]);
 
             if ($this->estado_aprobacion === 'aprobado_funcional') {
@@ -117,7 +117,7 @@ class Aprobar extends Component
                     'ticket_id' => $this->ticket_id,
                     'user_id' => Auth::id(),
                     'accion' => 'Aprobación pendiente',
-                    'detalle' => 'Aprobación pendiente por TI',
+                    'detalle' => 'Aprobación pendiente del aprobador TI',
                 ]);
 
                 // Verificar si el aprobador funcional tiene el rol de "Usuario" y actualizar a "Aprobador"
@@ -166,7 +166,7 @@ class Aprobar extends Component
                 'ticket_id' => $this->ticket_id,
                 'user_id' => Auth::id(),
                 'accion' => 'Aprobación TI',
-                'detalle' => $this->estado_aprobacion === 'aprobado_ti' ? 'Aprobación TI realizada.' : 'Rechazo TI: ' . $this->comentariosRechazo,
+                'detalle' => $this->estado_aprobacion === 'aprobado_ti' ? 'Aprobación TI realizada por '.Auth::user()->name :'El aprobador TI '. Auth::user()->name. ' No aprobó, motivo: ' . $this->comentariosRechazo,
             ]);
 
             if ($this->estado_aprobacion === 'aprobado_ti') {

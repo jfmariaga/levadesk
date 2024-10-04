@@ -34,7 +34,7 @@ class NuevaTarea extends Notification implements ShouldQueue
                     ->line('La tarea pertenece al ticket: ' . $this->ticket->nomenclatura)
                     ->line('Mas información en la descripción de la tarea')
                     ->line('Debes completar esta tarea antes de: ' . Carbon::parse($this->tarea->fecha_cumplimiento)->format('d-m-Y H:i'))
-                    ->action('Ver Tarea', url('/tickets/' . $this->ticket->id));
+                    ->action('Ver Tarea', url('/gestionar?ticket_id='  . $this->ticket->id));
     }
 
     public function toArray($notifiable)

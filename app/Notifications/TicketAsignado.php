@@ -34,7 +34,7 @@ class TicketAsignado extends Notification implements ShouldQueue
             ->line('Estado: ' . $this->ticket->estado->nombre)
             ->line('Urgencia: ' . $this->ticket->urgencia->nombre)
             ->line('Titulo: ' . $this->ticket->titulo)
-            ->action('Ver Ticket',url('/home?ticket_id=' . $this->ticket->id));
+            ->action('Ver Ticket',url('/gestionar?ticket_id=' . $this->ticket->id));
     }
 
     public function toArray($notifiable)

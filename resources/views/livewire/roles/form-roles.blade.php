@@ -45,4 +45,16 @@
             </form>
         </div>
     </div>
+    @push('js')
+        <script>
+            Livewire.on('roleUpdated', i => {
+                $('#form_roles').modal('hide');
+                toastRight('success', 'Rol editado con éxito!');
+            })
+            Livewire.on('roleOk', i => {
+                $('#form_roles').modal('hide');
+                toastRight('success', 'Rol agregado con éxito!');
+            })
+        </script>
+    @endpush
 </div>

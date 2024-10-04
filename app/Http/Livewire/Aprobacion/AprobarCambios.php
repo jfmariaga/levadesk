@@ -112,7 +112,7 @@ class AprobarCambios extends Component
                 'ticket_id' => $this->ticket_id,
                 'user_id' => Auth::id(),
                 'accion' => 'Aprobación funcional',
-                'detalle' => $this->estado_aprobacion === 'aprobado_funcional' ? 'Aprobado  por el líder funcional.' : 'Rechazado por el líder funcional',
+                'detalle' => $this->estado_aprobacion === 'aprobado_funcional' ? 'Aprobado  por el líder funcional '.Auth::user()->name : 'Rechazado por el líder funcional '.Auth::user()->name,
             ]);
 
             if ($this->estado_aprobacion === 'aprobado_funcional') {
@@ -169,7 +169,7 @@ class AprobarCambios extends Component
                 'ticket_id' => $this->ticket_id,
                 'user_id' => Auth::id(),
                 'accion' => 'Aprobación TI',
-                'detalle' => $this->estado_aprobacion === 'aprobado_ti' ? 'Aprobación TI realizada.' : 'Rechazo TI: ' . $this->comentariosRechazo,
+                'detalle' => $this->estado_aprobacion === 'aprobado_ti' ? 'Aprobación TI realizada por '.Auth::user()->name : 'El aprobador TI '. Auth::user()->name. ' No aprobó, motivo: ' . $this->comentariosRechazo,
             ]);
 
             if ($this->estado_aprobacion === 'aprobado_ti') {
@@ -274,7 +274,7 @@ class AprobarCambios extends Component
             'ticket_id' => $this->ticket->id,
             'user_id' => Auth::id(),
             'accion' => 'set aprobado',
-            'detalle' => 'Se aprobó el paso a producción',
+            'detalle' => Auth::user()->name. ' Aprobó el paso a producción',
         ]);
 
         $this->ticket->asignado->notify(new AprobarProductivo($this->ticket));
@@ -299,7 +299,7 @@ class AprobarCambios extends Component
             'ticket_id' => $this->ticket->id,
             'user_id' => Auth::id(),
             'accion' => 'set ',
-            'detalle' => 'No se aprobó el paso a producción',
+            'detalle' => Auth::user()->name. ' No aprobó el paso a producción',
         ]);
 
         Historial::create([

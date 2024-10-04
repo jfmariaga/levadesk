@@ -873,9 +873,9 @@
                                                                 <select class="select2" id="aprobadorTi"
                                                                     wire:model="selectedTi">
                                                                     <option value="">Seleccionar...</option>
-                                                                    @foreach ($usuarios as $usuario)
-                                                                        <option value="{{ $usuario->id }}">
-                                                                            {{ $usuario->name }}</option>
+                                                                    @foreach ($aprobadores as $aprobador)
+                                                                        <option value="{{ $aprobador->id }}">
+                                                                            {{ $aprobador->name }}</option>
                                                                     @endforeach
                                                                 </select>
                                                             </div>
@@ -989,9 +989,9 @@
                                                                 <select class="select2" id="aprobadorTi"
                                                                     wire:model="selectedTi">
                                                                     <option value="">Aprobador TI</option>
-                                                                    @foreach ($usuarios as $usuario)
-                                                                        <option value="{{ $usuario->id }}">
-                                                                            {{ $usuario->name }}</option>
+                                                                    @foreach ($aprobadores as $aprobador)
+                                                                        <option value="{{ $aprobador->id }}">
+                                                                            {{ $aprobador->name }}</option>
                                                                     @endforeach
                                                                 </select>
                                                             </div>

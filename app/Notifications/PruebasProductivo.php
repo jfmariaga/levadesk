@@ -34,7 +34,7 @@ class PruebasProductivo extends Notification implements ShouldQueue
             ->line('Comentario:')
             ->line(new HtmlString($this->comentario->comentario))
             ->line('Por favor ingresa al sistema de tickets para obtener mas detalles')
-            ->action('Ver Ticket', url('/tickets/' . $this->comentario->ticket->id));
+            ->action('Ver Ticket', url('/verTicket?ticket_id='  . $this->comentario->ticket->id));
     }
 
     public function toArray($notifiable)

@@ -47,16 +47,18 @@ class FormRoles extends Component
             $role->name = $this->name;
             // Sincronizar usando los nombres de los permisos
             $role->syncPermissions($this->selectedPermissions);
+            $this->emit('roleUpdated');
         } else {
             // Crear un nuevo rol
             $role = Role::create(['name' => $this->name]);
             // Sincronizar permisos
             $role->syncPermissions($this->selectedPermissions);
+            $this->emit('roleOk');
         }
 
         // Resetear el formulario después de guardar
         $this->resetForm();
-        $this->emit('roleUpdated');
+        $this->emit('cargarRoles');
     }
 
     public function resetForm()

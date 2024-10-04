@@ -30,7 +30,7 @@ class NuevoComentarioPrivado extends Notification implements ShouldQueue
             ->subject('Nuevo comentario para el ticket ' . $this->comentario->ticket->nomenclatura)
             ->line($this->comentario->user->name . ' hizo el siguiente comentario:')
             ->line(new HtmlString($this->comentario->comentario))
-            ->action('Ver Ticket', url('/tickets/' . $this->comentario->ticket->id));
+            ->action('Ver Ticket', url('/gestionar?ticket_id='  . $this->comentario->ticket->id));
     }
 
     public function toArray($notifiable)

@@ -31,7 +31,7 @@ class Finalizado extends Notification implements ShouldQueue
             ->line($this->comentario->ticket->usuario->name . ' Aceptó la solución que proporcionaste para el ticket ' . $this->comentario->ticket->nomenclatura)
             ->line('Tu calificación fue de ' . $this->comentario->calificacion . '/5⭐')
             ->line($this->comentario->comentario_calificacion ? 'Comentario: ' . $this->comentario->comentario_calificacion : 'Sin comentarios')
-            ->action('Ver Ticket', url('/tickets/' . $this->comentario->ticket->id));
+            ->action('Ver Ticket', url('/gestionar?ticket_id='  . $this->comentario->ticket->id));
     }
 
     public function toArray($notifiable)
