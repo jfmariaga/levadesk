@@ -6,6 +6,7 @@ use App\Models\Sociedad;
 use App\Models\Subcategoria;
 use App\Models\Grupo;
 use App\Models\Categoria; // Agregar el modelo de Categoria
+use App\Models\User;
 use Livewire\Component;
 use Illuminate\Support\Facades\DB;
 
@@ -21,6 +22,8 @@ class SociedadSubcategoriaGrupo extends Component
     public $grupo_id;
     public $edit_mode = false;  // Para verificar si estamos editando
     public $relacion_id;  // ID de la relación que se va a editar
+    public $supervisores;
+    public $supervisor_id;
 
     // Definir el listener que escuchará el evento para cargar relaciones y editar
     protected $listeners = ['cargarRelaciones', 'editRelacion'];
@@ -31,6 +34,7 @@ class SociedadSubcategoriaGrupo extends Component
         'categoria_id' => 'required', // Validar la categoría
         'subcategoria_id' => 'required',
         'grupo_id' => 'required',
+        'supervisor_id' => 'required|exists:users,id',
     ];
 
     // Mensajes de error personalizados
@@ -39,6 +43,8 @@ class SociedadSubcategoriaGrupo extends Component
         'categoria_id.required' => 'El campo Categoría es obligatorio.',  // Mensaje para categoría
         'subcategoria_id.required' => 'El campo Subcategoría es obligatorio.',
         'grupo_id.required' => 'El campo Grupo es obligatorio.',
+        'supervisor_id.required' => 'El campo Supervisor es obligatorio.',
+        'supervisor_id.exists' => 'El supervisor seleccionado no es válido.',
     ];
 
     public function mount()
@@ -48,6 +54,7 @@ class SociedadSubcategoriaGrupo extends Component
         $this->categorias = Categoria::where('estado', 0)->get();  // Cargar las categorías
         $this->subcategorias = Subcategoria::all();
         $this->grupos = Grupo::all();
+        $this->supervisores = User::role(['Agente', 'Admin'])->get();
     }
 
     public function agregarRelacion()
@@ -75,6 +82,7 @@ class SociedadSubcategoriaGrupo extends Component
                     'categoria_id' => $this->categoria_id,  // Actualizar la categoría
                     'subcategoria_id' => $this->subcategoria_id,
                     'grupo_id' => $this->grupo_id,
+                    'supervisor_id' => $this->supervisor_id
                 ]);
 
             $this->emit('showToast', ['type' => 'success', 'message' => 'Relación actualizada exitosamente!']);
@@ -85,6 +93,7 @@ class SociedadSubcategoriaGrupo extends Component
                 'categoria_id' => $this->categoria_id,  // Agregar la categoría
                 'subcategoria_id' => $this->subcategoria_id,
                 'grupo_id' => $this->grupo_id,
+                'supervisor_id' => $this->supervisor_id,
             ]);
 
             $this->emit('showToast', ['type' => 'success', 'message' => 'Relación agregada exitosamente!']);
@@ -114,24 +123,6 @@ class SociedadSubcategoriaGrupo extends Component
         $this->emit('cargarRelacionesTabla', json_encode($relaciones));
     }
 
-    // public function obtenerRelaciones()
-    // {
-    //     // Obtener las relaciones entre sociedades, categorías, subcategorías y grupos
-    //     return DB::table('sociedad_subcategoria_grupo')
-    //         ->join('sociedades', 'sociedad_subcategoria_grupo.sociedad_id', '=', 'sociedades.id')
-    //         ->join('categorias', 'sociedad_subcategoria_grupo.categoria_id', '=', 'categorias.id')  // Relación con la categoría
-    //         ->join('subcategorias', 'sociedad_subcategoria_grupo.subcategoria_id', '=', 'subcategorias.id')
-    //         ->join('grupos', 'sociedad_subcategoria_grupo.grupo_id', '=', 'grupos.id')
-    //         ->select(
-    //             'sociedad_subcategoria_grupo.id',
-    //             'sociedades.nombre as sociedad',
-    //             'categorias.nombre as categoria',  // Mostrar el nombre de la categoría
-    //             'subcategorias.nombre as subcategoria',
-    //             'grupos.nombre as grupo'
-    //         )
-    //         ->get()->toArray();
-    // }
-
     public function obtenerRelaciones()
     {
         // Obtener las relaciones entre sociedades, categorías, subcategorías y grupos
@@ -141,13 +132,15 @@ class SociedadSubcategoriaGrupo extends Component
             ->join('tipo_solicitudes', 'categorias.solicitud_id', '=', 'tipo_solicitudes.id') // Unir con solicitudes
             ->join('subcategorias', 'sociedad_subcategoria_grupo.subcategoria_id', '=', 'subcategorias.id')
             ->join('grupos', 'sociedad_subcategoria_grupo.grupo_id', '=', 'grupos.id')
+            ->join('users', 'sociedad_subcategoria_grupo.supervisor_id', '=', 'users.id')
             ->select(
                 'sociedad_subcategoria_grupo.id',
                 'sociedades.nombre as sociedad',
                 'categorias.nombre as categoria',
                 'tipo_solicitudes.nombre as solicitud', // Añadir la solicitud asociada
                 'subcategorias.nombre as subcategoria',
-                'grupos.nombre as grupo'
+                'grupos.nombre as grupo',
+                'users.name as supervisor'
             )
             ->get()->toArray();
     }
@@ -181,6 +174,7 @@ class SociedadSubcategoriaGrupo extends Component
         $this->grupo_id = null;
         $this->edit_mode = false;
         $this->relacion_id = null;
+        $this->supervisor_id = null;
     }
 
     public function render()

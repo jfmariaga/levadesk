@@ -39,7 +39,7 @@
         <div class="card-body">
             <form wire:submit.prevent="agregarRelacion">
                 <div class="form-row">
-                    <div class="form-group col-md-3">
+                    <div class="form-group col-md-2">
                         <label for="sociedad_id">Sociedad</label>
                         <select wire:model="sociedad_id" id="sociedad_id" class="form-control">
                             <option value="">Selecciona una sociedad</option>
@@ -78,7 +78,7 @@
                         @enderror
                     </div>
 
-                    <div class="form-group col-md-3">
+                    <div class="form-group col-md-2">
                         <label for="grupo_id">Grupo</label>
                         <select wire:model="grupo_id" id="grupo_id" class="form-control">
                             <option value="">Selecciona un grupo</option>
@@ -90,6 +90,19 @@
                             <span class="text-danger">{{ $message }}</span>
                         @enderror
                     </div>
+                    <div class="form-group col-md-2">
+                        <label for="supervisor_id">Supervisor</label>
+                        <select wire:model="supervisor_id" id="supervisor_id" class="form-control">
+                            <option value="">Selecciona un supervisor</option>
+                            @foreach ($supervisores as $supervisor)
+                                <option value="{{ $supervisor->id }}">{{ $supervisor->name }}</option>
+                            @endforeach
+                        </select>
+                        @error('supervisor_id')
+                            <span class="text-danger">{{ $message }}</span>
+                        @enderror
+                    </div>
+
                 </div>
 
                 <div class="text-right">
@@ -116,6 +129,7 @@
                     <th>Categoría</th>
                     <th>Subcategoría</th>
                     <th>Grupo</th>
+                    <th>Supervisor</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
@@ -189,7 +203,8 @@
                             categoria,
                             solicitud,
                             subcategoria,
-                            grupo
+                            grupo,
+                            supervisor
                         } = element; // Ahora también tienes la solicitud
 
                         // Mostrar categoría junto con la solicitud
@@ -199,6 +214,7 @@
                                 <td>${categoria} - ${solicitud}</td> <!-- Pinta categoria-solicitud -->
                                 <td>${subcategoria}</td>
                                 <td>${grupo}</td>
+                                <td>${supervisor}</td>
                                 <td>
                                     <div class="d-flex">
                                         <button onclick="editarRelacion(${id})" class="btn btn-xs btn-default text-primary mx-1 shadow" title="Editar">

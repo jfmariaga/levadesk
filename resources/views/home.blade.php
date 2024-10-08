@@ -17,15 +17,21 @@
                 @livewire('tarjetas.tarjetas-usuario')
             </div>
         </div>
-        @if (auth()->user()->hasRole('Admin'))
-            <div class="row mt-2">
-                <div class="col-md-7">
+        <div class="row mt-2">
+            @if (auth()->user()->hasRole('Admin'))
+                <div class="col-md-6">
                     @livewire('home.tickets-home')
                 </div>
-            </div>
-        @endif
+            @endif
+            @if (!auth()->user()->hasRole('Admin'))
+                <div class="col-md-6">
+                    @livewire('supervisor-ticket.supervisor-tickets')
+                </div>
+            @endif
+        </div>
     </div>
 @stop
+
 
 {{-- Push extra CSS --}}
 
