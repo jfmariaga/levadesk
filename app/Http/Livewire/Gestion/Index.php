@@ -17,8 +17,8 @@ class Index extends Component
     public $fecha_desde, $fecha_hasta;
     public $item;
 
-    protected $listeners = ['cargarDatos','gestionTicket'];
-    protected $queryString = [ 'fecha_desde', 'fecha_hasta' ];
+    protected $listeners = ['cargarDatos', 'gestionTicket'];
+    protected $queryString = ['fecha_desde', 'fecha_hasta'];
 
 
     public function mount()
@@ -32,9 +32,9 @@ class Index extends Component
         $userId = Auth::id();
         // $query = Ticket::where('asignado_a', $userId);
         $query = Ticket::where('asignado_a', $userId)
-        ->orWhereHas('colaboradores', function($query) use ($userId) {
-            $query->where('user_id', $userId);
-        });
+            ->orWhereHas('colaboradores', function ($query) use ($userId) {
+                $query->where('user_id', $userId);
+            });
 
         if ($this->fecha_desde && $this->fecha_hasta) {
             // Formatear las fechas en el formato 'Y-m-d'
@@ -43,8 +43,7 @@ class Index extends Component
             $query->whereBetween(DB::raw('DATE(created_at)'), [$fecha_desde, $fecha_hasta]);
         }
 
-        $tickets = $query->with('urgencia', 'estado', 'colaboradores')->get();
-
+        $tickets = $query->with('urgencia', 'estado', 'colaboradores', 'categoria', 'subcategoria', 'usuario')->get();
         // Añadir el rol del usuario en cada ticket
         $this->tickets = $tickets->map(function ($ticket) use ($userId) {
             if ($ticket->asignado_a == $userId) {
@@ -71,14 +70,15 @@ class Index extends Component
 
     public function render()
     {
-        if( !$this->fecha_desde && !$this->fecha_hasta ){
+        if (!$this->fecha_desde && !$this->fecha_hasta) {
             $this->iniciarFechas();
         }
         return view('livewire.gestion.index');
     }
 
     // inicia las fechas el desde, según el primer dia del mes actual y el hasta sera el día actual
-    public function iniciarFechas(){
+    public function iniciarFechas()
+    {
         // $hoy = date('Y-m-d');
         $this->fecha_desde = date('Y-m-1');
         $this->fecha_hasta = date('Y-m-d');

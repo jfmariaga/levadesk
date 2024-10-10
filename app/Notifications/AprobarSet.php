@@ -26,7 +26,7 @@ class AprobarSet extends Notification implements ShouldQueue
     public function toMail($notifiable)
     {
         return (new MailMessage)
-            ->subject('Aprobación requerida')
+            ->subject('Aprobación requerida, ticket '. $this->ticket->nomenclatura)
             ->line('El ticket ' . $this->ticket->nomenclatura . ' Requiere de la aprobación del SET de pruebas')
             ->action('Ver Ticket', url('/cambio?ticket_id='  . $this->ticket->id))
             ->line('Por favor, actúa con prontitud para cumplir con los tiempos establecidos.');

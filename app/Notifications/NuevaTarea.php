@@ -29,7 +29,7 @@ class NuevaTarea extends Notification implements ShouldQueue
     public function toMail($notifiable)
     {
         return (new MailMessage)
-                    ->subject('Nueva Tarea Asignada: ' . $this->tarea->titulo)
+                    ->subject('Nueva Tarea Asignada. Ticket: ' . $this->ticket->nomenclatura)
                     ->line('Se te ha asignado una nueva tarea con el título: "' . $this->tarea->titulo . '"')
                     ->line('La tarea pertenece al ticket: ' . $this->ticket->nomenclatura)
                     ->line('Mas información en la descripción de la tarea')

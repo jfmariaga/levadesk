@@ -136,20 +136,39 @@ class FormTickets extends Component
 
     public function updatedCategoriaId($value)
     {
+        // Definir las sociedades permitidas para la subcategoría 'SOPORTE DE DISPOSITIVOS MOVILES FUERZA DE VENTAS'
+        $sociedadesPermitidas = ['ECUADOR', 'REPÚBLICA DOMINICANA', 'LEVAPAN'];
+
+        // Obtener la sociedad seleccionada
+        $sociedad = Sociedad::find($this->sociedad_id);
+
         $this->subcategorias = Subcategoria::where('categoria_id', $value)
             ->where('estado', 0)  // Filtrar por estado
+            ->when($sociedad, function ($query) use ($sociedad, $sociedadesPermitidas) {
+                // Filtrar la subcategoría específica solo si la sociedad está permitida
+                return $query->when($sociedad && !in_array($sociedad->nombre, $sociedadesPermitidas), function ($query) {
+                    return $query->where('nombre', '!=', 'SOPORTE DE DISPOSITIVOS MOVILES FUERZA DE VENTAS');
+                });
+            })
             ->get();
+
+        // Limpiar las aplicaciones cuando se actualiza la categoría
         $this->aplicaciones = [];
     }
+
 
     public function updatedSociedadId($value)
     {
         // Limpiar aplicaciones al cambiar de sociedad
         $this->aplicaciones = [];
 
+        if ($this->categoria_id) {
+            $this->updatedCategoriaId($this->categoria_id);
+        }
+
         // Verificar si la subcategoría seleccionada es SOPORTE DE APLICACIONES
         if ($this->subcategoria_id && Subcategoria::find($this->subcategoria_id)->nombre === 'SOPORTE DE APLICACIONES') {
-            $this->aplicaciones = Aplicaciones::where('sociedad_id', $this->sociedad_id)->get();
+            $this->aplicaciones = Aplicaciones::where('sociedad_id', $this->sociedad_id)->where('estado', 0)->get();
         }
     }
 
@@ -160,7 +179,7 @@ class FormTickets extends Component
         // Verificar si la subcategoría seleccionada es SOPORTE DE APLICACIONES
         $subcategoria = Subcategoria::find($value);
         if ($subcategoria && $subcategoria->nombre === 'SOPORTE DE APLICACIONES') {
-            $this->aplicaciones = Aplicaciones::where('sociedad_id', $this->sociedad_id)->get();
+            $this->aplicaciones = Aplicaciones::where('sociedad_id', $this->sociedad_id)->where('estado', 0)->get();
         } else {
             $this->aplicacion_id = null; // Si no es SOPORTE DE APLICACIONES, ocultar el campo de aplicaciones
         }
@@ -250,7 +269,7 @@ class FormTickets extends Component
             if ($backupAgente) {
                 $usuario = $backupAgente;
             } else {
-            $this->emit('showToast', ['type' => 'warning', 'message' => "El usuario está de vacaciones y no tiene un agente de respaldo asignado."]);
+                $this->emit('showToast', ['type' => 'warning', 'message' => "El usuario está de vacaciones y no tiene un agente de respaldo asignado."]);
                 return;
             }
         }

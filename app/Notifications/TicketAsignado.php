@@ -27,7 +27,7 @@ class TicketAsignado extends Notification implements ShouldQueue
     {
         return (new MailMessage)
             ->greeting('¡Hola! ' . $this->ticket->asignado->name)
-            ->subject('Nuevo Ticket Asignado')
+            ->subject('Ticket '. $this->ticket->nomenclatura.' Asignado')
             ->line('Se le ha asignado un nuevo ticket.')
             ->line('Generado por: ' . $this->ticket->usuario->name)
             ->line('Código del Ticket: ' . $this->ticket->nomenclatura)

@@ -773,14 +773,15 @@ class Show extends Component
         }
 
         // Notificaciones basadas en el tipo de comentario
-        if ($this->commentType == 0) {
-            $this->ticket->usuario->notify(new NuevoComentario($comentario));
-            if ($this->ticket->colaboradors) {
-                foreach ($this->ticket->colaboradors as $colaborador) {
-                    $colaborador->user->notify(new NuevoComentario($comentario));
-                }
-            }
-        } elseif ($this->commentType == 1) {
+        // if ($this->commentType == 0) {
+        //     $this->ticket->usuario->notify(new NuevoComentario($comentario));
+        //     if ($this->ticket->colaboradors) {
+        //         foreach ($this->ticket->colaboradors as $colaborador) {
+        //             $colaborador->user->notify(new NuevoComentario($comentario));
+        //         }
+        //     }
+        // }
+        if($this->commentType == 1) {
             if ($this->ticket->colaboradors) {
                 foreach ($this->ticket->colaboradors as $colaborador) {
                     $colaborador->user->notify(new NuevoComentarioPrivado($comentario));
@@ -807,11 +808,11 @@ class Show extends Component
             ]);
 
             $this->ticket->usuario->notify(new NuevoComentarioSolucion($comentario));
-            if ($this->ticket->colaboradors) {
-                foreach ($this->ticket->colaboradors as $colaborador) {
-                    $colaborador->user->notify(new NuevoComentarioSolucion($comentario));
-                }
-            }
+            // if ($this->ticket->colaboradors) {
+            //     foreach ($this->ticket->colaboradors as $colaborador) {
+            //         $colaborador->user->notify(new NuevoComentarioSolucion($comentario));
+            //     }
+            // }
         } elseif ($this->commentType == 5) {
             $this->ticket->update([
                 'estado_id' => 11
@@ -825,11 +826,11 @@ class Show extends Component
             ]);
 
             $this->ticket->usuario->notify(new PruebasSet($comentario));
-            if ($this->ticket->colaboradors) {
-                foreach ($this->ticket->colaboradors as $colaborador) {
-                    $colaborador->user->notify(new NuevoComentario($comentario));
-                }
-            }
+            // if ($this->ticket->colaboradors) {
+            //     foreach ($this->ticket->colaboradors as $colaborador) {
+            //         $colaborador->user->notify(new NuevoComentario($comentario));
+            //     }
+            // }
         } elseif ($this->commentType == 6) {
             $this->ticket->update([
                 'estado_id' => 12
@@ -859,8 +860,6 @@ class Show extends Component
             $this->ticket->usuario->notify(new PruebasAccesos($comentario));
             $this->ticket->asignado->notify(new PruebasAccesos($comentario));
         }
-
-
 
         // Limpiar el estado después de agregar el comentario
         $this->newComment = '';

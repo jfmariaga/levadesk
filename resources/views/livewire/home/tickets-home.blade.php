@@ -71,6 +71,9 @@
                                     <th>Codigo</th>
                                     <th>Titulo</th>
                                     <th>Prioridad</th>
+                                    <th>Categoría</th>
+                                    <th>Subcategoría</th>
+                                    <th>Esuario</th>
                                     <th>Estado</th>
                                     <th>Agente</th>
                                     <th>Acc</th>
@@ -194,6 +197,9 @@
                             urgencia,
                             estado,
                             asignado,
+                            categoria,
+                            subcategoria,
+                            usuario,
                         } = element;
 
                         // Formatear la fecha
@@ -208,8 +214,10 @@
                                 <td class="pointer">${nomenclatura}</td>
                                 <td class="pointer">${titulo}</td>
                                 <td class="pointer">${urgencia ? urgencia.nombre :''}</td>
+                                <td class="pointer">${categoria.nombre}</td>
+                                <td class="pointer">${subcategoria.nombre}</td>
+                                <td class="pointer">${usuario.name}</td>
                                 <td class="pointer">${estado ? estado.nombre:''}</td>
-
                                 <td class="pointer">${asignado.name}</td>
                                 <td>
                                     <div class="d-flex">

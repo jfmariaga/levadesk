@@ -29,7 +29,7 @@ class Reasignado extends Notification implements ShouldQueue
     {
         return (new MailMessage)
             ->greeting('¡Hola! ' . $this->ticket->asignado->name)
-            ->subject('Ticket reasignado')
+            ->subject('Ticket '. $this->ticket->nomenclatura.' reasignado')
             ->line($this->usuarioOld->name . ' Te reasigno el ticket ' . $this->ticket->nomenclatura)
             ->line('Estado: ' . $this->ticket->estado->nombre)
             ->line('Urgencia: ' . $this->ticket->urgencia->nombre)

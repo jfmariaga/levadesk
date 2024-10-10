@@ -26,7 +26,7 @@ class NuevoColaborador extends Notification implements ShouldQueue
     public function toMail($notifiable)
     {
         return (new MailMessage)
-                    ->subject('Colaborador')
+                    ->subject('Se le ha asignado el rol de colaborador. Ticket '. $this->ticket->nomenclatura)
                     ->line('Se le ha asignado el rol de colaborador. ')
                     ->line('Código del Ticket: ' . $this->ticket->nomenclatura)
                     ->line('Estado: ' . $this->ticket->estado->nombre)

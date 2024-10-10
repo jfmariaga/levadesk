@@ -27,7 +27,7 @@ class Finalizado extends Notification implements ShouldQueue
     {
         return (new MailMessage)
             ->greeting('¡Hola! ' . $this->comentario->ticket->asignado->name)
-            ->subject('Ticket finalizado ' . $this->comentario->ticket->nomenclatura)
+            ->subject('Ticket '. $this->comentario->ticket->nomenclatura.' finalizado ' )
             ->line($this->comentario->ticket->usuario->name . ' Aceptó la solución que proporcionaste para el ticket ' . $this->comentario->ticket->nomenclatura)
             ->line('Tu calificación fue de ' . $this->comentario->calificacion . '/5⭐')
             ->line($this->comentario->comentario_calificacion ? 'Comentario: ' . $this->comentario->comentario_calificacion : 'Sin comentarios')

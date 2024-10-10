@@ -29,7 +29,7 @@ class TicketsHome extends Component
 
     public function cargarDatos()
     {
-        $tickets = Ticket::with('urgencia', 'estado', 'colaboradores', 'asignado');
+        $tickets = Ticket::with('urgencia', 'estado', 'colaboradores', 'asignado','categoria','subcategoria','usuario');
 
         if ($this->fecha_desde && $this->fecha_hasta) {
             $fecha_desde = date('Y-m-d', strtotime($this->fecha_desde));

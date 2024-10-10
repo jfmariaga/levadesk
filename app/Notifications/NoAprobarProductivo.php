@@ -27,7 +27,7 @@ class NoAprobarProductivo extends Notification implements ShouldQueue
     {
         return (new MailMessage)
             ->greeting('¡Hola! ' . $this->ticket->asignado->name)
-            ->subject('No se aprobó el paso a producción' . $this->ticket->nomenclatura)
+            ->subject('No se aprobó el paso a producción. Ticket' . $this->ticket->nomenclatura)
             ->line('No se aprobó el paso a producción')
             ->line('Si requieres mas información comunícate con el aprobar TI ' . $this->ticket->cambio->aprobadorTiCambio->name)
             ->line('El ticket ' . $this->ticket->nomenclatura . ' ahora esta en estado: ' . $this->ticket->estado->nombre)

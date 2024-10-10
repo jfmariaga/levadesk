@@ -160,6 +160,9 @@
                                             <th>Fecha</th>
                                             <th>Codigo</th>
                                             <th>Titulo</th>
+                                            <th>Categoría</th>
+                                            <th>Subcategoría</th>
+                                            <th>Usuario</th>
                                             <th>Prioridad</th>
                                             <th>Estado</th>
                                             <th>Rol</th>
@@ -219,6 +222,8 @@
 
             Livewire.on('cargarGestioTicketTabla', data => {
                 cargarTabla(data);
+                console.log(data);
+
             });
 
             function cargarTabla(data) {
@@ -285,6 +290,9 @@
                             titulo,
                             urgencia,
                             estado,
+                            categoria,
+                            subcategoria,
+                            usuario,
                             rol,
                         } = element;
 
@@ -299,6 +307,9 @@
                         <td class="pointer">${fechaFormateada}</td>
                         <td class="pointer">${nomenclatura}</td>
                         <td class="pointer">${titulo}</td>
+                        <td class="pointer">${categoria ? categoria.nombre: ''}</td>
+                        <td class="pointer">${subcategoria ?subcategoria.nombre: ''}</td>
+                        <td class="pointer">${usuario.name}</td>
                         <td class="pointer">${urgencia ? urgencia.nombre :''}</td>
                         <td class="pointer">${estado ? estado.nombre:''}</td>
 

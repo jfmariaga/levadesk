@@ -27,13 +27,14 @@ class TicketCreado extends Notification implements ShouldQueue
     {
         return (new MailMessage)
             ->greeting('¡Hola! ' . $this->ticket->usuario->name)
-            ->subject('Ticket Creado Exitosamente')
+            ->subject('Ticket '. $this->ticket->nomenclatura.' creado Exitosamente')
             ->line('Su ticket ha sido creado con éxito.')
             ->line('Titulo: ' . $this->ticket->titulo)
             ->line('Código del Ticket: ' . $this->ticket->nomenclatura)
             ->line('Estado: ' . $this->ticket->estado->nombre)
             ->line('Urgencia: ' . $this->ticket->urgencia->nombre)
-            ->line('Agente TI Asignado: ' . $this->ticket->asignado->name);
+            ->line('Agente TI Asignado: ' . $this->ticket->asignado->name)
+            ->line('Te invitamos a revisar en la aplicación LEVADESK el estatus de tu ticket');
     }
 
     public function toArray($notifiable)

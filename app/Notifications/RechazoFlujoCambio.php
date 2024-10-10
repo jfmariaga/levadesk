@@ -26,7 +26,7 @@ class RechazoFlujoCambio extends Notification implements ShouldQueue
     public function toMail($notifiable)
     {
         return (new MailMessage)
-                    ->subject('Solicitud Rechazada ')
+                    ->subject('Solicitud Rechazada. Ticket '. $this->ticket->nomenclatura)
                     ->line('El flujo de aprobación de cambio relacionado con el ticket ' . $this->ticket->nomenclatura . '.')
                     ->line('No fue aprobada por ' . $this->ticket->cambio->aprobadorFuncionalCambio->name)
                     ->line('Motivo: ' . $this->ticket->cambio->comentarios_funcional)

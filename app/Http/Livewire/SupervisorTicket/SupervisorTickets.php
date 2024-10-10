@@ -41,7 +41,7 @@ class SupervisorTickets extends Component
             $subcategoriaIds = $asignacionesSupervisor->pluck('subcategoria_id');
 
             // Buscar los tickets que coincidan con las asignaciones
-            $tickets = Ticket::with('urgencia', 'estado', 'colaboradores', 'asignado')
+            $tickets = Ticket::with('urgencia', 'estado', 'colaboradores', 'asignado','usuario','categoria','subcategoria')
                 ->whereIn('sociedad_id', $sociedadIds)
                 ->whereIn('categoria_id', $categoriaIds)
                 ->whereIn('subcategoria_id', $subcategoriaIds)

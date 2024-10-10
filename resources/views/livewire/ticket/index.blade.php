@@ -29,8 +29,9 @@
                             <th>Ticket</th>
                             <th>Título</th>
                             <th>Categoría</th>
+                            <th>Subcategoría</th>
                             <th>Estado</th>
-                            <th>Asignado a</th>
+                            <th>Agente TI</th>
                             <th>Acc</th>
                         </tr>
                     </thead>
@@ -136,6 +137,7 @@
                             <td class="pointer">${nomenclatura}</td>
                             <td class="pointer">${titulo}</td>
                             <td class="pointer">${categoria ? categoria.nombre : ''}</td>
+                            <td class="pointer">${subcategoria ? subcategoria.nombre : ''}</td>
                             <td class="pointer">${estado ? estado.nombre : ''}</td>
                             <td class="pointer">${asignado ? asignado.name : ''}</td>
                             <td>

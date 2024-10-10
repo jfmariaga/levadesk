@@ -27,7 +27,7 @@ class FinFlujo extends Notification implements ShouldQueue
     {
         return (new MailMessage)
             ->greeting('¡Hola! ' . $this->ticket->asignado->name)
-            ->subject('Flujo de gestión de acceso finalizado')
+            ->subject('Flujo de gestión de acceso finalizado, ticket '. $this->ticket->nomenclatura)
             ->line('El flujo de gestión de acceso relacionado con el Ticket: ' . $this->ticket->nomenclatura . ' Ha finalizado')
             ->line('Resultado: ' . $this->ticket->aprobacion->estado)
             ->line('Estado del ticket: '. $this->ticket->estado->nombre)

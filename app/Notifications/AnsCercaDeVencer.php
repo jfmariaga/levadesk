@@ -27,7 +27,7 @@ class AnsCercaDeVencer extends Notification implements ShouldQueue
     {
         return (new MailMessage)
             ->greeting('¡Hola!' . $this->ticket->asignado->name)
-            ->subject('Aviso de ANS a punto de vencer')
+            ->subject('Aviso de ANS a punto de vencer. Ticket '. $this->ticket->nomenclatura)
             ->line('El ANS del ticket "' . $this->ticket->nomenclatura . '" está a punto de vencer.')
             ->action('Ver Ticket', url('/gestionar?ticket_id='  . $this->ticket->id))
             ->line('Por favor, actúa con prontitud para cumplir con los tiempos establecidos.');
