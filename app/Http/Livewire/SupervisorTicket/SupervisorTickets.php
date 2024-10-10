@@ -24,23 +24,34 @@ class SupervisorTickets extends Component
     {
         $user = Auth::user();
 
-        $subcategoriasSupervisor = DB::table('sociedad_subcategoria_grupo')
+        // Obtener las asignaciones del supervisor
+        $asignacionesSupervisor = DB::table('sociedad_subcategoria_grupo')
             ->where('supervisor_id', $user->id)
-            ->pluck('subcategoria_id');
+            ->select('sociedad_id', 'categoria_id', 'subcategoria_id')
+            ->get();
+            // dd($asignacionesSupervisor);
 
-        // Si el usuario no supervisa ninguna subcategoría, no verá tickets
-        if ($subcategoriasSupervisor->isEmpty()) {
+        // Si el usuario no tiene asignaciones como supervisor, retorna una colección vacía
+        if ($asignacionesSupervisor->isEmpty()) {
             $tickets = collect(); // Colección vacía
         } else {
-            // Consultar los tickets que tienen esas subcategorías
-            $tickets = Ticket::with('urgencia', 'estado', 'colaboradores', 'asignado')
-                ->whereIn('subcategoria_id', $subcategoriasSupervisor);
+            // Extraer los IDs de las sociedades, categorías y subcategorías
+            $sociedadIds = $asignacionesSupervisor->pluck('sociedad_id');
+            $categoriaIds = $asignacionesSupervisor->pluck('categoria_id');
+            $subcategoriaIds = $asignacionesSupervisor->pluck('subcategoria_id');
 
-            $tickets = $tickets->get();
+            // Buscar los tickets que coincidan con las asignaciones
+            $tickets = Ticket::with('urgencia', 'estado', 'colaboradores', 'asignado')
+                ->whereIn('sociedad_id', $sociedadIds)
+                ->whereIn('categoria_id', $categoriaIds)
+                ->whereIn('subcategoria_id', $subcategoriaIds)
+                ->get();
         }
 
+        // Emitir el evento para cargar la tabla de supervisor con los tickets filtrados
         $this->emit('cargarSupervisorTabla', json_encode($tickets));
     }
+
 
     public function iniciarFechas()
     {
