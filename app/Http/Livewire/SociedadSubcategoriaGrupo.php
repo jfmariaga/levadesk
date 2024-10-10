@@ -50,9 +50,9 @@ class SociedadSubcategoriaGrupo extends Component
     public function mount()
     {
         // Cargar sociedades, subcategorías, categorías y grupos al iniciar el componente
-        $this->sociedades = Sociedad::all();
+        $this->sociedades = Sociedad::where('estado', 0)->get();
         $this->categorias = Categoria::where('estado', 0)->get();  // Cargar las categorías
-        $this->subcategorias = Subcategoria::all();
+        $this->subcategorias = Subcategoria::where('estado', 0)->get();
         $this->grupos = Grupo::all();
         $this->supervisores = User::role(['Agente', 'Admin'])->get();
     }

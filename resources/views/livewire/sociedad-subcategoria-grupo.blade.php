@@ -70,7 +70,7 @@
                         <select wire:model="subcategoria_id" id="subcategoria_id" class="form-control">
                             <option value="">Selecciona una subcategoría</option>
                             @foreach ($subcategorias as $subcategoria)
-                                <option value="{{ $subcategoria->id }}">{{ $subcategoria->nombre }}</option>
+                                <option value="{{ $subcategoria->id }}">{{ $subcategoria->nombre }} - {{$subcategoria->categoria->nombre}}</option>
                             @endforeach
                         </select>
                         @error('subcategoria_id')
@@ -211,8 +211,8 @@
                         body.append(`
                             <tr id="tr_${id}">
                                 <td>${sociedad}</td>
-                                <td>${categoria} - ${solicitud}</td> <!-- Pinta categoria-solicitud -->
-                                <td>${subcategoria}</td>
+                                <td>${solicitud} - ${categoria}</td> <!-- Pinta categoria-solicitud -->
+                                <td>${subcategoria } - ${categoria}</td>
                                 <td>${grupo}</td>
                                 <td>${supervisor}</td>
                                 <td>
