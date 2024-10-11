@@ -51,6 +51,7 @@ Route::group(['middleware' => ['auth', 'verified']], function () {
         Route::view('sociedades', 'admin.sociedad.aplicaciones')->name('sociedades');
         Route::view('relacion', 'admin.relacion.index')->name('relacion');
         Route::view('roles', 'admin.roles.index')->name('roles');
+        Route::view('dashboard', 'admin.dashboard.dashboard')->name('dashboard');
     });
 
     // Rutas accesibles para Admin y Agente (permiso gestion)

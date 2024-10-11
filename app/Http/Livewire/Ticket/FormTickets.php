@@ -248,7 +248,6 @@ class FormTickets extends Component
         } else {
             // Obtener el grupo relacionado con la subcategoría, categoría y sociedad seleccionadas
             $grupo = $subcategoria->gruposPorSociedad($this->sociedad_id, $this->categoria_id)->first();
-            dd($grupo);
             if (!$grupo) {
                 $this->emit('showToast', ['type' => 'warning', 'message' => "No hay grupo asignado para esta combinación de sociedad, categoría y subcategoría."]);
                 return;

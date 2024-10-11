@@ -18,11 +18,6 @@
             </div>
         </div>
         <div class="row mt-2">
-            @if (auth()->user()->hasRole('Admin'))
-                <div class="col-md-8">
-                    @livewire('home.tickets-home')
-                </div>
-            @endif
             @if (!auth()->user()->hasRole('Admin'))
                 <div class="col-md-8">
                     @livewire('supervisor-ticket.supervisor-tickets')

@@ -330,6 +330,12 @@ return [
             'header' => 'ADMINISTRADOR',
             'can' => 'sociedad',
         ],
+        [
+            'text' => 'Dashboard',
+            'route' => 'dashboard',
+            'icon' => 'fas fa-chart-pie',
+            'can' => 'sociedad',
+        ],
 
         [
             'text' => 'Sociedades',
