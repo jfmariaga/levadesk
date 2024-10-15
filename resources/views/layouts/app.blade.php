@@ -20,7 +20,7 @@
     <script type="text/javascript" src="/assets/jquery.min.js?v={{ env('VERSION_STYLE') }}"></script>
     <script type="text/javascript" src="/assets/toastr/toastr.js?v={{ env('VERSION_STYLE') }}"></script>
     <link rel="manifest" href="{{ asset('favicons/manifest.json') }}">
-
+    <script src="{{ asset('js/charts-plugin-datalabels@2.js') }}"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pickadate.js/3.6.4/compressed/themes/default.css">
     <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/pickadate.js/3.6.4/compressed/themes/default.date.css">
@@ -418,6 +418,9 @@
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
 
+
+
+    {{-- <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script> --}}
 @endpush
 
 {{-- Add common CSS customizations --}}

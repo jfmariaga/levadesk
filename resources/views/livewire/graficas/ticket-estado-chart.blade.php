@@ -34,7 +34,6 @@
         </div>
     </div>
 
-    @section('scripts')
         <script>
             Alpine.data('dataalpine', () => ({
                 init() {
@@ -106,5 +105,4 @@
                 }
             }));
         </script>
-    @endsection
 </div>
