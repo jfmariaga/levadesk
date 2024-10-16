@@ -139,31 +139,24 @@ class TicketSociedadChart extends Component
 
     public function getChartDataRespuestaInicialPromedio()
     {
+        // Construir la subconsulta y añadir los filtros de fechas y sociedad dentro de ella
         $query = DB::table(DB::raw('(
         SELECT tickets.id AS ticket_id,
                MIN(TIMESTAMPDIFF(MINUTE, tickets.created_at, comentarios.created_at)) AS respuesta_inicial_minutos
         FROM tickets
         JOIN comentarios ON comentarios.ticket_id = tickets.id
-        WHERE comentarios.user_id = tickets.asignado_a
+        WHERE comentarios.user_id = tickets.asignado_a'
+            . ($this->sociedadSeleccionada ? ' AND tickets.sociedad_id = ' . $this->sociedadSeleccionada : '')
+            . ($this->startDate && $this->endDate ? " AND tickets.created_at BETWEEN '" . $this->startDate . "' AND '" . $this->endDate . "'" : '') . '
         GROUP BY tickets.id
     ) as subconsulta'));
 
-        // Si hay una sociedad seleccionada, añadimos el filtro
-        if ($this->sociedadSeleccionada) {
-            $query->join('tickets as t', 't.id', '=', 'subconsulta.ticket_id')
-                ->where('t.sociedad_id', $this->sociedadSeleccionada);
-        }
-
-        // Si hay un rango de fechas seleccionado, añadimos el filtro
-        if ($this->startDate && $this->endDate) {
-            $query->whereBetween('t.created_at', [$this->startDate, $this->endDate]);
-        }
-
-        // Ajustar para cumplir con ONLY_FULL_GROUP_BY
+        // Calcular el promedio de respuesta inicial basado en la subconsulta
         $promedioRespuestaInicial = $query->avg('respuesta_inicial_minutos');
 
         return round($promedioRespuestaInicial, 2);
     }
+
 
 
     public function getChartDataTiempoResolucionPromedio()
