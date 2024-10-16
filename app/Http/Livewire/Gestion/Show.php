@@ -15,6 +15,7 @@ use App\Models\Historial;
 use App\Models\Impacto;
 use App\Models\Recordatorio;
 use App\Models\Tarea;
+use App\Models\TicketHistorial;
 use App\Models\TipoSolicitud;
 use App\Models\User;
 use App\Notifications\AnsCercaDeVencer;
@@ -910,6 +911,12 @@ class Show extends Component
             'user_id' => Auth::id(),
             'accion' => 'Escalado',
             'detalle' =>  Auth::user()->name . ' Cambió el estado del ticket a: Escalado a consultoría',
+        ]);
+
+        TicketHistorial::create([
+            'ticket_id' => $this->ticket->id,
+            'estado_id' => 9,
+            'fecha_cambio' => now(),
         ]);
 
         $this->ticket->usuario->notify(new CambioEstado($this->ticket));

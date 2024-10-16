@@ -2,7 +2,7 @@
 
 @section('subtitle', 'Categorias')
 @section('content_header_title', 'Inicio')
-@section('content_header_subtitle', 'Categorias')
+@section('content_header_subtitle', 'Dashboard')
 
 @section('content_body')
     <div class="fluid">

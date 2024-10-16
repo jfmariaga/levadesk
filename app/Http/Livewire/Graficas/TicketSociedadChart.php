@@ -17,6 +17,11 @@ class TicketSociedadChart extends Component
     public $chartDataEstado;
     public $chartDataCategoria;
     public $chartDataVolumenTickets;
+    public $chartDataSatisfaccionUsuario;
+    public $respuestaInicialPromedio;
+    public $tiempoResolucionPromedio;
+    public $tasaEscalamiento;
+    public $tasaReapertura;
 
     public function mount()
     {
@@ -47,13 +52,17 @@ class TicketSociedadChart extends Component
         $this->chartDataEstado = $this->getChartDataEstado();
         $this->chartDataCategoria = $this->getChartDataCategoria();
         $this->chartDataVolumenTickets = $this->getChartDataVolumenTickets();
+        $this->chartDataSatisfaccionUsuario = $this->getChartDataSatisfaccionUsuario();
+        $this->respuestaInicialPromedio = $this->getChartDataRespuestaInicialPromedio();
+        $this->tiempoResolucionPromedio = $this->getChartDataTiempoResolucionPromedio();
+        $this->tasaEscalamiento = $this->getTasaEscalamiento();
+        $this->tasaReapertura = $this->getTasaReapertura();
 
         // Disparar eventos para actualizar cada gráfico
         $this->dispatchBrowserEvent('chartDataUpdated', [
             'chartData' => $this->chartDataSociedadEstado,
             'chartElementId' => 'ticketSociedadChart',
             'chartType' => 'bar',
-            'totalTickets' => $this->totalTickets, // Pasar el total de tickets al evento
         ]);
         $this->dispatchBrowserEvent('chartDataUpdated', [
             'chartData' => $this->chartDataTipoSolicitud,
@@ -76,10 +85,40 @@ class TicketSociedadChart extends Component
             'chartType' => 'line',
         ]);
 
-        // Evento específico para el gráfico de totalTickets
+        // Promedio de satisfacción del usuario
         $this->dispatchBrowserEvent('chartDataUpdated', [
+            'promedioSatisfaccion' => $this->chartDataSatisfaccionUsuario,
+            'chartElementId' => 'satisfaccionUsuarioChart',
+        ]);
+
+        // Total Tickets
+        $this->dispatchBrowserEvent('chartDataUpdated', [
+            'totalTickets' => $this->totalTickets,
             'chartElementId' => 'totalTicketsChart',
-            'totalTickets' => $this->totalTickets, // Pasar el total de tickets
+        ]);
+
+        // Promedio de respuesta inicial
+        $this->dispatchBrowserEvent('chartDataUpdated', [
+            'respuestaInicialPromedio' => $this->respuestaInicialPromedio,
+            'chartElementId' => 'respuestaInicialPromedioChart',
+        ]);
+
+        // Promedio de resolución de tickets
+        $this->dispatchBrowserEvent('chartDataUpdated', [
+            'tiempoResolucionPromedio' => $this->tiempoResolucionPromedio,
+            'chartElementId' => 'tiempoResolucionPromedioChart',
+        ]);
+
+        // Tasa de Escalamiento
+        $this->dispatchBrowserEvent('chartDataUpdated', [
+            'tasaEscalamiento' => $this->tasaEscalamiento,
+            'chartElementId' => 'tasaEscalamientoChart',
+        ]);
+
+        // Tasa de Reapertura
+        $this->dispatchBrowserEvent('chartDataUpdated', [
+            'tasaReapertura' => $this->tasaReapertura,
+            'chartElementId' => 'tasaReaperturaChart',
         ]);
     }
 
@@ -96,6 +135,97 @@ class TicketSociedadChart extends Component
         }
 
         return $query->count();
+    }
+
+    public function getChartDataRespuestaInicialPromedio()
+    {
+        $query = DB::table(DB::raw('(
+        SELECT tickets.id AS ticket_id, TIMESTAMPDIFF(MINUTE, tickets.created_at, MIN(comentarios.created_at)) AS respuesta_inicial_minutos
+        FROM tickets
+        JOIN comentarios ON comentarios.ticket_id = tickets.id
+        WHERE comentarios.user_id = tickets.asignado_a
+        GROUP BY tickets.id
+        ) as subconsulta'));
+
+        if ($this->sociedadSeleccionada) {
+            $query->join('tickets as t', 't.id', '=', 'subconsulta.ticket_id')
+                ->where('t.sociedad_id', $this->sociedadSeleccionada);
+        }
+
+        if ($this->startDate && $this->endDate) {
+            $query->join('tickets as t', 't.id', '=', 'subconsulta.ticket_id')
+                ->whereBetween('t.created_at', [$this->startDate, $this->endDate]);
+        }
+
+        $promedioRespuestaInicial = $query->avg('respuesta_inicial_minutos');
+        return round($promedioRespuestaInicial, 2);
+    }
+
+    public function getChartDataTiempoResolucionPromedio()
+    {
+        $query = DB::table('tickets')
+            ->whereIn('estado_id', ['4', '5']) // Estados finalizado o rechazado
+            ->select(DB::raw('AVG(TIMESTAMPDIFF(MINUTE, created_at, updated_at)) as tiempo_resolucion_promedio'));
+
+        if ($this->sociedadSeleccionada) {
+            $query->where('sociedad_id', $this->sociedadSeleccionada);
+        }
+
+        if ($this->startDate && $this->endDate) {
+            $query->whereBetween('created_at', [$this->startDate, $this->endDate]);
+        }
+
+        $promedioResolucion = $query->value('tiempo_resolucion_promedio');
+        return round($promedioResolucion, 2);
+    }
+
+    public function getTasaEscalamiento()
+    {
+        $queryTotalTickets = DB::table('tickets');
+        $queryEscalados = DB::table('ticket_historial')
+            ->join('tickets', 'ticket_historial.ticket_id', '=', 'tickets.id')
+            ->where('ticket_historial.estado_id', 9); // Estado escalado
+
+        if ($this->sociedadSeleccionada) {
+            $queryTotalTickets->where('tickets.sociedad_id', $this->sociedadSeleccionada);
+            $queryEscalados->where('tickets.sociedad_id', $this->sociedadSeleccionada);
+        }
+
+        if ($this->startDate && $this->endDate) {
+            $queryTotalTickets->whereBetween('tickets.created_at', [$this->startDate, $this->endDate]);
+            $queryEscalados->whereBetween('ticket_historial.fecha_cambio', [$this->startDate, $this->endDate]);
+        }
+
+        $totalTickets = $queryTotalTickets->count();
+        $totalEscalados = $queryEscalados->count();
+
+        return $totalTickets == 0 ? 0 : round(($totalEscalados / $totalTickets) * 100, 2);
+    }
+
+    public function getTasaReapertura()
+    {
+        $queryCerrados = DB::table('ticket_historial')
+            ->join('tickets', 'ticket_historial.ticket_id', '=', 'tickets.id')
+            ->whereIn('ticket_historial.estado_id', [4, 5]); // Estados cerrados o resueltos
+
+        $queryReabiertos = DB::table('ticket_historial')
+            ->join('tickets', 'ticket_historial.ticket_id', '=', 'tickets.id')
+            ->where('ticket_historial.estado_id', 7); // Estado reabierto
+
+        if ($this->sociedadSeleccionada) {
+            $queryCerrados->where('tickets.sociedad_id', $this->sociedadSeleccionada);
+            $queryReabiertos->where('tickets.sociedad_id', $this->sociedadSeleccionada);
+        }
+
+        if ($this->startDate && $this->endDate) {
+            $queryCerrados->whereBetween('ticket_historial.fecha_cambio', [$this->startDate, $this->endDate]);
+            $queryReabiertos->whereBetween('ticket_historial.fecha_cambio', [$this->startDate, $this->endDate]);
+        }
+
+        $totalCerrados = $queryCerrados->count();
+        $totalReabiertos = $queryReabiertos->count();
+
+        return $totalCerrados == 0 ? 0 : round(($totalReabiertos / $totalCerrados) * 100, 2);
     }
 
     public function getChartDataVolumenTickets()
@@ -126,13 +256,11 @@ class TicketSociedadChart extends Component
 
     public function getChartDataSociedadEstado()
     {
-        // Ajustar la consulta para que solo agrupe por sociedad
         $query = DB::table('tickets')
             ->join('sociedades', 'tickets.sociedad_id', '=', 'sociedades.id')
             ->select('sociedades.nombre as sociedad', DB::raw('COUNT(tickets.id) as total'))
             ->groupBy('sociedades.nombre');
 
-        // Filtros opcionales
         if ($this->sociedadSeleccionada) {
             $query->where('sociedades.id', $this->sociedadSeleccionada);
         }
@@ -141,13 +269,8 @@ class TicketSociedadChart extends Component
             $query->whereBetween('tickets.created_at', [$this->startDate, $this->endDate]);
         }
 
-        // Obtener los resultados
         $result = $query->get();
-
-        // Etiquetas de las sociedades
         $labels = $result->pluck('sociedad')->toArray();
-
-        // Datos correspondientes a los totales de tickets por sociedad
         $data = [
             [
                 'name' => 'Tickets',
@@ -157,7 +280,6 @@ class TicketSociedadChart extends Component
 
         return ['labels' => $labels, 'datasets' => $data];
     }
-
 
     public function getChartDataTipoSolicitud()
     {
@@ -223,6 +345,25 @@ class TicketSociedadChart extends Component
         $data = $result->pluck('total')->toArray();
 
         return ['labels' => $labels, 'datasets' => [['data' => $data]]];
+    }
+
+    public function getChartDataSatisfaccionUsuario()
+    {
+        $query = DB::table('comentarios')
+            ->join('tickets', 'comentarios.ticket_id', '=', 'tickets.id')
+            ->join('sociedades', 'tickets.sociedad_id', '=', 'sociedades.id')
+            ->whereNotNull('comentarios.calificacion');
+
+        if ($this->sociedadSeleccionada) {
+            $query->where('tickets.sociedad_id', $this->sociedadSeleccionada);
+        }
+
+        if ($this->startDate && $this->endDate) {
+            $query->whereBetween('tickets.created_at', [$this->startDate, $this->endDate]);
+        }
+
+        $promedioSatisfaccion = $query->avg('comentarios.calificacion');
+        return round($promedioSatisfaccion, 2);
     }
 
     public function render()

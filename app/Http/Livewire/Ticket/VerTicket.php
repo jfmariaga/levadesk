@@ -5,6 +5,7 @@ namespace App\Http\Livewire\Ticket;
 use App\Models\Comentario;
 use App\Models\Historial;
 use App\Models\Ticket;
+use App\Models\TicketHistorial;
 use App\Models\User;
 use App\Notifications\Finalizado;
 use App\Notifications\NoSolucion;
@@ -131,6 +132,12 @@ class VerTicket extends Component
             'user_id' => auth()->id(),
             'accion' => 'No aceptación',
             'detalle' => 'El usuario no aceptó la solución.',
+        ]);
+
+        TicketHistorial::create([
+            'ticket_id' => $this->ticket->id,
+            'estado_id' => 7,
+            'fecha_cambio' => now(),
         ]);
 
         $this->ticket->asignado->notify(new NoSolucion($comentario));
