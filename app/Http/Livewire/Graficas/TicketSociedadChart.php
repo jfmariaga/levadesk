@@ -138,28 +138,34 @@ class TicketSociedadChart extends Component
     }
 
     public function getChartDataRespuestaInicialPromedio()
-    {
-        $query = DB::table(DB::raw('(
-        SELECT tickets.id AS ticket_id, TIMESTAMPDIFF(MINUTE, tickets.created_at, MIN(comentarios.created_at)) AS respuesta_inicial_minutos
+{
+    $query = DB::table(DB::raw('(
+        SELECT tickets.id AS ticket_id,
+               TIMESTAMPDIFF(MINUTE, tickets.created_at, MIN(comentarios.created_at)) AS respuesta_inicial_minutos
         FROM tickets
         JOIN comentarios ON comentarios.ticket_id = tickets.id
         WHERE comentarios.user_id = tickets.asignado_a
         GROUP BY tickets.id
-        ) as subconsulta'));
+    ) as subconsulta'));
 
-        if ($this->sociedadSeleccionada) {
-            $query->join('tickets as t', 't.id', '=', 'subconsulta.ticket_id')
-                ->where('t.sociedad_id', $this->sociedadSeleccionada);
-        }
-
-        if ($this->startDate && $this->endDate) {
-            $query->join('tickets as t', 't.id', '=', 'subconsulta.ticket_id')
-                ->whereBetween('t.created_at', [$this->startDate, $this->endDate]);
-        }
-
-        $promedioRespuestaInicial = $query->avg('respuesta_inicial_minutos');
-        return round($promedioRespuestaInicial, 2);
+    // Si hay una sociedad seleccionada, añadimos el filtro
+    if ($this->sociedadSeleccionada) {
+        $query->join('tickets as t', 't.id', '=', 'subconsulta.ticket_id')
+              ->where('t.sociedad_id', $this->sociedadSeleccionada);
     }
+
+    // Si hay un rango de fechas seleccionado, añadimos el filtro
+    if ($this->startDate && $this->endDate) {
+        $query->join('tickets as t', 't.id', '=', 'subconsulta.ticket_id')
+              ->whereBetween('t.created_at', [$this->startDate, $this->endDate]);
+    }
+
+    // Ajustar para cumplir con ONLY_FULL_GROUP_BY
+    $promedioRespuestaInicial = $query->avg('respuesta_inicial_minutos');
+
+    return round($promedioRespuestaInicial, 2);
+}
+
 
     public function getChartDataTiempoResolucionPromedio()
     {
