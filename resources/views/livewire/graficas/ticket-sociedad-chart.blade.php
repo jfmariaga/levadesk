@@ -18,49 +18,69 @@
 
         .tarjeta {
             color: #fff;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            background: linear-gradient(145deg, #4e73df, #224abe);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
             padding: 20px;
-            border-radius: 10px;
+            /* Se redujo el padding para hacerlas más pequeñas */
+            border-radius: 15px;
             width: 23%;
-            /* Para que se acomoden 4 tarjetas en la fila */
             text-align: center;
             font-weight: bold;
-            font-size: 1.5rem;
+            font-size: 1.2rem;
+            /* Se redujo el tamaño de la fuente */
             position: relative;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
         }
 
-        /* Colores basados en el gráfico Donut */
+        .tarjeta:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+        }
+
+        .icono {
+            font-size: 2rem;
+            /* Se redujo el tamaño del icono */
+            margin-bottom: 10px;
+        }
+
+        .tarjeta i {
+            display: inline-block;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* Diferentes colores para cada tarjeta */
         .tarjeta-1 {
-            background: #4e73df;
+            background: linear-gradient(145deg, #4e73df, #224abe);
             /* Azul */
         }
 
         .tarjeta-2 {
-            background: #1cc88a;
+            background: linear-gradient(145deg, #1cc88a, #138f64);
             /* Verde */
         }
 
         .tarjeta-3 {
-            background: #f6c23e;
+            background: linear-gradient(145deg, #f6c23e, #e0a30b);
             /* Amarillo */
         }
 
         .tarjeta-4 {
-            background: #4e73df;
-            /* Se repite el Azul */
+            background: linear-gradient(145deg, #f34646, #c93030);
+            /* Rojo */
         }
 
-        /* Ajuste del texto dentro de las tarjetas */
         .tarjeta h5 {
             font-size: 1.2rem;
             font-weight: normal;
-            margin-bottom: 5px;
+            margin-bottom: 10px;
         }
 
         .tarjeta p {
             font-size: 1.5rem;
             margin: 0;
         }
+
 
         /* Estilos para cada celda de la grilla */
         #item-0 {
@@ -137,59 +157,119 @@
     </style>
 
     <div class="row mb-2">
-        <div class="col-md-3">
-            <label for="sociedadSelect">Selecciona una Sociedad:</label>
-            <select wire:model="sociedadSeleccionada" id="sociedadSelect" class="form-control shadow-sm">
-                <option value="">Todas las Sociedades</option>
-                @foreach ($sociedadesDisponibles as $id => $nombre)
-                    <option value="{{ $id }}">{{ $nombre }}</option>
-                @endforeach
-            </select>
+        <div class="row mb-2">
+            <div class="col-md-3">
+                <label for="sociedadSelect">Selecciona una Sociedad:</label>
+                <select wire:model="sociedadSeleccionada" id="sociedadSelect" class="form-control shadow-sm">
+                    <option value="">Todas las Sociedades</option>
+                    @foreach ($sociedadesDisponibles as $id => $nombre)
+                        <option value="{{ $id }}">{{ $nombre }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <label for="agenteSelect">Selecciona un Agente TI:</label>
+                <select wire:model="asignadoASeleccionado" id="agenteSelect" class="form-control shadow-sm">
+                    <option value="">Todos los Agentes</option>
+                    @foreach ($agentesDisponibles as $id => $nombre)
+                        <option value="{{ $id }}">{{ $nombre }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            {{-- <div class="col-md-3">
+                <label for="categoriaSelect">Categoría:</label>
+                <select wire:model="categoriaSeleccionada" id="categoriaSelect" class="form-control shadow-sm">
+                    <option value="">Todas las Categorías</option>
+                    @foreach ($categoriasDisponibles as $id => $nombre)
+                        <option value="{{ $id }}">{{ $nombre }}</option>
+                    @endforeach
+                </select>
+            </div> --}}
+
+            <div class="col-md-3">
+                <label for="startDate">Fecha de Inicio:</label>
+                <input type="date" wire:model="startDate" id="startDate" class="form-control shadow-sm">
+            </div>
+
+            <div class="col-md-3">
+                <label for="endDate">Fecha de Fin:</label>
+                <input type="date" wire:model="endDate" id="endDate" class="form-control shadow-sm">
+            </div>
+
+            {{-- <div class="col-md-3">
+                <label for="tipoSolicitudSelect">Tipo de Solicitud:</label>
+                <select wire:model="tipoSolicitudSeleccionado" id="tipoSolicitudSelect" class="form-control shadow-sm">
+                    <option value="">Todos los Tipos</option>
+                    @foreach ($tiposSolicitudDisponibles as $id => $nombre)
+                        <option value="{{ $id }}">{{ $nombre }}</option>
+                    @endforeach
+                </select>
+            </div> --}}
+
+
+
+            {{-- <div class="col-md-3">
+                <label for="prioridadSelect">Prioridad:</label>
+                <select wire:model="prioridadSeleccionada" id="prioridadSelect" class="form-control shadow-sm">
+                    <option value="">Todas las Prioridades</option>
+                    @foreach ($prioridadesDisponibles as $id => $nombre)
+                        <option value="{{ $id }}">{{ $nombre }}</option>
+                    @endforeach
+                </select>
+            </div> --}}
         </div>
-        <div class="col-md-2">
-            <label for="startDate">Fecha de Inicio:</label>
-            <input type="date" wire:model="startDate" id="startDate" class="form-control shadow-sm">
-        </div>
-        <div class="col-md-2">
-            <label for="endDate">Fecha de Fin:</label>
-            <input type="date" wire:model="endDate" id="endDate" class="form-control shadow-sm">
-        </div>
+
     </div>
 
-    <!-- Tarjetas -->
     <div class="tarjetas">
         <div class="tarjeta tarjeta-1">
-            <h5>Tiempo de Resolución Promedio</h5>
-            <p>{{ $tiempoResolucionPromedio }} minutos</p>
-        </div>
-        <div class="tarjeta tarjeta-2">
+            <div class="icono">
+                <i class="fas fa-clock"></i>
+            </div>
             <h5>Tiempo de Respuesta Inicial Promedio</h5>
             <p>{{ $respuestaInicialPromedio }} minutos</p>
         </div>
+        <div class="tarjeta tarjeta-2">
+            <div class="icono">
+                <i class="fas fa-stopwatch"></i>
+            </div>
+            <h5>Tiempo de Resolución Promedio</h5>
+            <p>{{ $tiempoResolucionPromedio }} minutos</p>
+        </div>
         <div class="tarjeta tarjeta-3">
-            <h5>Espacio disponible</h5>
-            {{-- <p>{{ $tasaEscalamiento }}%</p> --}}
+            <div class="icono">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <h5>Tasa de Escalamiento</h5>
+            <p>{{ $tasaEscalamiento }}%</p>
         </div>
         <div class="tarjeta tarjeta-4">
-            <h5>Espacio disponible</h5>
-            {{-- <p>{{ $tasaReapertura }}%</p> --}}
+            <div class="icono">
+                <i class="fas fa-redo"></i>
+            </div>
+            <h5>Tasa de Reapertura</h5>
+            <p>{{ $tasaReapertura }}%</p>
         </div>
     </div>
 
-
-
     <div class="angry-grid">
         <div id="item-0">
+            <div class="card-header text-center">Total tickets</div>
             <div id="totalTicketsChart" class="small-chart"></div>
         </div>
         <div id="item-1">
+            <div class="card-header text-center">Satisfacción de usuario</div>
             <div id="satisfaccionUsuarioChart" class="small-chart"></div>
         </div>
         <div id="item-2">
-            <div id="tasaEscalamientoChart" class="small-chart"></div>
+            <div class="card-header text-center">Cumplimiento de ANS de inicial</div>
+            <div id="cumplimientoANSInicialChart" class="small-chart"></div>
         </div>
         <div id="item-3">
-            <div id="tasaReaperturaChart" class="small-chart"></div>
+            <div class="card-header text-center">Cumplimiento de ANS de solución</div>
+            <div id="cumplimientoANSChart" class="small-chart"></div>
         </div>
         <div id="item-4">
             <div class="card-header text-center">Tickets por Tipo de Solicitud</div>
@@ -227,6 +307,7 @@
                             type: 'radialBar',
                         },
                         series: [totalTickets],
+                        colors: ['#4e73df'], // Azul
                         plotOptions: {
                             radialBar: {
                                 dataLabels: {
@@ -282,7 +363,7 @@
                                 columnWidth: '45%'
                             }
                         },
-                        colors: ['#4e73df', '#1cc88a', '#f6c23e'],
+                        colors: ['#4e73df', '#1cc88a', '#f6c23e', '#f34646'], // Azul, Verde, Amarillo, Rojo
                         dataLabels: {
                             enabled: true,
                             formatter: function(val) {
@@ -311,7 +392,7 @@
                         },
                         series: data,
                         labels: labels,
-                        colors: ['#4e73df', '#1cc88a', '#f6c23e'],
+                        colors: ['#4e73df', '#1cc88a', '#f6c23e', '#f34646'], // Azul, Verde, Amarillo, Rojo
                         responsive: [{
                             breakpoint: 480,
                             options: {
@@ -343,6 +424,7 @@
                             type: 'radialBar',
                         },
                         series: [percentage],
+                        colors: ['#1cc88a'], // Verde
                         plotOptions: {
                             radialBar: {
                                 dataLabels: {
@@ -382,6 +464,7 @@
                             type: 'radialBar',
                         },
                         series: [promedioRespuesta],
+                        colors: ['#f6c23e'], // Amarillo
                         plotOptions: {
                             radialBar: {
                                 dataLabels: {
@@ -421,6 +504,7 @@
                             type: 'radialBar',
                         },
                         series: [promedioResolucion],
+                        colors: ['#4e73df'], // Azul
                         plotOptions: {
                             radialBar: {
                                 dataLabels: {
@@ -460,6 +544,7 @@
                             type: 'radialBar',
                         },
                         series: [tasaEscalamiento],
+                        colors: ['#f34646'], // Rojo
                         plotOptions: {
                             radialBar: {
                                 hollow: {
@@ -487,6 +572,7 @@
                             type: 'radialBar',
                         },
                         series: [tasaReapertura],
+                        colors: ['#f34646'], // Rojo
                         plotOptions: {
                             radialBar: {
                                 hollow: {
@@ -534,6 +620,10 @@
                         renderTasaReaperturaChart(tasaReapertura);
                     } else if (chartType === 'donut') {
                         renderDonutChart(chartData.datasets[0].data, chartData.labels, chartElementId);
+                    } else if (chartElementId === 'cumplimientoANSChart') {
+                        renderDonutChart(chartData.datasets[0].data, chartData.labels, chartElementId);
+                    } else if (chartElementId === 'cumplimientoANSInicialChart') {
+                        renderDonutChart(chartData.datasets[0].data, chartData.labels, chartElementId);
                     } else {
                         renderBarChart(chartData, chartElementId);
                     }
@@ -551,6 +641,9 @@
                 renderResolucionPromedioChart(@json($tiempoResolucionPromedio));
                 renderTasaEscalamientoChart(@json($tasaEscalamiento));
                 renderTasaReaperturaChart(@json($tasaReapertura));
+                renderDonutChart(@json($chartDataCumplimientoANS['datasets'][0]['data']), @json($chartDataCumplimientoANS['labels']), 'cumplimientoANSChart');
+                renderDonutChart(@json($chartDataCumplimientoANSInicial['datasets'][0]['data']), @json($chartDataCumplimientoANSInicial['labels']),
+                    'cumplimientoANSInicialChart');
             });
         </script>
     @endpush

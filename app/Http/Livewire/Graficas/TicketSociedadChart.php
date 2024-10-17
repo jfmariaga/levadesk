@@ -4,13 +4,26 @@ namespace App\Http\Livewire\Graficas;
 
 use Livewire\Component;
 use Illuminate\Support\Facades\DB;
+use App\Models\User; // Asegúrate de que estás usando el modelo User
+use App\Models\Sociedad;
+use App\Models\TipoSolicitud;
+use App\Models\Categoria;
+use App\Models\Urgencia; // Si tienes un modelo para las prioridades
 
 class TicketSociedadChart extends Component
 {
     public $sociedadSeleccionada;
+    public $asignadoASeleccionado;
+    public $tipoSolicitudSeleccionado;
+    public $categoriaSeleccionada;
+    public $prioridadSeleccionada;
     public $startDate;
     public $endDate;
     public $sociedadesDisponibles;
+    public $agentesDisponibles;
+    public $tiposSolicitudDisponibles;
+    public $categoriasDisponibles;
+    public $prioridadesDisponibles;
     public $totalTickets;
     public $chartDataSociedadEstado;
     public $chartDataTipoSolicitud;
@@ -22,10 +35,38 @@ class TicketSociedadChart extends Component
     public $tiempoResolucionPromedio;
     public $tasaEscalamiento;
     public $tasaReapertura;
+    public $chartDataCumplimientoANS;
+    public $chartDataCumplimientoANSInicial;
 
     public function mount()
     {
-        $this->sociedadesDisponibles = DB::table('sociedades')->pluck('nombre', 'id')->toArray();
+        // Filtrar las sociedades donde estado = 0
+        $this->sociedadesDisponibles = Sociedad::where('estado', 0)
+            ->pluck('nombre', 'id')
+            ->toArray();
+
+        // Filtrar los agentes disponibles donde estado = 0 y tengan el rol de 'Agente' o 'Admin'
+        $this->agentesDisponibles = User::where('estado', 1)
+            ->role(['Agente', 'Admin']) // Usamos el método role() proporcionado por Spatie
+            ->pluck('name', 'id')
+            ->toArray();
+
+
+        // Filtrar los tipos de solicitudes donde estado = 0
+        $this->tiposSolicitudDisponibles = TipoSolicitud::where('estado', 0)
+            ->pluck('nombre', 'id')
+            ->toArray();
+
+        // Filtrar las categorías donde estado = 0
+        $this->categoriasDisponibles = Categoria::where('estado', 0)
+            ->pluck('nombre', 'id')
+            ->toArray();
+
+        // Prioridades (sin condiciones adicionales)
+        $this->prioridadesDisponibles = Urgencia::pluck('nombre', 'id')
+            ->toArray();
+
+        // Actualizar las gráficas con los datos filtrados
         $this->actualizarGraficas();
     }
 
@@ -44,6 +85,26 @@ class TicketSociedadChart extends Component
         $this->actualizarGraficas();
     }
 
+    public function updatedAsignadoASeleccionado()
+    {
+        $this->actualizarGraficas();
+    }
+
+    public function updatedTipoSolicitudSeleccionado()
+    {
+        $this->actualizarGraficas();
+    }
+
+    public function updatedCategoriaSeleccionada()
+    {
+        $this->actualizarGraficas();
+    }
+
+    public function updatedPrioridadSeleccionada()
+    {
+        $this->actualizarGraficas();
+    }
+
     public function actualizarGraficas()
     {
         $this->totalTickets = $this->getTotalTickets();
@@ -57,6 +118,8 @@ class TicketSociedadChart extends Component
         $this->tiempoResolucionPromedio = $this->getChartDataTiempoResolucionPromedio();
         $this->tasaEscalamiento = $this->getTasaEscalamiento();
         $this->tasaReapertura = $this->getTasaReapertura();
+        $this->chartDataCumplimientoANS = $this->getChartDataCumplimientoANS();
+        $this->chartDataCumplimientoANSInicial = $this->getChartDataCumplimientoANSInicial();
 
         // Disparar eventos para actualizar cada gráfico
         $this->dispatchBrowserEvent('chartDataUpdated', [
@@ -120,6 +183,18 @@ class TicketSociedadChart extends Component
             'tasaReapertura' => $this->tasaReapertura,
             'chartElementId' => 'tasaReaperturaChart',
         ]);
+
+        $this->dispatchBrowserEvent('chartDataUpdated', [
+            'chartData' => $this->chartDataCumplimientoANS,
+            'chartElementId' => 'cumplimientoANSChart',
+            'chartType' => 'donut',
+        ]);
+
+        $this->dispatchBrowserEvent('chartDataUpdated', [
+            'chartData' => $this->chartDataCumplimientoANSInicial,
+            'chartElementId' => 'cumplimientoANSInicialChart',
+            'chartType' => 'donut',
+        ]);
     }
 
     public function getTotalTickets()
@@ -134,29 +209,216 @@ class TicketSociedadChart extends Component
             $query->whereBetween('tickets.created_at', [$this->startDate, $this->endDate]);
         }
 
+        if ($this->asignadoASeleccionado) {
+            $query->where('tickets.asignado_a', $this->asignadoASeleccionado);
+        }
+
+        if ($this->tipoSolicitudSeleccionado) {
+            $query->where('tickets.tipo_solicitud_id', $this->tipoSolicitudSeleccionado);
+        }
+
+        if ($this->categoriaSeleccionada) {
+            $query->where('tickets.categoria_id', $this->categoriaSeleccionada);
+        }
+
+        if ($this->prioridadSeleccionada) {
+            $query->where('tickets.prioridad_id', $this->prioridadSeleccionada);
+        }
+
         return $query->count();
+    }
+
+    public function getChartDataCumplimientoANS()
+    {
+        // Base de la consulta para contar los tickets que cumplieron con el ANS
+        $queryCumplidos = DB::table('tickets')
+            ->join('a_n_s', 'tickets.ans_id', '=', 'a_n_s.id')
+            ->whereNotNull('tickets.tiempo_inicio_resolucion') // Solo tickets con resolución iniciada
+            ->whereRaw('TIMESTAMPDIFF(SECOND, tickets.tiempo_inicio_resolucion, NOW()) <= a_n_s.t_resolucion_segundos')
+            ->whereNotNull('tickets.tiempo_inicio_aceptacion'); // Solo si ha sido aceptado
+
+        // Aplicar los filtros seleccionados
+        if ($this->sociedadSeleccionada) {
+            $queryCumplidos->where('tickets.sociedad_id', $this->sociedadSeleccionada);
+        }
+
+        if ($this->startDate && $this->endDate) {
+            $queryCumplidos->whereBetween('tickets.created_at', [$this->startDate, $this->endDate]);
+        }
+
+        if ($this->asignadoASeleccionado) {
+            $queryCumplidos->where('tickets.asignado_a', $this->asignadoASeleccionado);
+        }
+
+        if ($this->tipoSolicitudSeleccionado) {
+            $queryCumplidos->where('tickets.tipo_solicitud_id', $this->tipoSolicitudSeleccionado);
+        }
+
+        if ($this->categoriaSeleccionada) {
+            $queryCumplidos->where('tickets.categoria_id', $this->categoriaSeleccionada);
+        }
+
+        if ($this->prioridadSeleccionada) {
+            $queryCumplidos->where('tickets.prioridad_id', $this->prioridadSeleccionada);
+        }
+
+        // Contar tickets que cumplieron con el ANS
+        $cumplidos = $queryCumplidos->count();
+
+        // Consulta para contar los tickets que NO cumplieron con el ANS
+        $queryNoCumplidos = DB::table('tickets')
+            ->join('a_n_s', 'tickets.ans_id', '=', 'a_n_s.id')
+            ->whereNotNull('tickets.tiempo_inicio_resolucion') // Solo tickets con resolución iniciada
+            ->where(function ($query) {
+                $query->whereRaw('TIMESTAMPDIFF(SECOND, tickets.tiempo_inicio_resolucion, NOW()) > a_n_s.t_resolucion_segundos')
+                    ->orWhereNull('tickets.tiempo_inicio_aceptacion'); // Si no ha sido aceptado o se agotó el tiempo
+            });
+
+        // Aplicar los mismos filtros
+        if ($this->sociedadSeleccionada) {
+            $queryNoCumplidos->where('tickets.sociedad_id', $this->sociedadSeleccionada);
+        }
+
+        if ($this->startDate && $this->endDate) {
+            $queryNoCumplidos->whereBetween('tickets.created_at', [$this->startDate, $this->endDate]);
+        }
+
+        if ($this->asignadoASeleccionado) {
+            $queryNoCumplidos->where('tickets.asignado_a', $this->asignadoASeleccionado);
+        }
+
+        if ($this->tipoSolicitudSeleccionado) {
+            $queryNoCumplidos->where('tickets.tipo_solicitud_id', $this->tipoSolicitudSeleccionado);
+        }
+
+        if ($this->categoriaSeleccionada) {
+            $queryNoCumplidos->where('tickets.categoria_id', $this->categoriaSeleccionada);
+        }
+
+        if ($this->prioridadSeleccionada) {
+            $queryNoCumplidos->where('tickets.prioridad_id', $this->prioridadSeleccionada);
+        }
+
+        // Contar tickets que no cumplieron con el ANS
+        $noCumplidos = $queryNoCumplidos->count();
+
+        // Devolver datos para la gráfica de cumplimiento de ANS
+        return [
+            'labels' => ['Cumplidos', 'No Cumplidos'],
+            'datasets' => [
+                [
+                    'data' => [$cumplidos, $noCumplidos],
+                ]
+            ]
+        ];
+    }
+
+    public function getChartDataCumplimientoANSInicial()
+    {
+        // Consulta para contar los tickets que cumplieron el ANS inicial (ans_inicial_vencido = 0)
+        $queryCumplidos = DB::table('tickets')
+            ->where('tickets.ans_inicial_vencido', 0); // ANS inicial cumplido
+
+        // Aplicar los filtros
+        if ($this->sociedadSeleccionada) {
+            $queryCumplidos->where('tickets.sociedad_id', $this->sociedadSeleccionada);
+        }
+
+        if ($this->startDate && $this->endDate) {
+            $queryCumplidos->whereBetween('tickets.created_at', [$this->startDate, $this->endDate]);
+        }
+
+        if ($this->asignadoASeleccionado) {
+            $queryCumplidos->where('tickets.asignado_a', $this->asignadoASeleccionado);
+        }
+
+        if ($this->tipoSolicitudSeleccionado) {
+            $queryCumplidos->where('tickets.tipo_solicitud_id', $this->tipoSolicitudSeleccionado);
+        }
+
+        if ($this->categoriaSeleccionada) {
+            $queryCumplidos->where('tickets.categoria_id', $this->categoriaSeleccionada);
+        }
+
+        if ($this->prioridadSeleccionada) {
+            $queryCumplidos->where('tickets.prioridad_id', $this->prioridadSeleccionada);
+        }
+
+        // Contar los tickets que cumplieron el ANS inicial
+        $cumplidos = $queryCumplidos->count();
+
+        // Consulta para contar los tickets que NO cumplieron el ANS inicial (ans_inicial_vencido = 1)
+        $queryNoCumplidos = DB::table('tickets')
+            ->where('tickets.ans_inicial_vencido', 1); // ANS inicial no cumplido
+
+        // Aplicar los mismos filtros
+        if ($this->sociedadSeleccionada) {
+            $queryNoCumplidos->where('tickets.sociedad_id', $this->sociedadSeleccionada);
+        }
+
+        if ($this->startDate && $this->endDate) {
+            $queryNoCumplidos->whereBetween('tickets.created_at', [$this->startDate, $this->endDate]);
+        }
+
+        if ($this->asignadoASeleccionado) {
+            $queryNoCumplidos->where('tickets.asignado_a', $this->asignadoASeleccionado);
+        }
+
+        if ($this->tipoSolicitudSeleccionado) {
+            $queryNoCumplidos->where('tickets.tipo_solicitud_id', $this->tipoSolicitudSeleccionado);
+        }
+
+        if ($this->categoriaSeleccionada) {
+            $queryNoCumplidos->where('tickets.categoria_id', $this->categoriaSeleccionada);
+        }
+
+        if ($this->prioridadSeleccionada) {
+            $queryNoCumplidos->where('tickets.prioridad_id', $this->prioridadSeleccionada);
+        }
+
+        // Contar los tickets que no cumplieron el ANS inicial
+        $noCumplidos = $queryNoCumplidos->count();
+
+        // Retornar los datos para la gráfica
+        return [
+            'labels' => ['Cumplidos', 'No Cumplidos'],
+            'datasets' => [
+                [
+                    'data' => [$cumplidos, $noCumplidos],
+                ]
+            ]
+        ];
     }
 
     public function getChartDataRespuestaInicialPromedio()
     {
-        // Construir la subconsulta y añadir los filtros de fechas y sociedad dentro de ella
-        $query = DB::table(DB::raw('(
-        SELECT tickets.id AS ticket_id,
-               MIN(TIMESTAMPDIFF(MINUTE, tickets.created_at, comentarios.created_at)) AS respuesta_inicial_minutos
-        FROM tickets
-        JOIN comentarios ON comentarios.ticket_id = tickets.id
-        WHERE comentarios.user_id = tickets.asignado_a'
-            . ($this->sociedadSeleccionada ? ' AND tickets.sociedad_id = ' . $this->sociedadSeleccionada : '')
-            . ($this->startDate && $this->endDate ? " AND tickets.created_at BETWEEN '" . $this->startDate . "' AND '" . $this->endDate . "'" : '') . '
-        GROUP BY tickets.id
-    ) as subconsulta'));
+        // Subconsulta para calcular el tiempo de respuesta inicial para cada ticket
+        $subconsulta = DB::table('tickets')
+            ->join('comentarios', 'comentarios.ticket_id', '=', 'tickets.id')
+            ->select(DB::raw('tickets.id AS ticket_id, MIN(TIMESTAMPDIFF(MINUTE, tickets.created_at, comentarios.created_at)) AS respuesta_inicial_minutos'))
+            ->where('comentarios.user_id', DB::raw('tickets.asignado_a'))
+            ->groupBy('tickets.id');
 
-        // Calcular el promedio de respuesta inicial basado en la subconsulta
-        $promedioRespuestaInicial = $query->avg('respuesta_inicial_minutos');
+        // Aplicamos los filtros si existen
+        if ($this->sociedadSeleccionada) {
+            $subconsulta->where('tickets.sociedad_id', $this->sociedadSeleccionada);
+        }
+
+        if ($this->startDate && $this->endDate) {
+            $subconsulta->whereBetween('tickets.created_at', [$this->startDate, $this->endDate]);
+        }
+
+        if ($this->asignadoASeleccionado) {
+            $subconsulta->where('tickets.asignado_a', $this->asignadoASeleccionado);
+        }
+
+        // Ahora calculamos el promedio sobre la subconsulta
+        $promedioRespuestaInicial = DB::table(DB::raw("({$subconsulta->toSql()}) as subconsulta"))
+            ->mergeBindings($subconsulta)
+            ->avg('respuesta_inicial_minutos');
 
         return round($promedioRespuestaInicial, 2);
     }
-
 
 
     public function getChartDataTiempoResolucionPromedio()
@@ -173,17 +435,25 @@ class TicketSociedadChart extends Component
             $query->whereBetween('created_at', [$this->startDate, $this->endDate]);
         }
 
+        if ($this->asignadoASeleccionado) {
+            $query->where('asignado_a', $this->asignadoASeleccionado);
+        }
+
         $promedioResolucion = $query->value('tiempo_resolucion_promedio');
         return round($promedioResolucion, 2);
     }
 
     public function getTasaEscalamiento()
     {
+        // Total de tickets en la tabla tickets
         $queryTotalTickets = DB::table('tickets');
+
+        // Tickets que han sido escalados en ticket_historial con estado_id = 9
         $queryEscalados = DB::table('ticket_historial')
             ->join('tickets', 'ticket_historial.ticket_id', '=', 'tickets.id')
             ->where('ticket_historial.estado_id', 9); // Estado escalado
 
+        // Aplicar los filtros
         if ($this->sociedadSeleccionada) {
             $queryTotalTickets->where('tickets.sociedad_id', $this->sociedadSeleccionada);
             $queryEscalados->where('tickets.sociedad_id', $this->sociedadSeleccionada);
@@ -194,37 +464,52 @@ class TicketSociedadChart extends Component
             $queryEscalados->whereBetween('ticket_historial.fecha_cambio', [$this->startDate, $this->endDate]);
         }
 
+        if ($this->asignadoASeleccionado) {
+            $queryEscalados->where('tickets.asignado_a', $this->asignadoASeleccionado);
+        }
+
+        // Contar el total de tickets y el número de tickets escalados
         $totalTickets = $queryTotalTickets->count();
         $totalEscalados = $queryEscalados->count();
 
+        // Calcular y retornar la tasa de escalamiento
         return $totalTickets == 0 ? 0 : round(($totalEscalados / $totalTickets) * 100, 2);
     }
 
+
     public function getTasaReapertura()
     {
-        $queryCerrados = DB::table('ticket_historial')
-            ->join('tickets', 'ticket_historial.ticket_id', '=', 'tickets.id')
-            ->whereIn('ticket_historial.estado_id', [4, 5]); // Estados cerrados o resueltos
+        // Total de tickets en la tabla tickets
+        $queryTotalTickets = DB::table('tickets');
 
+        // Tickets que han sido reabiertos en ticket_historial con estado_id = 7
         $queryReabiertos = DB::table('ticket_historial')
             ->join('tickets', 'ticket_historial.ticket_id', '=', 'tickets.id')
             ->where('ticket_historial.estado_id', 7); // Estado reabierto
 
+        // Aplicar los filtros
         if ($this->sociedadSeleccionada) {
-            $queryCerrados->where('tickets.sociedad_id', $this->sociedadSeleccionada);
+            $queryTotalTickets->where('tickets.sociedad_id', $this->sociedadSeleccionada);
             $queryReabiertos->where('tickets.sociedad_id', $this->sociedadSeleccionada);
         }
 
         if ($this->startDate && $this->endDate) {
-            $queryCerrados->whereBetween('ticket_historial.fecha_cambio', [$this->startDate, $this->endDate]);
+            $queryTotalTickets->whereBetween('tickets.created_at', [$this->startDate, $this->endDate]);
             $queryReabiertos->whereBetween('ticket_historial.fecha_cambio', [$this->startDate, $this->endDate]);
         }
 
-        $totalCerrados = $queryCerrados->count();
+        if ($this->asignadoASeleccionado) {
+            $queryReabiertos->where('tickets.asignado_a', $this->asignadoASeleccionado);
+        }
+
+        // Contar el total de tickets y el número de tickets reabiertos
+        $totalTickets = $queryTotalTickets->count();
         $totalReabiertos = $queryReabiertos->count();
 
-        return $totalCerrados == 0 ? 0 : round(($totalReabiertos / $totalCerrados) * 100, 2);
+        // Calcular y retornar la tasa de reapertura
+        return $totalTickets == 0 ? 0 : round(($totalReabiertos / $totalTickets) * 100, 2);
     }
+
 
     public function getChartDataVolumenTickets()
     {
@@ -238,6 +523,10 @@ class TicketSociedadChart extends Component
 
         if ($this->startDate && $this->endDate) {
             $query->whereBetween('tickets.created_at', [$this->startDate, $this->endDate]);
+        }
+
+        if ($this->asignadoASeleccionado) {
+            $query->where('tickets.asignado_a', $this->asignadoASeleccionado);
         }
 
         $result = $query->get();
@@ -267,6 +556,10 @@ class TicketSociedadChart extends Component
             $query->whereBetween('tickets.created_at', [$this->startDate, $this->endDate]);
         }
 
+        if ($this->asignadoASeleccionado) {
+            $query->where('tickets.asignado_a', $this->asignadoASeleccionado);
+        }
+
         $result = $query->get();
         $labels = $result->pluck('sociedad')->toArray();
         $data = [
@@ -294,6 +587,10 @@ class TicketSociedadChart extends Component
             $query->whereBetween('tickets.created_at', [$this->startDate, $this->endDate]);
         }
 
+        if ($this->asignadoASeleccionado) {
+            $query->where('tickets.asignado_a', $this->asignadoASeleccionado);
+        }
+
         $result = $query->get();
         $labels = $result->pluck('tipo_solicitud')->toArray();
         $data = $result->pluck('total')->toArray();
@@ -314,6 +611,10 @@ class TicketSociedadChart extends Component
 
         if ($this->startDate && $this->endDate) {
             $query->whereBetween('tickets.created_at', [$this->startDate, $this->endDate]);
+        }
+
+        if ($this->asignadoASeleccionado) {
+            $query->where('tickets.asignado_a', $this->asignadoASeleccionado);
         }
 
         $result = $query->get();
@@ -338,6 +639,10 @@ class TicketSociedadChart extends Component
             $query->whereBetween('tickets.created_at', [$this->startDate, $this->endDate]);
         }
 
+        if ($this->asignadoASeleccionado) {
+            $query->where('tickets.asignado_a', $this->asignadoASeleccionado);
+        }
+
         $result = $query->get();
         $labels = $result->pluck('categoria')->toArray();
         $data = $result->pluck('total')->toArray();
@@ -358,6 +663,10 @@ class TicketSociedadChart extends Component
 
         if ($this->startDate && $this->endDate) {
             $query->whereBetween('tickets.created_at', [$this->startDate, $this->endDate]);
+        }
+
+        if ($this->asignadoASeleccionado) {
+            $query->where('tickets.asignado_a', $this->asignadoASeleccionado);
         }
 
         $promedioSatisfaccion = $query->avg('comentarios.calificacion');
