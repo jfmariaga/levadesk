@@ -319,7 +319,7 @@
                                     },
                                     total: {
                                         show: true,
-                                        label: 'Total Tickets',
+                                        label: '',
                                         formatter: function() {
                                             return totalTickets;
                                         }
@@ -436,7 +436,7 @@
                                     },
                                     total: {
                                         show: true,
-                                        label: 'Satisfacción de usuario',
+                                        label: '',
                                         formatter: function() {
                                             return `${promedioSatisfaccion}/5`;
                                         }
