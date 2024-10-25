@@ -34,7 +34,6 @@ class TicketsHome extends Component
         if ($this->fecha_desde && $this->fecha_hasta) {
             $fecha_desde = date('Y-m-d', strtotime($this->fecha_desde));
             $fecha_hasta = date('Y-m-d 23:59:59', strtotime($this->fecha_hasta));
-
             $tickets = $tickets->whereBetween('created_at', [$fecha_desde, $fecha_hasta]);
         }
 

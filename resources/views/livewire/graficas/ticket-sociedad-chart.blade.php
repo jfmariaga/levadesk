@@ -292,6 +292,11 @@
             <div id="volumenTicketsChart" class="large-chart"></div>
         </div>
     </div>
+    <div class="row">
+        <div class="col-12">
+            @livewire('home.tickets-home')
+        </div>
+    </div>
 
     @push('js')
         <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
@@ -338,9 +343,10 @@
                     charts["totalTicketsChart"].render();
                 }
 
-                // Gráfico de Barras para Sociedad
                 function renderBarChart(chartData, chartElementId) {
                     if (!chartData || !chartData.datasets) return;
+
+                    let isHorizontal = chartElementId === 'ticketEstadoChart';
 
                     let options = {
                         chart: {
@@ -359,7 +365,7 @@
                         },
                         plotOptions: {
                             bar: {
-                                horizontal: false,
+                                horizontal: isHorizontal, // Ajuste para gráfico horizontal si es 'ticketEstadoChart'
                                 columnWidth: '45%'
                             }
                         },
@@ -382,6 +388,7 @@
                     charts[chartElementId] = new ApexCharts(document.querySelector(`#${chartElementId}`), options);
                     charts[chartElementId].render();
                 }
+
 
                 // Gráfico Donut para Tipo de Solicitud
                 function renderDonutChart(data, labels, chartElementId) {

@@ -700,18 +700,18 @@
                     Swal.fire({
                         title: 'Califica el Ticket',
                         html: `
-            <div>
-                <label>Calificación:</label>
-                <div id="rating-stars" class="rating">
-                    <i class="fas fa-star" data-value="1"></i>
-                    <i class="fas fa-star" data-value="2"></i>
-                    <i class="fas fa-star" data-value="3"></i>
-                    <i class="fas fa-star" data-value="4"></i>
-                    <i class="fas fa-star" data-value="5"></i>
-                </div>
-                <textarea id="calificacionComentario" class="swal2-textarea" placeholder="Escribe un comentario (opcional)"></textarea>
-            </div>
-            `,
+                            <div>
+                                <label>Calificación:</label>
+                                <div id="rating-stars" class="rating">
+                                    <i class="fas fa-star" data-value="1"></i>
+                                    <i class="fas fa-star" data-value="2"></i>
+                                    <i class="fas fa-star" data-value="3"></i>
+                                    <i class="fas fa-star" data-value="4"></i>
+                                    <i class="fas fa-star" data-value="5"></i>
+                                </div>
+                                <textarea id="calificacionComentario" class="swal2-textarea" placeholder="Escribe un comentario (opcional)"></textarea>
+                            </div>
+                            `,
                         showCancelButton: true,
                         confirmButtonText: 'Enviar Calificación',
                         preConfirm: () => {
@@ -766,7 +766,6 @@
                     });
                 });
 
-
                 function initializeSelect2() {
                     $('.select2').select2();
                 }
@@ -812,7 +811,6 @@
                 Livewire.on('showToast', (data) => {
                     toastRight(data.type, data.message);
                 });
-
 
                 Livewire.on('confirmarReapertura', i => {
                     alertClickCallback('¿Estás seguro?',

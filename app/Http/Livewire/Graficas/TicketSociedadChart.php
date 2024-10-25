@@ -40,33 +40,27 @@ class TicketSociedadChart extends Component
 
     public function mount()
     {
-        // Filtrar las sociedades donde estado = 0
         $this->sociedadesDisponibles = Sociedad::where('estado', 0)
             ->pluck('nombre', 'id')
             ->toArray();
 
-        // Filtrar los agentes disponibles donde estado = 0 y tengan el rol de 'Agente' o 'Admin'
         $this->agentesDisponibles = User::where('estado', 1)
-            ->role(['Agente', 'Admin']) // Usamos el método role() proporcionado por Spatie
+            ->role(['Agente', 'Admin'])
             ->pluck('name', 'id')
             ->toArray();
 
 
-        // Filtrar los tipos de solicitudes donde estado = 0
         $this->tiposSolicitudDisponibles = TipoSolicitud::where('estado', 0)
             ->pluck('nombre', 'id')
             ->toArray();
 
-        // Filtrar las categorías donde estado = 0
         $this->categoriasDisponibles = Categoria::where('estado', 0)
             ->pluck('nombre', 'id')
             ->toArray();
 
-        // Prioridades (sin condiciones adicionales)
         $this->prioridadesDisponibles = Urgencia::pluck('nombre', 'id')
             ->toArray();
 
-        // Actualizar las gráficas con los datos filtrados
         $this->actualizarGraficas();
     }
 
@@ -148,7 +142,6 @@ class TicketSociedadChart extends Component
             'chartType' => 'line',
         ]);
 
-        // Promedio de satisfacción del usuario
         $this->dispatchBrowserEvent('chartDataUpdated', [
             'promedioSatisfaccion' => $this->chartDataSatisfaccionUsuario,
             'chartElementId' => 'satisfaccionUsuarioChart',
@@ -230,14 +223,12 @@ class TicketSociedadChart extends Component
 
     public function getChartDataCumplimientoANS()
     {
-        // Base de la consulta para contar los tickets que cumplieron con el ANS
         $queryCumplidos = DB::table('tickets')
             ->join('a_n_s', 'tickets.ans_id', '=', 'a_n_s.id')
-            ->whereNotNull('tickets.tiempo_inicio_resolucion') // Solo tickets con resolución iniciada
+            ->whereNotNull('tickets.tiempo_inicio_resolucion')
             ->whereRaw('TIMESTAMPDIFF(SECOND, tickets.tiempo_inicio_resolucion, NOW()) <= a_n_s.t_resolucion_segundos')
-            ->whereNotNull('tickets.tiempo_inicio_aceptacion'); // Solo si ha sido aceptado
+            ->whereNotNull('tickets.tiempo_inicio_aceptacion');
 
-        // Aplicar los filtros seleccionados
         if ($this->sociedadSeleccionada) {
             $queryCumplidos->where('tickets.sociedad_id', $this->sociedadSeleccionada);
         }
@@ -262,19 +253,16 @@ class TicketSociedadChart extends Component
             $queryCumplidos->where('tickets.prioridad_id', $this->prioridadSeleccionada);
         }
 
-        // Contar tickets que cumplieron con el ANS
         $cumplidos = $queryCumplidos->count();
 
-        // Consulta para contar los tickets que NO cumplieron con el ANS
         $queryNoCumplidos = DB::table('tickets')
             ->join('a_n_s', 'tickets.ans_id', '=', 'a_n_s.id')
-            ->whereNotNull('tickets.tiempo_inicio_resolucion') // Solo tickets con resolución iniciada
+            ->whereNotNull('tickets.tiempo_inicio_resolucion')
             ->where(function ($query) {
                 $query->whereRaw('TIMESTAMPDIFF(SECOND, tickets.tiempo_inicio_resolucion, NOW()) > a_n_s.t_resolucion_segundos')
-                    ->orWhereNull('tickets.tiempo_inicio_aceptacion'); // Si no ha sido aceptado o se agotó el tiempo
+                    ->orWhereNull('tickets.tiempo_inicio_aceptacion');
             });
 
-        // Aplicar los mismos filtros
         if ($this->sociedadSeleccionada) {
             $queryNoCumplidos->where('tickets.sociedad_id', $this->sociedadSeleccionada);
         }
@@ -299,10 +287,8 @@ class TicketSociedadChart extends Component
             $queryNoCumplidos->where('tickets.prioridad_id', $this->prioridadSeleccionada);
         }
 
-        // Contar tickets que no cumplieron con el ANS
         $noCumplidos = $queryNoCumplidos->count();
 
-        // Devolver datos para la gráfica de cumplimiento de ANS
         return [
             'labels' => ['Cumplidos', 'No Cumplidos'],
             'datasets' => [
@@ -315,11 +301,9 @@ class TicketSociedadChart extends Component
 
     public function getChartDataCumplimientoANSInicial()
     {
-        // Consulta para contar los tickets que cumplieron el ANS inicial (ans_inicial_vencido = 0)
         $queryCumplidos = DB::table('tickets')
-            ->where('tickets.ans_inicial_vencido', 0); // ANS inicial cumplido
+            ->where('tickets.ans_inicial_vencido', 0);
 
-        // Aplicar los filtros
         if ($this->sociedadSeleccionada) {
             $queryCumplidos->where('tickets.sociedad_id', $this->sociedadSeleccionada);
         }
@@ -376,10 +360,8 @@ class TicketSociedadChart extends Component
             $queryNoCumplidos->where('tickets.prioridad_id', $this->prioridadSeleccionada);
         }
 
-        // Contar los tickets que no cumplieron el ANS inicial
         $noCumplidos = $queryNoCumplidos->count();
 
-        // Retornar los datos para la gráfica
         return [
             'labels' => ['Cumplidos', 'No Cumplidos'],
             'datasets' => [
@@ -392,14 +374,12 @@ class TicketSociedadChart extends Component
 
     public function getChartDataRespuestaInicialPromedio()
     {
-        // Subconsulta para calcular el tiempo de respuesta inicial para cada ticket
         $subconsulta = DB::table('tickets')
             ->join('comentarios', 'comentarios.ticket_id', '=', 'tickets.id')
             ->select(DB::raw('tickets.id AS ticket_id, MIN(TIMESTAMPDIFF(MINUTE, tickets.created_at, comentarios.created_at)) AS respuesta_inicial_minutos'))
             ->where('comentarios.user_id', DB::raw('tickets.asignado_a'))
             ->groupBy('tickets.id');
 
-        // Aplicamos los filtros si existen
         if ($this->sociedadSeleccionada) {
             $subconsulta->where('tickets.sociedad_id', $this->sociedadSeleccionada);
         }
@@ -412,7 +392,6 @@ class TicketSociedadChart extends Component
             $subconsulta->where('tickets.asignado_a', $this->asignadoASeleccionado);
         }
 
-        // Ahora calculamos el promedio sobre la subconsulta
         $promedioRespuestaInicial = DB::table(DB::raw("({$subconsulta->toSql()}) as subconsulta"))
             ->mergeBindings($subconsulta)
             ->avg('respuesta_inicial_minutos');
@@ -546,7 +525,8 @@ class TicketSociedadChart extends Component
         $query = DB::table('tickets')
             ->join('sociedades', 'tickets.sociedad_id', '=', 'sociedades.id')
             ->select('sociedades.nombre as sociedad', DB::raw('COUNT(tickets.id) as total'))
-            ->groupBy('sociedades.nombre');
+            ->groupBy('sociedades.nombre')
+            ->orderByDesc('total'); // Orden descendente
 
         if ($this->sociedadSeleccionada) {
             $query->where('sociedades.id', $this->sociedadSeleccionada);
@@ -577,7 +557,8 @@ class TicketSociedadChart extends Component
         $query = DB::table('tickets')
             ->join('tipo_solicitudes', 'tickets.tipo_solicitud_id', '=', 'tipo_solicitudes.id')
             ->select('tipo_solicitudes.nombre as tipo_solicitud', DB::raw('COUNT(tickets.id) as total'))
-            ->groupBy('tipo_solicitudes.nombre');
+            ->groupBy('tipo_solicitudes.nombre')
+            ->orderByDesc('total'); // Orden descendente
 
         if ($this->sociedadSeleccionada) {
             $query->where('tickets.sociedad_id', $this->sociedadSeleccionada);
@@ -603,7 +584,8 @@ class TicketSociedadChart extends Component
         $query = DB::table('tickets')
             ->join('estados', 'tickets.estado_id', '=', 'estados.id')
             ->select('estados.nombre as estado', DB::raw('COUNT(tickets.id) as total'))
-            ->groupBy('estados.nombre');
+            ->groupBy('estados.nombre')
+            ->orderBy('total'); // Orden descendente
 
         if ($this->sociedadSeleccionada) {
             $query->where('tickets.sociedad_id', $this->sociedadSeleccionada);
@@ -629,7 +611,8 @@ class TicketSociedadChart extends Component
         $query = DB::table('tickets')
             ->join('categorias', 'tickets.categoria_id', '=', 'categorias.id')
             ->select('categorias.nombre as categoria', DB::raw('COUNT(tickets.id) as total'))
-            ->groupBy('categorias.nombre');
+            ->groupBy('categorias.nombre')
+            ->orderByDesc('total'); // Orden descendente
 
         if ($this->sociedadSeleccionada) {
             $query->where('tickets.sociedad_id', $this->sociedadSeleccionada);

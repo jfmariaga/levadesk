@@ -1389,8 +1389,6 @@
                     }
                 });
 
-
-
                 Livewire.on('borrarRecordatorio', () => {
                     toastRight('success', 'Recordatorio eliminado!');
                 });

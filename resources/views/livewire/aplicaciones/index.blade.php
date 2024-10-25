@@ -44,6 +44,10 @@
                 cargarTabla(data);
             });
 
+            Livewire.on('showToast', (data) => {
+                toastRight(data.type, data.message);
+            });
+
             function cargarTabla(data) {
                 $('.tabla_aplicaciones').DataTable().destroy(); // destruimos la tabla
                 $('.tabla_aplicaciones').addClass('d-none'); // ocultamos la tabla
@@ -121,7 +125,9 @@
                                     <button  onclick="editar(${id})" class="btn btn-xs btn-default text-primary mx-1 shadow" title="Edit">
                                          <i class="fa fa-lg fa-fw fa-pen"></i>
                                      </button>
-
+                                     <button  onclick="confirmDelete(${id})" class="btn btn-xs btn-default text-danger mx-1 shadow" title="Edit">
+                                         <i class="fas fa-trash-alt"></i>
+                                     </button>
                                 </div>
                             </td>
                         </tr>`);
@@ -139,10 +145,19 @@
             }
 
             function editar(id) {
-            $('#btn_form_aplicacion').click();
-            Livewire.emit('editAplicacion', id);
-        }
+                $('#btn_form_aplicacion').click();
+                Livewire.emit('editAplicacion', id);
+
+            }
+
+            function confirmDelete(id) {
+                alertClickCallback('¿Eliminar aplicación?', `La aplicación se eliminará completamente`, 'warning',
+                    'Si, Eliminar',
+                    'Cancelar',
+                    function() {
+                        @this.deleteAplicacion(id);
+                    });
+            }
         </script>
     @endpush
 </div>
-

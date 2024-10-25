@@ -2,6 +2,7 @@
 
 namespace App\Http\Livewire\Gestion;
 
+use App\Models\Estado;
 use App\Models\Ticket;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -16,6 +17,7 @@ class Index extends Component
     public $totalHorasSoporte;
     public $fecha_desde, $fecha_hasta;
     public $item;
+    public $estados, $SelectedEstado;
 
     protected $listeners = ['cargarDatos', 'gestionTicket'];
     protected $queryString = ['fecha_desde', 'fecha_hasta'];
@@ -25,26 +27,34 @@ class Index extends Component
     {
         $this->iniciarFechas();
         $this->cargarDatos();
+        $this->estados = Estado::all();
     }
 
     public function cargarDatos()
     {
         $userId = Auth::id();
-        // $query = Ticket::where('asignado_a', $userId);
-        $query = Ticket::where('asignado_a', $userId)
-            ->orWhereHas('colaboradores', function ($query) use ($userId) {
-                $query->where('user_id', $userId);
-            });
+
+        if ($this->SelectedEstado) {
+            $query = Ticket::where('asignado_a', $userId)->where('estado_id', $this->SelectedEstado)
+                ->orWhereHas('colaboradores', function ($query) use ($userId) {
+                    $query->where('user_id', $userId);
+                });
+        } else {
+            $query = Ticket::where('asignado_a', $userId)
+                ->orWhereHas('colaboradores', function ($query) use ($userId) {
+                    $query->where('user_id', $userId);
+                });
+        }
+
 
         if ($this->fecha_desde && $this->fecha_hasta) {
-            // Formatear las fechas en el formato 'Y-m-d'
             $fecha_desde = date('Y-m-d', strtotime($this->fecha_desde));
-            $fecha_hasta = date('Y-m-d', strtotime($this->fecha_hasta));
-            $query->whereBetween(DB::raw('DATE(created_at)'), [$fecha_desde, $fecha_hasta]);
+            $fecha_hasta = date('Y-m-d 23:59:59', strtotime($this->fecha_hasta));
+            $query->whereBetween('created_at', [$fecha_desde, $fecha_hasta]);
         }
 
         $tickets = $query->with('urgencia', 'estado', 'colaboradores', 'categoria', 'subcategoria', 'usuario')->get();
-        // Añadir el rol del usuario en cada ticket
+
         $this->tickets = $tickets->map(function ($ticket) use ($userId) {
             if ($ticket->asignado_a == $userId) {
                 $ticket->rol = 'Agente';
@@ -94,18 +104,18 @@ class Index extends Component
         }
     }
 
-    public function addComment($ticketId, $comentario)
-    {
-        $ticket = Ticket::find($ticketId);
-        // $this->validate([
-        //     'comentario' => 'required|string|max:255',
-        // ]);
-        if ($ticket && $ticket->asignado_a == Auth::id()) {
-            $ticket->comentarios()->create([
-                'user_id' => Auth::id(),
-                'comentario' => $comentario,
-            ]);
-            $this->tickets = Ticket::where('asignado_a', Auth::id())->get();
-        }
-    }
+    // public function addComment($ticketId, $comentario)
+    // {
+    //     $ticket = Ticket::find($ticketId);
+    //     // $this->validate([
+    //     //     'comentario' => 'required|string|max:255',
+    //     // ]);
+    //     if ($ticket && $ticket->asignado_a == Auth::id()) {
+    //         $ticket->comentarios()->create([
+    //             'user_id' => Auth::id(),
+    //             'comentario' => $comentario,
+    //         ]);
+    //         $this->tickets = Ticket::where('asignado_a', Auth::id())->get();
+    //     }
+    // }
 }

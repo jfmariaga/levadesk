@@ -132,13 +132,19 @@
                         <div wire:ignore class="card-body card-dashboard">
                             <div class="table-responsive">
                                 <div class="row mb-2">
-                                    <div class="col-md-6 col-lg-6 mt-1">
+                                    <div class="col-md-8 col-lg-8 mt-1">
                                         <div class="d-flex align-items-center">
                                             <input type="text" class="datepicker form-control" id="fecha_desde"
                                                 value="{{ $fecha_desde }}" style="width:150px;">
                                             <span class="mx-2">a</span>
-                                            <input type="text" class="datepicker form-control" id="fecha_hasta"
+                                            <input type="text" class="datepicker form-control mr-2" id="fecha_hasta"
                                                 value="{{ $fecha_hasta }}" style="width:150px;">
+                                            <select wire:ignore name="estados" class="select2" id="SelectedEstado">
+                                                <option value="">Todos los estados</option>
+                                                @foreach ($estados as $e)
+                                                <option value="{{$e->id}}">{{$e->nombre}}</option>
+                                                @endforeach
+                                            </select>
                                             <button class="btn btn-light mx-2" wire:click="cargarDatos()"
                                                 style="height:40px;">
                                                 <i class="fas fa-filter"></i>
@@ -188,6 +194,7 @@
         <script>
             document.addEventListener('livewire:load', function() {
                 @this.cargarDatos()
+                $('.select2').select2();
 
                 $('#fecha_desde').pickadate({
                     format: 'yyyy-mm-dd'
@@ -218,6 +225,11 @@
                 $('#fecha_hasta').on('change', function() {
                     @this.set('fecha_hasta', this.value)
                 })
+
+                $('#SelectedEstado').on('change', function() {
+                    @this.set('SelectedEstado', this.value)
+                })
+
             });
 
             Livewire.on('cargarGestioTicketTabla', data => {

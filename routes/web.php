@@ -29,13 +29,10 @@ Route::get('storage-link', function () {
     Artisan::call('storage:link');
 });
 
-// Rutas solo para usuarios autenticados
 Route::group(['middleware' => ['auth', 'verified']], function () {
 
-    // Ruta común para todos los roles con permiso para acceder a 'home'
     Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->middleware('can:home')->name('home');
 
-    // Rutas solo para Admin (permisos de Admin)
     Route::group(['middleware' => 'can:sociedad'], function () {
         Route::view('sociedad', 'admin.sociedad.index')->name('sociedad');
         Route::view('tipo-solicitud', 'admin.solicitud.index')->name('solicitud');
@@ -54,19 +51,16 @@ Route::group(['middleware' => ['auth', 'verified']], function () {
         Route::view('dashboard', 'admin.dashboard.dashboard')->name('dashboard');
     });
 
-    // Rutas accesibles para Admin y Agente (permiso gestion)
     Route::group(['middleware' => 'can:gestion'], function () {
         Route::view('gestion', 'admin.gestion.index')->name('gestion');
         Route::view('gestionar', 'admin.gestionar.index')->name('gestionar');
     });
 
-    // Rutas accesibles para Admin, Agente, Usuario, y Aprobador (permiso ticket)
     Route::group(['middleware' => 'can:ticket'], function () {
         Route::view('ticket', 'admin.ticket.index')->name('ticket');
         Route::view('verTicket', 'admin.ticket.verTicket')->name('verTicket');
     });
 
-    // Rutas accesibles para Admin, Agente, y Aprobador (permiso aprobacion)
     Route::group(['middleware' => 'can:aprobacion'], function () {
         Route::view('aprobacion', 'admin.aprobacion.index')->name('aprobacion');
         Route::view('aprobar', 'admin.aprobacion.aprobar')->name('aprobar');

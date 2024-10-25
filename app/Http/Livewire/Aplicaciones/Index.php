@@ -19,8 +19,14 @@ class Index extends Component
 
     public function getAplicaciones(){
         $aplicaciones = Aplicaciones::where('sociedad_id', $this->sociedad_id)->with(['sociedad', 'grupo'])->get()->toJson();
-        // dd($aplicaciones);
         $this->emit('cargarTablaAplicaciones', $aplicaciones);
+    }
+
+    public function deleteAplicacion($id){
+        $aplicacion = Aplicaciones::find($id);
+        $aplicacion->delete();
+        $this->getAplicaciones();
+        $this->emit('showToast', ['type' => 'success', 'message' => 'Aplicación eliminada']);
     }
 
     public function render()
