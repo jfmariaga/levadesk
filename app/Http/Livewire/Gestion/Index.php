@@ -34,18 +34,16 @@ class Index extends Component
     {
         $userId = Auth::id();
 
-        if ($this->SelectedEstado) {
-            $query = Ticket::where('asignado_a', $userId)->where('estado_id', $this->SelectedEstado)
+        $query = Ticket::where(function ($query) use ($userId) {
+            $query->where('asignado_a', $userId)
                 ->orWhereHas('colaboradores', function ($query) use ($userId) {
                     $query->where('user_id', $userId);
                 });
-        } else {
-            $query = Ticket::where('asignado_a', $userId)
-                ->orWhereHas('colaboradores', function ($query) use ($userId) {
-                    $query->where('user_id', $userId);
-                });
-        }
+        });
 
+        if ($this->SelectedEstado) {
+            $query->where('estado_id', $this->SelectedEstado);
+        }
 
         if ($this->fecha_desde && $this->fecha_hasta) {
             $fecha_desde = date('Y-m-d', strtotime($this->fecha_desde));
@@ -71,6 +69,7 @@ class Index extends Component
 
         $this->emit('cargarGestioTicketTabla', json_encode($this->tickets));
     }
+
 
     public function calcularHorasSoporte($tickets)
     {

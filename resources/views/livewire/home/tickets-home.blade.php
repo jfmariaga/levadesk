@@ -73,7 +73,7 @@
                                     <th>Prioridad</th>
                                     <th>Categoría</th>
                                     <th>Subcategoría</th>
-                                    <th>Esuario</th>
+                                    <th>Usuario</th>
                                     <th>Estado</th>
                                     <th>Agente</th>
                                     <th>Acc</th>

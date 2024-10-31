@@ -229,14 +229,14 @@
                 <i class="fas fa-clock"></i>
             </div>
             <h5>Tiempo de Respuesta Inicial Promedio</h5>
-            <p>{{ $respuestaInicialPromedio }} minutos</p>
+            <p>{{ $respuestaInicialPromedio }} Horas</p>
         </div>
         <div class="tarjeta tarjeta-2">
             <div class="icono">
                 <i class="fas fa-stopwatch"></i>
             </div>
             <h5>Tiempo de Resolución Promedio</h5>
-            <p>{{ $tiempoResolucionPromedio }} minutos</p>
+            <p>{{ $tiempoResolucionPromedio }} Horas</p>
         </div>
         <div class="tarjeta tarjeta-3">
             <div class="icono">

@@ -18,11 +18,12 @@
             </div>
         </div>
         <div class="row mt-2">
-            @if (!auth()->user()->hasRole('Admin'))
-                <div class="col-md-8">
+            @if (!auth()->user()->hasAnyRole(['Admin', 'Usuario']))
+                <div class="col-md-12">
                     @livewire('supervisor-ticket.supervisor-tickets')
                 </div>
             @endif
+
         </div>
     </div>
 @stop

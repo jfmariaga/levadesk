@@ -372,6 +372,33 @@ class TicketSociedadChart extends Component
         ];
     }
 
+    // public function getChartDataRespuestaInicialPromedio()
+    // {
+    //     $subconsulta = DB::table('tickets')
+    //         ->join('comentarios', 'comentarios.ticket_id', '=', 'tickets.id')
+    //         ->select(DB::raw('tickets.id AS ticket_id, MIN(TIMESTAMPDIFF(MINUTE, tickets.created_at, comentarios.created_at)) AS respuesta_inicial_minutos'))
+    //         ->where('comentarios.user_id', DB::raw('tickets.asignado_a'))
+    //         ->groupBy('tickets.id');
+
+    //     if ($this->sociedadSeleccionada) {
+    //         $subconsulta->where('tickets.sociedad_id', $this->sociedadSeleccionada);
+    //     }
+
+    //     if ($this->startDate && $this->endDate) {
+    //         $subconsulta->whereBetween('tickets.created_at', [$this->startDate, $this->endDate]);
+    //     }
+
+    //     if ($this->asignadoASeleccionado) {
+    //         $subconsulta->where('tickets.asignado_a', $this->asignadoASeleccionado);
+    //     }
+
+    //     $promedioRespuestaInicial = DB::table(DB::raw("({$subconsulta->toSql()}) as subconsulta"))
+    //         ->mergeBindings($subconsulta)
+    //         ->avg('respuesta_inicial_minutos');
+
+    //     return round($promedioRespuestaInicial, 2);
+    // }
+
     public function getChartDataRespuestaInicialPromedio()
     {
         $subconsulta = DB::table('tickets')
@@ -396,9 +423,33 @@ class TicketSociedadChart extends Component
             ->mergeBindings($subconsulta)
             ->avg('respuesta_inicial_minutos');
 
-        return round($promedioRespuestaInicial, 2);
+        // Convertir el promedio de minutos a horas dividiéndolo por 60
+        return round($promedioRespuestaInicial / 60, 2);
     }
 
+
+
+    // public function getChartDataTiempoResolucionPromedio()
+    // {
+    //     $query = DB::table('tickets')
+    //         ->whereIn('estado_id', ['4', '5']) // Estados finalizado o rechazado
+    //         ->select(DB::raw('AVG(TIMESTAMPDIFF(MINUTE, created_at, updated_at)) as tiempo_resolucion_promedio'));
+
+    //     if ($this->sociedadSeleccionada) {
+    //         $query->where('sociedad_id', $this->sociedadSeleccionada);
+    //     }
+
+    //     if ($this->startDate && $this->endDate) {
+    //         $query->whereBetween('created_at', [$this->startDate, $this->endDate]);
+    //     }
+
+    //     if ($this->asignadoASeleccionado) {
+    //         $query->where('asignado_a', $this->asignadoASeleccionado);
+    //     }
+
+    //     $promedioResolucion = $query->value('tiempo_resolucion_promedio');
+    //     return round($promedioResolucion, 2);
+    // }
 
     public function getChartDataTiempoResolucionPromedio()
     {
@@ -419,8 +470,11 @@ class TicketSociedadChart extends Component
         }
 
         $promedioResolucion = $query->value('tiempo_resolucion_promedio');
-        return round($promedioResolucion, 2);
+
+        // Convertir el tiempo promedio de minutos a horas dividiéndolo por 60
+        return round($promedioResolucion / 60, 2);
     }
+
 
     public function getTasaEscalamiento()
     {

@@ -2,22 +2,42 @@
 
 namespace App\Http\Livewire\SupervisorTicket;
 
-use Livewire\Component;
+use App\Models\Estado;
 use App\Models\Ticket;
+use App\Models\User; // Asegúrate de tener el modelo de usuarios.
+use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class SupervisorTickets extends Component
 {
     public $fecha_desde, $fecha_hasta;
+    public $estados, $SelectedEstado;
+    public $asignados, $SelectedAsignado;
 
     protected $listeners = ['cargarDatosSupervisor'];
-    protected $queryString = ['fecha_desde', 'fecha_hasta'];
+    protected $queryString = ['fecha_desde', 'fecha_hasta', 'SelectedAsignado', 'SelectedEstado'];
 
     public function mount()
     {
         $this->iniciarFechas();
         $this->cargarDatosSupervisor();
+        $this->estados = Estado::all();
+        $this->cargarAsignados(); // Cargar los asignados
+    }
+
+    public function cargarAsignados()
+    {
+        // Obtener los asignados que tienen tickets bajo supervisión del usuario autenticado
+        $user = Auth::user();
+
+        $asignadosIds = Ticket::whereIn('sociedad_id', DB::table('sociedad_subcategoria_grupo')
+            ->where('supervisor_id', $user->id)
+            ->pluck('sociedad_id'))
+            ->pluck('asignado_a')
+            ->unique();
+
+        $this->asignados = User::whereIn('id', $asignadosIds)->get(); // Obtener los usuarios asignados
     }
 
     public function cargarDatosSupervisor()
@@ -29,29 +49,38 @@ class SupervisorTickets extends Component
             ->where('supervisor_id', $user->id)
             ->select('sociedad_id', 'categoria_id', 'subcategoria_id')
             ->get();
-            // dd($asignacionesSupervisor);
 
-        // Si el usuario no tiene asignaciones como supervisor, retorna una colección vacía
         if ($asignacionesSupervisor->isEmpty()) {
             $tickets = collect(); // Colección vacía
         } else {
-            // Extraer los IDs de las sociedades, categorías y subcategorías
             $sociedadIds = $asignacionesSupervisor->pluck('sociedad_id');
             $categoriaIds = $asignacionesSupervisor->pluck('categoria_id');
             $subcategoriaIds = $asignacionesSupervisor->pluck('subcategoria_id');
 
-            // Buscar los tickets que coincidan con las asignaciones
-            $tickets = Ticket::with('urgencia', 'estado', 'colaboradores', 'asignado','usuario','categoria','subcategoria')
+            $query = Ticket::with('urgencia', 'estado', 'colaboradores', 'asignado', 'usuario', 'categoria', 'subcategoria')
                 ->whereIn('sociedad_id', $sociedadIds)
                 ->whereIn('categoria_id', $categoriaIds)
-                ->whereIn('subcategoria_id', $subcategoriaIds)
-                ->get();
+                ->whereIn('subcategoria_id', $subcategoriaIds);
+
+            if ($this->SelectedEstado) {
+                $query->where('estado_id', $this->SelectedEstado);
+            }
+
+            if ($this->SelectedAsignado) {
+                $query->where('asignado_a', $this->SelectedAsignado);
+            }
+
+            if ($this->fecha_desde && $this->fecha_hasta) {
+                $fecha_desde = date('Y-m-d', strtotime($this->fecha_desde));
+                $fecha_hasta = date('Y-m-d 23:59:59', strtotime($this->fecha_hasta));
+                $query->whereBetween('created_at', [$fecha_desde, $fecha_hasta]);
+            }
+
+            $tickets = $query->get();
         }
 
-        // Emitir el evento para cargar la tabla de supervisor con los tickets filtrados
         $this->emit('cargarSupervisorTabla', json_encode($tickets));
     }
-
 
     public function iniciarFechas()
     {
@@ -64,6 +93,7 @@ class SupervisorTickets extends Component
         if (!$this->fecha_desde && !$this->fecha_hasta) {
             $this->iniciarFechas();
         }
+
         return view('livewire.supervisor-ticket.supervisor-tickets');
     }
 }

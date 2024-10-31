@@ -234,8 +234,6 @@
 
             Livewire.on('cargarGestioTicketTabla', data => {
                 cargarTabla(data);
-                console.log(data);
-
             });
 
             function cargarTabla(data) {

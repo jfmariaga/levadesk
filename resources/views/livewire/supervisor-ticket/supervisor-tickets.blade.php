@@ -13,7 +13,6 @@
 
         .table-responsive {
             overflow-x: auto;
-            overflow-y: auto;
         }
 
         .table thead th {
@@ -33,6 +32,28 @@
         .dt-buttons {
             display: none !important;
         }
+
+        .btn-sm {
+            height: 40px;
+            font-size: 0.9rem;
+        }
+
+        .datepicker {
+            max-width: 130px;
+        }
+
+        @media (max-width: 576px) {
+
+            .btn-sm,
+            .datepicker {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+
+            .row.mb-2 .d-flex {
+                flex-direction: column;
+            }
+        }
     </style>
     <div class="col-lg-12 col-md-12 mb-3">
         <div class="card" id="supervisor_tickets_section">
@@ -40,40 +61,63 @@
                 <h5>Supervisión de Tickets</h5>
             </div>
             <div class="card-body">
+                <div class="container mb-3 mt-1">
+                    <div class="row justify-content-center align-items-center" wire:ignore>
+                        <div class="col-12 col-md-auto mb-2 mb-md-0 d-flex flex-wrap align-items-center">
+                            <input type="text" class="datepicker form-control me-2" id="fecha_desde"
+                                value="{{ $fecha_desde }}" placeholder="Fecha desde">
+                            <span class="mx-2">a</span>
+                            <input type="text" class="datepicker form-control ms-2" id="fecha_hasta"
+                                value="{{ $fecha_hasta }}" placeholder="Fecha hasta">
+                        </div>
+                        <div class="col-12 col-md-auto mb-2 mb-md-0">
+                            <select name="estados" class="select2" id="SelectedEstado">
+                                <option value="">Todos los estados</option>
+                                @foreach ($estados as $e)
+                                    <option value="{{ $e->id }}">{{ $e->nombre }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-auto mb-2 mb-md-0">
+                            <select name="asignados" class="select2" id="SelectedAsignado">
+                                <option value="">Todos los asignados</option>
+                                @foreach ($asignados as $asignado)
+                                    <option value="{{ $asignado->id }}">{{ $asignado->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-auto mb-2 mb-md-0">
+                            <button class="btn btn-light btn-sm" wire:click="cargarDatosSupervisor()">
+                                <i class="fas fa-filter"></i>
+                            </button>
+                        </div>
+                        <div class="col-12 col-md-auto mb-2 mb-md-0 text-center">
+                            <a href="javascript:exportTabla('excel')"
+                                class="btn btn-default text-success shadow btn-sm">
+                                <i class="far fa-file-excel"></i>
+                            </a>
+                        </div>
+                        <div class="col-12 col-md-auto mb-2 mb-md-0 text-center">
+                            <a href="javascript:exportTabla('pdf')" class="btn btn-default text-danger shadow btn-sm">
+                                <i class="far fa-file-pdf"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
                 <div wire:ignore class="card-body card-dashboard">
                     <div class="table-responsive">
-                        <div class="row mb-2">
-                            <div class="col-md-6 col-lg-6 mt-1">
-                                <div class="d-flex align-items-center">
-                                    <input type="text" class="datepicker form-control" id="fecha_desde"
-                                        value="{{ $fecha_desde }}" style="width:150px;">
-                                    <span class="mx-2">a</span>
-                                    <input type="text" class="datepicker form-control" id="fecha_hasta"
-                                        value="{{ $fecha_hasta }}" style="width:150px;">
-                                    <button class="btn btn-light mx-2" wire:click="cargarDatosSupervisor()"
-                                        style="height:40px;">
-                                        <i class="fas fa-filter"></i>
-                                    </button>
-                                    <a href="javascript:exportTabla('excel')"
-                                        class="btn btn-default text-success mx-1 shadow">
-                                        <i class="far fa-file-excel"></i>
-                                    </a>
-                                    <a href="javascript:exportTabla('pdf')"
-                                        class="btn btn-default text-danger mx-1 shadow">
-                                        <i class="far fa-file-pdf"></i>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                        <table class="table table-striped tabla_gestion_supervisores d-none" style="width:100%;">
+                        <table wire:ignore class="table table-striped tabla_gestion_supervisores" style="width:100%;">
                             <thead>
                                 <tr>
                                     <th>Fecha</th>
                                     <th>Codigo</th>
                                     <th>Titulo</th>
                                     <th>Prioridad</th>
-                                    <th>Estado</th>
+                                    <th>Categoría</th>
+                                    <th>Subcategoría</th>
+                                    <th>Usuario</th>
                                     <th>Agente</th>
+                                    <th>Estado</th>
                                     <th>Acc</th>
                                 </tr>
                             </thead>
@@ -90,10 +134,12 @@
             </div>
         </div>
     </div>
+
     @push('js')
         <script>
             document.addEventListener('livewire:load', function() {
-                @this.cargarDatosSupervisor()
+                @this.cargarDatosSupervisor();
+                $('.select2').select2();
 
                 $('#fecha_desde').pickadate({
                     format: 'yyyy-mm-dd'
@@ -119,21 +165,23 @@
                 });
 
                 $('#fecha_desde').on('change', function() {
-                    @this.set('fecha_desde', this.value)
+                    @this.set('fecha_desde', this.value);
                 })
                 $('#fecha_hasta').on('change', function() {
-                    @this.set('fecha_hasta', this.value)
+                    @this.set('fecha_hasta', this.value);
                 })
+
+                $('#SelectedEstado').on('change', function() {
+                    @this.set('SelectedEstado', this.value)
+                })
+
+                $('#SelectedAsignado').on('change', function() {
+                    @this.set('SelectedAsignado', this.value);
+                });
             });
 
             Livewire.on('cargarSupervisorTabla', data => {
-                const tickets = JSON.parse(data);
-                if (tickets.length > 0) {
-                    cargarTablaSuper(data);
-                    document.getElementById('supervisor_tickets_section').style.display = 'block';
-                } else {
-                    document.getElementById('supervisor_tickets_section').style.display = 'none';
-                }
+                cargarTablaSuper(data);
             });
 
             function cargarTablaSuper(data) {
@@ -167,17 +215,17 @@
                         buttons: [{
                                 extend: 'excelHtml5',
                                 autoFilter: true,
-                                title: 'EStados',
+                                title: 'Tickets',
                                 exportOptions: {
-                                    columns: [0, 1, 2, 3, 4]
+                                    columns: [0, 1, 2, 3, 4, 5, 6, 7, 8]
                                 },
                             },
                             {
                                 extend: 'pdfHtml5',
                                 autoFilter: true,
-                                title: 'Estados',
+                                title: 'Tickets',
                                 exportOptions: {
-                                    columns: [0, 1, 2, 3, 4]
+                                    columns: [0, 1, 2, 3, 4, 5, 6, 7, 8]
                                 },
                             }
                         ]
@@ -201,6 +249,9 @@
                             urgencia,
                             estado,
                             asignado,
+                            categoria,
+                            subcategoria,
+                            usuario,
                         } = element;
 
                         let fecha = new Date(created_at);
@@ -210,19 +261,21 @@
                         let fechaFormateada = `${dia}-${mes}-${anio}`;
 
                         body.append(`<tr id="tr_${id}">
-                                <td class="pointer">${fechaFormateada}</td>
-                                <td class="pointer">${nomenclatura}</td>
-                                <td class="pointer">${titulo}</td>
-                                <td class="pointer">${urgencia ? urgencia.nombre :''}</td>
-                                <td class="pointer">${estado ? estado.nombre:''}</td>
-
-                                <td class="pointer">${asignado.name}</td>
-                                <td>
-                                    <div class="d-flex">
-                                        <a href="gestionar?ticket_id=${id}" class="btn btn-xs btn-default text-primary mx-1 shadow" title="Edit"><i class="far fa-eye"></i></a>
-                                    </div>
-                                </td>
-                            </tr>`);
+                            <td class="pointer">${fechaFormateada}</td>
+                            <td class="pointer">${nomenclatura}</td>
+                            <td class="pointer">${titulo}</td>
+                            <td class="pointer">${urgencia ? urgencia.nombre :''}</td>
+                            <td class="pointer">${categoria.nombre}</td>
+                            <td class="pointer">${subcategoria.nombre}</td>
+                            <td class="pointer">${usuario.name}</td>
+                            <td class="pointer">${asignado.name}</td>
+                            <td class="pointer">${estado ? estado.nombre:''}</td>
+                            <td>
+                                <div class="d-flex justify-content-center">
+                                    <a href="gestionar?ticket_id=${id}" class="btn btn-xs btn-default text-primary mx-1 shadow" title="Ver"><i class="far fa-eye"></i></a>
+                                </div>
+                            </td>
+                        </tr>`);
                     }
                     resolve(body);
                 });
