@@ -49,7 +49,8 @@
                 </div>
             </div>
             <div class="col-lg-3 col-md-6 col-sm-12 mb-2 mt-2">
-                <div class="small-box card card-solicitudes-en-proceso">
+                <div class="small-box card card-solicitudes-en-proceso" wire:click="filtrarEnProceso"
+                    style="cursor: pointer;">
                     <div class="inner">
                         <h3>{{ $ticketsEnProceso }}</h3>
                         <p>Solicitudes en atención</p>
@@ -60,7 +61,8 @@
                 </div>
             </div>
             <div class="col-lg-3 col-md-6 col-sm-12 mb-2 mt-2">
-                <div class="small-box card card-solicitudes-por-iniciar">
+                <div class="small-box card card-solicitudes-por-iniciar" wire:click="filtrarPorIniciar"
+                    style="cursor: pointer;">
                     <div class="inner">
                         <h3>{{ $ticketsPorIniciar }}</h3>
                         <p>Solicitudes por iniciar</p>
@@ -73,8 +75,8 @@
             <div class="col-lg-3 col-md-6 col-sm-12 mb-2 mt-2">
                 <div class="small-box card card-horas-soporte">
                     <div class="inner">
-                        <h3>{{ $totalHorasSoporte }}</h3>
-                        <p>Horas de soporte / mes</p>
+                        <h3>{{ number_format($totalHorasSoporte, 2) }}</h3>
+                        <p>Total Horas de Soporte</p>
                     </div>
                     <div class="icon">
                         <i class="fas fa-clock"></i>
@@ -101,7 +103,7 @@
                                 @endphp
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
                                     <div>
-                                        <strong class="badge solucionado-badge">{{$ticket->nomenclatura}}</strong>
+                                        <strong class="badge solucionado-badge">{{ $ticket->nomenclatura }}</strong>
                                         <p>{{ $ticket->usuario->name }} - {{ $ticket->created_at->format('d M, Y') }}
                                         </p>
                                     </div>
@@ -140,9 +142,10 @@
                                             <input type="text" class="datepicker form-control mr-2" id="fecha_hasta"
                                                 value="{{ $fecha_hasta }}" style="width:150px;">
                                             <select wire:ignore name="estados" class="select2" id="SelectedEstado">
+                                                <option value="">Selecciona un estado</option>
                                                 <option value="">Todos los estados</option>
                                                 @foreach ($estados as $e)
-                                                <option value="{{$e->id}}">{{$e->nombre}}</option>
+                                                    <option value="{{ $e->id }}">{{ $e->nombre }}</option>
                                                 @endforeach
                                             </select>
                                             <button class="btn btn-light mx-2" wire:click="cargarDatos()"
@@ -226,9 +229,14 @@
                     @this.set('fecha_hasta', this.value)
                 })
 
+                // $('#SelectedEstado').on('change', function() {
+                //     @this.set('SelectedEstado', this.value)
+                // })
+
                 $('#SelectedEstado').on('change', function() {
-                    @this.set('SelectedEstado', this.value)
-                })
+                    let estado = $(this).val();
+                    @this.set('SelectedEstado', estado === '' ? [] : [estado]);
+                });
 
             });
 
