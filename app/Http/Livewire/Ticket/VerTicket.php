@@ -126,7 +126,11 @@ class VerTicket extends Component
         $comentario->save();
 
         // Lógica para reabrir el ticket
-        $this->ticket->update(['estado_id' => 7]);  // Estado "Reabierto"
+        $this->ticket->update([
+            'estado_id' => 7,
+            'tiempo_restante' => $this->ticket->ans->t_resolucion_segundos,
+            'tiempo_inicio_aceptacion' => NULL,
+        ]);
         Historial::create([
             'ticket_id' => $this->ticket->id,
             'user_id' => auth()->id(),

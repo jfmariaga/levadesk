@@ -314,7 +314,7 @@
                                             </div>
                                             <div class="rating">
                                                 @for ($i = 1; $i <= 5; $i++)
-                                                    <i class="fas fa-star text-muted" style="font-size: 24px;"></i>
+                                                    <i class="fas fa-star text-warning" style="font-size: 24px;"></i>
                                                 @endfor
                                             </div>
                                         </div>
@@ -348,6 +348,10 @@
                                 <div class="col-md-8">
                                     <p class="text-right mt-2">
                                         @if ($ticket->estado_id != 4 && $ticket->estado_id != 5)
+                                            @php
+                                                $tiempoRestante = $ticket->tiempo_restante;
+                                            @endphp
+
                                             @if ($tiempoRestante > 900)
                                                 {{-- Más de 15 minutos --}}
                                                 <span
@@ -367,7 +371,7 @@
                                             @elseif ($tiempoRestante > 0)
                                                 {{-- Menos de 5 minutos --}}
                                                 <span
-                                                    style="background-color:#eb2e20; color: white; padding: 5px 10px; border-radius: 3px; font-weight: bold;">
+                                                    style="background-color: #eb2e20; color: white; padding: 5px 10px; border-radius: 3px; font-weight: bold;">
                                                     <i class="fas fa-times-circle"></i> Tiempo restante ANS
                                                     {{ $tipoANS }}:
                                                     {{ $this->formatTiempoRestante($tiempoRestante) }}
@@ -380,18 +384,17 @@
                                                     {{ $tipoANS }}
                                                 </span>
                                             @endif
-
                                         @endif
-                                        <span class="solicitud-badge  font-weight-bold">{{ $ticket->nomenclatura }}
-                                        </span>
-                                        <button wire:click="recordatorios" class="ml-1  icono-notificacion">
+                                        <span
+                                            class="solicitud-badge font-weight-bold">{{ $ticket->nomenclatura }}</span>
+                                        <button wire:click="recordatorios" class="ml-1 icono-notificacion">
                                             <i class="fas fa-bell"></i>
                                         </button>
                                         @if ($ticket->recordatorios)
                                             <span
                                                 class="contar-recordatorios">{{ count($ticket->recordatorios) }}</span>
                                         @endif
-                                        <button wire:click="tareas" class=" icono-todo">
+                                        <button wire:click="tareas" class="icono-todo">
                                             <i class="fas fa-tasks"></i>
                                         </button>
                                         @if ($ticket->tareas)
@@ -399,6 +402,7 @@
                                         @endif
                                     </p>
                                 </div>
+
                             </div>
                             <div class="form-row align-items-start mt-2 mb-1">
                                 @if ($recordatorio)

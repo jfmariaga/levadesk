@@ -105,41 +105,19 @@ class Show extends Component
         $this->usuarios = User::where('estado', 1)->where('id', '!=', Auth::id())->get();
         $this->aprobadores = User::where('estado', 1)->where('id', '!=', Auth::id())->where('aprobador_ti', true)->get();
         $this->agentes = User::role(['Admin', 'Agente'])->where('id', '!=', Auth::id())->get();
-        $this->calcularTiempoRestante();
+        $this->identificarTipoAns();
     }
 
-    public function calcularTiempoRestante()
+    public function identificarTipoAns()
     {
-        $ans = $this->ticket->ans;
-
         if ($this->ticket->prioridad === null) {
-            // ANS inicial (el tiempo empieza a contar desde la creación del ticket)
-            $tiempoInicio = $this->ticket->created_at;
-            $tiempoPasado = now()->diffInSeconds($tiempoInicio);
-            $this->tiempoRestante = $ans->t_asignacion_segundos - $tiempoPasado;
             $this->tipoANS = 'inicial';
         } elseif ($this->ticket->tiempo_inicio_aceptacion === null) {
-            // Verifica si ya existe una marca de tiempo para el inicio de la resolución
-            $tiempoInicioResolucion = $this->ticket->tiempo_inicio_resolucion;
-
-            // Calcular el tiempo pasado desde el inicio de la resolución
-            $tiempoPasado = now()->diffInSeconds($tiempoInicioResolucion);
-            $this->tiempoRestante = $ans->t_resolucion_segundos - $tiempoPasado;
             $this->tipoANS = 'solución';
         } else {
-            $tiempoInicioAceptacion = $this->ticket->tiempo_inicio_aceptacion;
-
-            $tiempoPasado = now()->diffInSeconds($tiempoInicioAceptacion);
-            $this->tiempoRestante = $ans->t_aceptacion_segundos - $tiempoPasado;
             $this->tipoANS = 'aceptación';
         }
-
-        // Asegúrate de que el tiempo restante no sea negativo
-        if ($this->tiempoRestante < 0) {
-            $this->tiempoRestante = 0;
-        }
     }
-
 
     public function formatTiempoRestante($segundos)
     {
@@ -162,7 +140,6 @@ class Show extends Component
 
         return $tiempoFormateado;
     }
-
 
     public function crearTarea()
     {
@@ -451,7 +428,7 @@ class Show extends Component
         $this->aplicacion_id = $this->ticket->aplicacion_id ? $this->ticket->aplicacion_id : 'NULL';
         $this->impacto_id = $this->ticket->impacto_id ? $this->ticket->impacto_id : 'NULL';
         $this->prioridad = $this->ticket->prioridad ? $this->ticket->prioridad : 'NULL';
-
+        $this->tiempoRestante = $this->ticket->tiempo_restante;
         $this->emit('selectImpacto', $this->impacto_id);
     }
 
@@ -730,10 +707,11 @@ class Show extends Component
                 'estado_id' => 3,
                 'ans_id' => $nuevoAns ? $nuevoAns->id : $this->ticket->ans_id,  // Actualizar el ANS
                 'ans_inicial_vencido' => $ansCumplido ? false : true,  // Actualizar el ANS
+                'tiempo_restante' => $nuevoAns->t_resolucion_segundos,
+                'notificado' => true
             ]);
 
-            // Recalcular el tiempo restante en base al nuevo ANS
-            $this->calcularTiempoRestante();
+            $this->identificarTipoAns();
         }
 
         Historial::create([
@@ -793,7 +771,8 @@ class Show extends Component
                 'estado_id' => 6,
                 'ans_vencido' => $ansCumplido ? 0 : 1,
                 'notificadoSolucion' => true,
-                'tiempo_inicio_aceptacion' => now()
+                'tiempo_inicio_aceptacion' => now(),
+                'tiempo_restante' => $this->ticket->ans->t_aceptacion_segundos
 
             ]);
 

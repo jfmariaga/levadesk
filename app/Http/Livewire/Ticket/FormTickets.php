@@ -61,7 +61,7 @@ class FormTickets extends Component
         'tipo_solicitud_id' => 'required|exists:tipo_solicitudes,id',
         'categoria_id'      => 'required|exists:categorias,id',
         'subcategoria_id'   => 'required|exists:subcategorias,id',
-        'archivos.*'        => 'nullable|file|mimes:jpg,png,pdf,doc,docx,xlsx,xls,msg',
+        'archivos.*'        => 'nullable|file|mimes:jpg,png,pdf,doc,docx,xlsx,xls,msg,eml',
         'urgencia'          => 'required',
         'archivos'          => 'array|max:2',
         'aplicacion_id'     => 'nullable|exists:aplicaciones,id',
@@ -95,7 +95,7 @@ class FormTickets extends Component
         'subcategoria_id.exists'     => 'La Subcategoría seleccionada no es válida.',
 
         'archivos.*.file'            => 'Cada archivo debe ser un archivo válido.',
-        'archivos.*.mimes'           => 'Los archivos deben ser de tipo: jpg, png, pdf, doc, docx, xlsx, xls, msg.',
+        'archivos.*.mimes'           => 'Los archivos deben ser de tipo: jpg, png, pdf, doc, docx, xlsx, xls, msg, eml.',
         'archivos.array'             => 'El campo Archivos debe ser un arreglo.',
         'archivos.max'               => 'No se pueden subir más de 2 archivos.',
 
@@ -294,6 +294,7 @@ class FormTickets extends Component
             'grupo_id' => $grupo->id,
             'urgencia_id' => $this->urgencia,
             'aplicacion_id' => $this->aplicacion_id,
+            'tiempo_restante' => 3600,
             'ans_id' => $ansInicial ? $ansInicial->id : null,
         ]);
 
