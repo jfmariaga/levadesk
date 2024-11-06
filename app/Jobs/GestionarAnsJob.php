@@ -40,55 +40,25 @@ class GestionarAnsJob implements ShouldQueue
     {
         $ahora = Carbon::now();
         $ans = $ticket->ans;
-        $tiempoRestante = 0;
+        $tiempoRestante = $ticket->tiempo_restante;
 
-        // Verifica si el ticket no tiene una prioridad asignada (caso inicial)
-        if ($ticket->prioridad === null) {
-            $tiempoInicio = $ticket->created_at ? Carbon::parse($ticket->created_at) : null;
-            $tiempoTotalAns = $ans->t_asignacion_segundos;
-
-            if (FuncionesHelper::esDiaHabil($ahora) && $tiempoInicio) {
-                $tiempoTranscurrido = $tiempoInicio->diffInSeconds($ahora);
-                $tiempoRestante = max(0, $tiempoTotalAns - $tiempoTranscurrido);
-            } else {
-                $tiempoRestante = $ticket->tiempo_restante;
-            }
-
-            // Caso de resolución (cuando `tiempo_inicio_aceptacion` es nulo pero `tiempo_inicio_resolucion` tiene valor)
-        } elseif ($ticket->tiempo_inicio_aceptacion === null) {
-            $inicioAns = $ticket->tiempo_inicio_resolucion ? Carbon::parse($ticket->tiempo_inicio_resolucion) : null;
-            $tiempoTotalAns = $ans->t_resolucion_segundos;
-
-            if (FuncionesHelper::esDiaHabil($ahora) && $inicioAns) {
-                $tiempoTranscurrido = $inicioAns->diffInSeconds($ahora);
-                $tiempoRestante = max(0, $tiempoTotalAns - $tiempoTranscurrido);
-            } else {
-                $tiempoRestante = $ticket->tiempo_restante;
-            }
-
-            // Caso de aceptación (cuando `tiempo_inicio_aceptacion` tiene valor)
-        } else {
-            $inicioAns = $ticket->tiempo_inicio_aceptacion ? Carbon::parse($ticket->tiempo_inicio_aceptacion) : null;
-            $tiempoTotalAns = $ans->t_aceptacion_segundos;
-
-            if (FuncionesHelper::esDiaHabil($ahora) && $inicioAns) {
-                $tiempoTranscurrido = $inicioAns->diffInSeconds($ahora);
-                $tiempoRestante = max(0, $tiempoTotalAns - $tiempoTranscurrido);
-            } else {
-                $tiempoRestante = $ticket->tiempo_restante;
-            }
+        // Verifica si estamos en horario laboral
+        if (FuncionesHelper::esDiaHabil($ahora)) {
+            // Descontamos una cantidad pequeña de tiempo en cada ejecución del job
+            // Esto simula el paso de segundos en el horario laboral
+            $tiempoRestante = max(0, $tiempoRestante - 60); // Descuenta 60 segundos, puedes ajustar según frecuencia del job
         }
 
         // Guarda el tiempo restante en la base de datos
         $ticket->tiempo_restante = $tiempoRestante;
         $ticket->save();
 
-        // if ($ticket->tiempo_inicio_aceptacion != null) {
-        //     if ($ticket->tiempo_restante <= 0 && $ticket->estado_id != 4) {
-        //         $this->cerrarTicketAutomaticamente($ticket);
-        //     }
-        // }
+        // Cierre automático si el tiempo restante es 0 y el ticket no está cerrado
+        if ($ticket->tiempo_inicio_aceptacion != null && $ticket->tiempo_restante <= 0 && !in_array($ticket->estado_id, [4, 5])) {
+            $this->cerrarTicketAutomaticamente($ticket);
+        }
     }
+
 
     private function cerrarTicketAutomaticamente($ticket)
     {
