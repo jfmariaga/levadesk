@@ -63,10 +63,16 @@ class GestionarAnsJob implements ShouldQueue
     private function cerrarTicketAutomaticamente($ticket)
     {
         // Busca o crea un comentario de tipo 2
-        $comentario = Comentario::firstOrCreate(
-            ['ticket_id' => $ticket->id, 'tipo' => 2],
-            ['calificacion' => 5, 'comentario_calificacion' => 'La solución fue aceptada por el sistema ya que se superó el tiempo máximo de aceptación']
-        );
+        $comentario = Comentario::where('ticket_id', $ticket->id)->where('tipo', 2)->first();
+        if ($comentario) {
+            $comentario->update([
+                'calificacion' => 5,
+                'comentario_calificacion' => 'La solución fue aceptada por el sistema ya que se superó el tiempo máximo de aceptación'
+            ]);
+        } else {
+            Log::warning("Comentario tipo 2 para el Ticket ID {$ticket->id} no encontrado.");
+        }
+
 
         // Cambia el estado del ticket a "Cerrado" (estado_id = 4)
         $ticket->estado_id = 4;

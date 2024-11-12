@@ -757,7 +757,7 @@ class Show extends Component
 
         // Notificaciones basadas en el tipo de comentario
         if ($this->commentType == 0) {
-            return;
+            
         } elseif ($this->commentType == 1) {
             if ($this->ticket->colaboradors) {
                 foreach ($this->ticket->colaboradors as $colaborador) {
