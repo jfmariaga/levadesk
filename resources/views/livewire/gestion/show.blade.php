@@ -590,8 +590,9 @@
                                     @foreach ($ticket->archivos as $archivo)
                                         @if ($archivo->comentario_id == null)
                                             <li>
-                                                <a href="{{ Storage::url($archivo->ruta) }}"
-                                                    target="_blank">Adjunto</a>
+                                                <a href="{{ Storage::url($archivo->ruta) }}" target="_blank">
+                                                    {{ str_replace('-', ' ', basename($archivo->ruta, '.pdf')) }}
+                                                </a>
                                             </li>
                                         @endif
                                     @endforeach
@@ -736,7 +737,7 @@
                                                         @enderror
                                                     </div>
                                                     <!-- Mostrar la selección de aplicaciones solo si es SOPORTE DE APLICACIONES -->
-                                                    @if ($subcategoria && $subcategoria->nombre === 'SOPORTE DE APLICACIONES')
+                                                    @if ($subcategoria && in_array($subcategoria->nombre, ['SOPORTE DE APLICACIONES', 'DESARROLLO Y PERSONALIZACIONES']))
                                                         <div class="col-md-4">
                                                             <p><strong>Aplicación:</strong> <b style="color: red">*</b>
                                                             </p>
@@ -1097,7 +1098,8 @@
                                                                                 pruebas</h5>
                                                                         @elseif($ticket->cambio->check_aprobado_ti == true && $comentario->check_comentario == true)
                                                                             <h5 class="badge text-bg-dark"
-                                                                                style="background-color: #a3da92;">Se
+                                                                                style="background-color: #a3da92;">
+                                                                                {{ $ticket->cambio->aprobadorTiCambio->name }}
                                                                                 aprobó el paso a producción</h5>
                                                                         @else
                                                                             <div class="dropdown">
@@ -1107,8 +1109,8 @@
                                                                                         type="button"
                                                                                         data-toggle="dropdown"
                                                                                         aria-expanded="false">
+                                                                                    </button>
                                                                                 @endif
-                                                                                </button>
                                                                                 <div class="dropdown-menu">
                                                                                     <button
                                                                                         wire:click="mandarParaAprobacion({{ $comentario->id }})"
@@ -1137,7 +1139,9 @@
                                                                 @foreach ($comentario->archivos as $archivo)
                                                                     <li>
                                                                         <a href="{{ Storage::url($archivo->ruta) }}"
-                                                                            target="_blank">Adjunto</a>
+                                                                            target="_blank">
+                                                                            {{ str_replace('-', ' ', basename($archivo->ruta, '.pdf')) }}
+                                                                        </a>
                                                                     </li>
                                                                 @endforeach
                                                             </ul>

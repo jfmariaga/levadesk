@@ -343,9 +343,13 @@ class Show extends Component
             'selectedNewAgente' => 'required|exists:users,id',
         ]);
 
-        $this->ticket->asignado_a = $usuario->id;
+        $this->ticket->update([
+            'asignado_a' => $usuario->id,
+            'tiempo_restante' => 3600,
+            'ans_inicial_vencido' => 0,
+            'notificado' => 0,
+        ]);
 
-        $this->ticket->save();
 
         $usuario->notify(new TicketAsignado($this->ticket));
 
@@ -753,9 +757,7 @@ class Show extends Component
 
         // Notificaciones basadas en el tipo de comentario
         if ($this->commentType == 0) {
-            $this->ticket->update([
-                'estado_id' => 3
-            ]);
+            return;
         } elseif ($this->commentType == 1) {
             if ($this->ticket->colaboradors) {
                 foreach ($this->ticket->colaboradors as $colaborador) {

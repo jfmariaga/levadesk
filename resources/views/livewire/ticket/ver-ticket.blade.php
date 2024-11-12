@@ -447,8 +447,9 @@
                                     @foreach ($ticket->archivos as $archivo)
                                         @if ($archivo->comentario_id == null)
                                             <li>
-                                                <a href="{{ Storage::url($archivo->ruta) }}"
-                                                    target="_blank">Adjunto</a>
+                                                <a href="{{ Storage::url($archivo->ruta) }}" target="_blank">
+                                                    {{ str_replace('-', ' ', basename($archivo->ruta, '.pdf')) }}
+                                                </a>
                                             </li>
                                         @endif
                                     @endforeach
@@ -531,12 +532,12 @@
                                                                         class="d-flex justify-content-end row mr-2 mb-2">
                                                                         <button
                                                                             wire:click="aceptarSolucion({{ $comentario->id }})"
-                                                                            class="btn btn-outline-info btn-sm">
+                                                                            class="btn btn-outline-info btn-sm" title="Aceptar">
                                                                             <i class="fas fa-check-circle"></i>
                                                                         </button>
                                                                         <button
                                                                             wire:click="rechazarSolucion({{ $comentario->id }})"
-                                                                            class="btn btn-outline-danger btn-sm ml-2">
+                                                                            class="btn btn-outline-danger btn-sm ml-2" title="Rechazar">
                                                                             <i class="fas fa-times-circle"></i>
                                                                         </button>
                                                                     </div>
@@ -569,8 +570,9 @@
                                                                 <ul class="list-unstyled">
                                                                     @foreach ($comentario->archivos as $archivo)
                                                                         <li>
-                                                                            <a href="{{ Storage::url($archivo->ruta) }}"
-                                                                                target="_blank">Adjunto</a>
+                                                                            <a href="{{ Storage::url($archivo->ruta) }}" target="_blank">
+                                                                                {{ str_replace('-', ' ', basename($archivo->ruta, '.pdf')) }}
+                                                                            </a>
                                                                         </li>
                                                                     @endforeach
                                                                 </ul>
