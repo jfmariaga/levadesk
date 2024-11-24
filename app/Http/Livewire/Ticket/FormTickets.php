@@ -56,7 +56,7 @@ class FormTickets extends Component
 
     protected $rules = [
         'titulo'            => 'required|string|max:255',
-        'descripcion'       => 'required|string|min:20|max:325',
+        'descripcion'       => 'required|string|min:20|max:500',
         'sociedad_id'       => 'required|exists:sociedades,id',
         'tipo_solicitud_id' => 'required|exists:tipo_solicitudes,id',
         'categoria_id'      => 'required|exists:categorias,id',
@@ -81,7 +81,7 @@ class FormTickets extends Component
         'descripcion.required'       => 'El campo Descripción es obligatorio.',
         'descripcion.string'         => 'El campo Descripción debe ser una cadena de texto.',
         'descripcion.min'            => 'El campo Descripción debe tener al menos 20 caracteres.',
-        'descripcion.max'            => 'El campo Descripción no debe exceder los 325 caracteres.',
+        'descripcion.max'            => 'El campo Descripción no debe exceder los 500 caracteres.',
 
         'sociedad_id.required'       => 'El campo Sociedad es obligatorio.',
         'sociedad_id.exists'         => 'La Sociedad seleccionada no es válida.',
