@@ -339,8 +339,11 @@
                                         @if ($ticket->cambio)
                                             <p><strong>Formato adjunto</strong></p>
                                             @foreach ($ticket->cambio->archivos as $archivo)
-                                                <li><a href="{{ Storage::url($archivo->ruta) }}"
-                                                        target="_blank">Adjunto</a></li>
+                                                <li>
+                                                    <a href="{{ Storage::url($archivo->ruta) }}" target="_blank">
+                                                        {{ str_replace('-', ' ', basename($archivo->ruta, '.pdf')) }}
+                                                    </a>
+                                                </li>
                                             @endforeach
                                         @endif
                                     </div>
@@ -452,7 +455,9 @@
                                                                     @foreach ($comentario->archivos as $archivo)
                                                                         <li>
                                                                             <a href="{{ Storage::url($archivo->ruta) }}"
-                                                                                target="_blank">Adjunto</a>
+                                                                                target="_blank">
+                                                                                {{ str_replace('-', ' ', basename($archivo->ruta, '.pdf')) }}
+                                                                            </a>
                                                                         </li>
                                                                     @endforeach
                                                                 </ul>
@@ -635,6 +640,17 @@
                             @endif
                         </div>
                     </div>
+                    <div class="card mt-3" style="max-height: 400px; overflow-y: auto;">
+                        <div class="card-header">
+                            <h5>Flujo del Ticket</h5>
+                        </div>
+                        <div class="card-body">
+                            {{-- <p><strong>Estado Actual:</strong> {{ $flowData['currentState'] }}</p> --}}
+                            <div id="flow-diagram" style="position: relative; background: #f9f9f9; padding: 10px;">
+                                <!-- El flujo se renderizará aquí -->
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -682,6 +698,88 @@
                         console.error("Editor instance is not defined.");
                     }
                 });
+
+                //-------------------------------------------------------
+
+                // Renderizar flujo inicial
+                const flowData = @json($flowData);
+                renderFlowDiagram(flowData);
+
+                // Volver a renderizar el flujo después de una actualización de Livewire
+                Livewire.hook('message.processed', (message, component) => {
+                    const updatedFlowData = @json($flowData);
+                    renderFlowDiagram(updatedFlowData);
+                });
+
+                Livewire.on('updateFlowDiagram', function(updatedFlowData) {
+                    setTimeout(() => {
+                        renderFlowDiagram(updatedFlowData);
+                    }, 50);
+                });
+
+                function renderFlowDiagram(flowData) {
+                    const container = document.getElementById('flow-diagram');
+                    if (!container) {
+                        console.error('El contenedor "flow-diagram" no existe en el DOM.');
+                        return;
+                    }
+                    container.innerHTML = ''; // Limpiar contenido previo
+
+                    let yPosition = 20; // Posición inicial vertical
+                    const stepHeight = 60; // Espacio entre cada estado
+
+                    // // Mostrar los estados visitados
+                    // flowData.flowStates.forEach(state => {
+                    //     const stateElement = document.createElement('div');
+                    //     stateElement.innerText = state.estado; // Muestra solo el nombre del estado
+                    //     stateElement.style.padding = '5px';
+                    //     stateElement.style.marginBottom = '10px';
+                    //     stateElement.style.background = '#d9f7be'; // Verde para estados visitados
+                    //     stateElement.style.border = '1px solid #b7eb8f';
+                    //     stateElement.style.borderRadius = '4px';
+                    //     stateElement.style.fontSize = '12px'; // Reducir tamaño de fuente
+                    //     stateElement.style.textAlign = 'center';
+                    //     stateElement.style.width = '100%'; // Ancho completo del contenedor
+                    //     container.appendChild(stateElement);
+
+                    //     yPosition += stepHeight; // Incrementar posición vertical
+                    // });
+
+                    // Mostrar el estado actual
+                    const currentStateElement = document.createElement('div');
+                    currentStateElement.innerText = `Estado Actual: ${flowData.currentState}`;
+                    currentStateElement.style.padding = '5px';
+                    currentStateElement.style.marginBottom = '10px';
+                    currentStateElement.style.background = '#ffa07a'; // Naranja para el estado actual
+                    currentStateElement.style.border = '1px solid #ff6347';
+                    currentStateElement.style.borderRadius = '4px';
+                    currentStateElement.style.fontSize = '12px';
+                    currentStateElement.style.textAlign = 'center';
+                    currentStateElement.style.width = '100%';
+                    container.appendChild(currentStateElement);
+
+                    // Mostrar las posibles acciones
+                    const possibleActionsTitle = document.createElement('div');
+                    possibleActionsTitle.innerText = 'Posibles Acciones:';
+                    possibleActionsTitle.style.fontWeight = 'bold';
+                    possibleActionsTitle.style.marginBottom = '5px';
+                    possibleActionsTitle.style.fontSize = '14px';
+                    container.appendChild(possibleActionsTitle);
+
+                    flowData.nextStates.forEach(action => {
+                        const actionElement = document.createElement('div');
+                        actionElement.innerText = action; // Muestra el nombre de la acción
+                        actionElement.style.padding = '5px';
+                        actionElement.style.marginBottom = '5px';
+                        actionElement.style.background = '#f9f9f9'; // Gris claro para las acciones
+                        actionElement.style.border = '1px solid #ddd';
+                        actionElement.style.borderRadius = '4px';
+                        actionElement.style.fontSize = '12px';
+                        actionElement.style.textAlign = 'center';
+                        actionElement.style.width = '100%';
+                        container.appendChild(actionElement);
+                    });
+                }
             });
 
             function confirmDelete(id) {

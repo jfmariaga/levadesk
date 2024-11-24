@@ -414,20 +414,20 @@
                             @if ($ticket->excepcion)
                                 <div class="row">
                                     <div class="col-md-3">
-                                        <p><strong>Usuario:</strong> {{$ticket->excepcion->usuario_sap}}</p>
+                                        <p><strong>Usuario:</strong> {{ $ticket->excepcion->usuario_sap }}</p>
                                     </div>
                                     <div class="col-md-3">
-                                        <p><strong>Modulo:</strong> {{$ticket->excepcion->modulo}}</p>
+                                        <p><strong>Modulo:</strong> {{ $ticket->excepcion->modulo }}</p>
                                     </div>
                                     <div class="col-md-3">
-                                        <p><strong>Fecha inicio:</strong> {{$ticket->excepcion->fecha_inicio}}</p>
+                                        <p><strong>Fecha inicio:</strong> {{ $ticket->excepcion->fecha_inicio }}</p>
                                     </div>
                                     <div class="col-md-3">
-                                        <p><strong>Fecha fin:</strong> {{$ticket->excepcion->fecha_fin}}</p>
+                                        <p><strong>Fecha fin:</strong> {{ $ticket->excepcion->fecha_fin }}</p>
                                     </div>
                                 </div>
                                 <hr>
-                             @endif
+                            @endif
                             <div class="row">
                                 <div class="col-md-3">
                                     <p><strong>Urgencia:</strong> {{ $ticket->urgencia->nombre }}</p>
@@ -532,12 +532,14 @@
                                                                         class="d-flex justify-content-end row mr-2 mb-2">
                                                                         <button
                                                                             wire:click="aceptarSolucion({{ $comentario->id }})"
-                                                                            class="btn btn-outline-info btn-sm" title="Aceptar">
+                                                                            class="btn btn-outline-info btn-sm"
+                                                                            title="Aceptar">
                                                                             <i class="fas fa-check-circle"></i>
                                                                         </button>
                                                                         <button
                                                                             wire:click="rechazarSolucion({{ $comentario->id }})"
-                                                                            class="btn btn-outline-danger btn-sm ml-2" title="Rechazar">
+                                                                            class="btn btn-outline-danger btn-sm ml-2"
+                                                                            title="Rechazar">
                                                                             <i class="fas fa-times-circle"></i>
                                                                         </button>
                                                                     </div>
@@ -570,7 +572,8 @@
                                                                 <ul class="list-unstyled">
                                                                     @foreach ($comentario->archivos as $archivo)
                                                                         <li>
-                                                                            <a href="{{ Storage::url($archivo->ruta) }}" target="_blank">
+                                                                            <a href="{{ Storage::url($archivo->ruta) }}"
+                                                                                target="_blank">
                                                                                 {{ str_replace('-', ' ', basename($archivo->ruta, '.pdf')) }}
                                                                             </a>
                                                                         </li>
@@ -604,11 +607,22 @@
                                                                     <label for="file" class="custom-file-upload">
                                                                         <i class="fa fa-paperclip"></i>
                                                                     </label>
-                                                                    <input type="file" id="file" name="file"
-                                                                        class="d-none" wire:model="newFile">
+                                                                    <input type="file" id="file"
+                                                                        name="file" class="d-none"
+                                                                        wire:model="newFile">
                                                                 </span>
                                                             </div>
                                                             <div class="input-group-append">
+                                                                @if ($ticket->estado_id == 12)
+                                                                    <select wire:model="commentType"
+                                                                        id="tipoComentario"
+                                                                        class="form-control form-control-sm">
+                                                                        <option value="9">Si funciona
+                                                                        </option>
+                                                                        <option value="10">No funciona
+                                                                        </option>
+                                                                    </select>
+                                                                @endif
                                                                 <button wire:click="addComment"
                                                                     class="btn btn-outline-info btn-sm">Responder
                                                                 </button>

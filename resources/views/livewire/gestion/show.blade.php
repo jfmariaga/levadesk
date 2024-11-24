@@ -736,8 +736,14 @@
                                                             <span class="text-danger">{{ $message }}</span>
                                                         @enderror
                                                     </div>
-                                                    <!-- Mostrar la selección de aplicaciones solo si es SOPORTE DE APLICACIONES -->
-                                                    @if ($subcategoria && in_array($subcategoria->nombre, ['SOPORTE DE APLICACIONES', 'DESARROLLO Y PERSONALIZACIONES']))
+                                                    @if (
+                                                        $subcategoria &&
+                                                            in_array($subcategoria->nombre, [
+                                                                'SOPORTE DE APLICACIONES',
+                                                                'DESARROLLO Y PERSONALIZACIONES',
+                                                                'SOLICITUD DE CAPACITACION',
+                                                                'INSTALACION Y ACTUALIZACION',
+                                                            ]))
                                                         <div class="col-md-4">
                                                             <p><strong>Aplicación:</strong> <b style="color: red">*</b>
                                                             </p>
@@ -1102,7 +1108,7 @@
                                                                                 {{ $ticket->cambio->aprobadorTiCambio->name }}
                                                                                 aprobó el paso a producción</h5>
                                                                         @else
-                                                                            <div class="dropdown">
+                                                                            <div class="dropdown d-none">
                                                                                 @if ($ticket->cambio->check_aprobado_ti != true && $comentario->check_comentario != true)
                                                                                     <button
                                                                                         class="btn btn-info btn-sm dropdown-toggle"
@@ -1111,10 +1117,10 @@
                                                                                         aria-expanded="false">
                                                                                     </button>
                                                                                 @endif
-                                                                                <div class="dropdown-menu">
+                                                                                <div class="dropdown-menu ">
                                                                                     <button
                                                                                         wire:click="mandarParaAprobacion({{ $comentario->id }})"
-                                                                                        class="dropdown-item">Enviar
+                                                                                        class="dropdown-item ">Enviar
                                                                                         para aprobación de set de
                                                                                         pruebas</button>
                                                                                 </div>
@@ -1183,20 +1189,34 @@
                                                                     <option value="0">Público</option>
                                                                     <option value="1">Privado</option>
                                                                     @if (Auth::id() == $ticket->asignado_a)
-                                                                        @if ($ticket->estado_id != 9 && $ticket->estado_id != 10 && $ticket->estado_id != 15)
+                                                                        @if (
+                                                                            $ticket->estado_id != 9 &&
+                                                                                $ticket->estado_id != 10 &&
+                                                                                $ticket->estado_id != 15 &&
+                                                                                $ticket->estado_id != 11 &&
+                                                                                $ticket->estado_id != 14 &&
+                                                                                $ticket->estado_id != 18)
                                                                             @if (!$ticket->solucion())
                                                                                 <option value="2">Solución
                                                                                 </option>
                                                                             @endif
                                                                         @endif
-                                                                        @if ($ticket->cambio && $ticket->cambio->estado == 'aprobado' && $ticket->cambio->check_aprobado_ti == false)
+                                                                        @if (
+                                                                            $ticket->cambio &&
+                                                                                $ticket->cambio->estado == 'aprobado' &&
+                                                                                $ticket->cambio->check_aprobado_ti == false &&
+                                                                                $ticket->estado_id != 11)
                                                                             @if (!$ticket->solucion())
                                                                                 <option value="5">Set de pruebas
                                                                                 </option>
                                                                             @endif
                                                                         @endif
                                                                     @endif
-                                                                    @if ($ticket->cambio && $ticket->cambio->check_aprobado_ti == true && $ticket->colaboradores->contains('id', Auth::id()))
+                                                                    @if (
+                                                                        $ticket->cambio &&
+                                                                            $ticket->cambio->check_aprobado_ti == true &&
+                                                                            $ticket->colaboradores->contains('id', Auth::id()) &&
+                                                                            $ticket->estado_id == 14)
                                                                         @if (!$ticket->solucion())
                                                                             <option value="6">Validar Productivo
                                                                             </option>
@@ -1210,6 +1230,10 @@
                                                                             <option value="7">Validar Acceso
                                                                             </option>
                                                                         @endif
+                                                                    @endif
+                                                                    @if ($ticket->estado_id == 11)
+                                                                        <option value="8">Pedir aprobación del set
+                                                                        </option>
                                                                     @endif
                                                                 </select>
                                                                 <button wire:click="addComment"
@@ -1318,6 +1342,21 @@
                             @endif
                         </div>
                     </div>
+                    @if ($ticket->tipo_solicitud_id != 4)
+                        <div class="card mt-3" style="max-height: 400px; overflow-y: auto;">
+                            <div class="card-header">
+                                <h5>Flujo del Ticket</h5>
+                            </div>
+                            <div class="card-body">
+                                {{-- <p><strong>Estado Actual:</strong> {{ $flowData['currentState'] }}</p> --}}
+                                <div id="flow-diagram"
+                                    style="position: relative; background: #f9f9f9; padding: 10px;">
+                                    <!-- El flujo se renderizará aquí -->
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
                 </div>
             </div>
         </div>
@@ -1348,6 +1387,92 @@
                         @this.set('selectedTi', $(this).val());
                     });
                 }
+
+                //-------------------------------------------------------
+
+                // Renderizar flujo inicial
+                const flowData = @json($flowData);
+                renderFlowDiagram(flowData);
+
+                // Volver a renderizar el flujo después de una actualización de Livewire
+                Livewire.hook('message.processed', (message, component) => {
+                    const updatedFlowData = @json($flowData);
+                    renderFlowDiagram(updatedFlowData);
+                });
+
+                Livewire.on('updateFlowDiagram', function(updatedFlowData) {
+                    setTimeout(() => {
+                        renderFlowDiagram(updatedFlowData);
+                    }, 50);
+                });
+
+                function renderFlowDiagram(flowData) {
+                    const container = document.getElementById('flow-diagram');
+                    if (!container) {
+                        console.error('El contenedor "flow-diagram" no existe en el DOM.');
+                        return;
+                    }
+                    container.innerHTML = ''; // Limpiar contenido previo
+
+                    let yPosition = 20; // Posición inicial vertical
+                    const stepHeight = 60; // Espacio entre cada estado
+
+                    // // Mostrar los estados visitados
+                    // flowData.flowStates.forEach(state => {
+                    //     const stateElement = document.createElement('div');
+                    //     stateElement.innerText = state.estado; // Muestra solo el nombre del estado
+                    //     stateElement.style.padding = '5px';
+                    //     stateElement.style.marginBottom = '10px';
+                    //     stateElement.style.background = '#d9f7be'; // Verde para estados visitados
+                    //     stateElement.style.border = '1px solid #b7eb8f';
+                    //     stateElement.style.borderRadius = '4px';
+                    //     stateElement.style.fontSize = '12px'; // Reducir tamaño de fuente
+                    //     stateElement.style.textAlign = 'center';
+                    //     stateElement.style.width = '100%'; // Ancho completo del contenedor
+                    //     container.appendChild(stateElement);
+
+                    //     yPosition += stepHeight; // Incrementar posición vertical
+                    // });
+
+                    // Mostrar el estado actual
+                    const currentStateElement = document.createElement('div');
+                    currentStateElement.innerText = `Estado Actual: ${flowData.currentState}`;
+                    currentStateElement.style.padding = '5px';
+                    currentStateElement.style.marginBottom = '10px';
+                    currentStateElement.style.background = '#ffa07a'; // Naranja para el estado actual
+                    currentStateElement.style.border = '1px solid #ff6347';
+                    currentStateElement.style.borderRadius = '4px';
+                    currentStateElement.style.fontSize = '12px';
+                    currentStateElement.style.textAlign = 'center';
+                    currentStateElement.style.width = '100%';
+                    container.appendChild(currentStateElement);
+
+                    // Mostrar las posibles acciones
+                    const possibleActionsTitle = document.createElement('div');
+                    possibleActionsTitle.innerText = 'Posibles Acciones:';
+                    possibleActionsTitle.style.fontWeight = 'bold';
+                    possibleActionsTitle.style.marginBottom = '5px';
+                    possibleActionsTitle.style.fontSize = '14px';
+                    container.appendChild(possibleActionsTitle);
+
+                    flowData.nextStates.forEach(action => {
+                        const actionElement = document.createElement('div');
+                        actionElement.innerText = action; // Muestra el nombre de la acción
+                        actionElement.style.padding = '5px';
+                        actionElement.style.marginBottom = '5px';
+                        actionElement.style.background = '#f9f9f9'; // Gris claro para las acciones
+                        actionElement.style.border = '1px solid #ddd';
+                        actionElement.style.borderRadius = '4px';
+                        actionElement.style.fontSize = '12px';
+                        actionElement.style.textAlign = 'center';
+                        actionElement.style.width = '100%';
+                        container.appendChild(actionElement);
+                    });
+                }
+
+
+
+                //--------------------------------------------------------------------------
 
                 function initializeEditor() {
                     ClassicEditor
@@ -1422,6 +1547,7 @@
                         window.location.href = '/gestion';
                     }, 3000);
                 });
+
             });
         </script>
     @endpush

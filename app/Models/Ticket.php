@@ -78,6 +78,11 @@ class Ticket extends Model
         return $this->belongsTo(Estado::class);
     }
 
+    public function estados()
+    {
+        return $this->hasMany(TicketEstado::class);
+    }
+
     public function ans()
     {
         return $this->belongsTo(ANS::class);

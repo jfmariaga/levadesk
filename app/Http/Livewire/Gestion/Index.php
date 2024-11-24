@@ -73,7 +73,7 @@ class Index extends Component
     public function filtrarEnProceso()
     {
         // Definir los estados en proceso según los IDs que tienes en la lógica
-        $this->SelectedEstado = ['3', '8', '7', '6', '9', '10', '11', '12', '13', '14', '15', '16'];
+        $this->SelectedEstado = ['3', '8', '7', '6', '9', '10', '11', '12', '13', '14', '15', '16','17','18'];
         $this->cargarDatos();
     }
 
@@ -120,7 +120,7 @@ class Index extends Component
         });
 
         $this->ticketsSolucionados = $this->tickets->where('estado_id', 4);
-        $this->ticketsEnProceso = $this->tickets->whereIn('estado_id', ['3', '8', '7', '6', '9', '10', '11', '12', '13', '14', '15', '16'])->count();
+        $this->ticketsEnProceso = $this->tickets->whereIn('estado_id', ['3', '8', '7', '6', '9', '10', '11', '12', '13', '14', '15', '16','17','18'])->count();
         $this->ticketsPorIniciar = $this->tickets->where('estado_id', 1)->count();
         $this->totalHorasSoporte = $this->calcularHorasSoporte($this->tickets);
 

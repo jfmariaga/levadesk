@@ -26,7 +26,7 @@ class TarjetasUsuario extends Component
     public function contarTickets()
     {
         $this->ticketsAbiertos = Ticket::where('usuario_id', $this->usuarioId->id)->where('estado_id', 1)->count();
-        $this->ticketsEnProceso = Ticket::where('usuario_id', $this->usuarioId->id)->whereIn('estado_id', ['3', '8', '7', '6', '9', '10', '11', '12', '13', '14', '15', '16'])->count();
+        $this->ticketsEnProceso = Ticket::where('usuario_id', $this->usuarioId->id)->whereIn('estado_id', ['3', '8', '7', '6', '9', '10', '11', '12', '13', '14', '15', '16','17','18'])->count();
         $this->ticketsCerrados = Ticket::where('usuario_id', $this->usuarioId->id)->where('estado_id', 4)->count();
         $this->ticketsRechazados = Ticket::where('usuario_id', $this->usuarioId->id)->where('estado_id', 5)->count();
         $this->ticketsTotal = Ticket::where('usuario_id', $this->usuarioId->id)->count();

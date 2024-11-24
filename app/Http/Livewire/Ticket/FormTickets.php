@@ -69,6 +69,7 @@ class FormTickets extends Component
         // 'modulo'            => 'required_if:esExcepcion,true|string',
         // 'fecha_inicio'      => 'required_if:esExcepcion,true|date',
         // 'fecha_fin'         => 'required_if:esExcepcion,true|date|after_or_equal:fecha_inicio',
+        // 'aplicacion_id' =>  'required_if:categoria_id,2,6|exists:aplicaciones,id',
     ];
 
     // Mensajes de error personalizados
@@ -102,7 +103,7 @@ class FormTickets extends Component
         'urgencia.required'          => 'El campo Urgencia es obligatorio.',
 
         'aplicacion_id.exists'       => 'La Aplicación seleccionada no es válida.',
-
+        // 'aplicacion_id.required_if'  => 'Debe seleccionar una aplicación para esta categoría.',
         // Mensajes opcionales para los campos condicionales
         // 'usuario_sap.required_if'   => 'El campo Usuario SAP es obligatorio cuando es una excepción.',
         // 'modulo.required_if'        => 'El campo Módulo es obligatorio cuando es una excepción.',
@@ -166,13 +167,9 @@ class FormTickets extends Component
             $this->updatedCategoriaId($this->categoria_id);
         }
 
-        // Verificar si la subcategoría seleccionada es SOPORTE DE APLICACIONES
-        // if ($this->subcategoria_id && Subcategoria::find($this->subcategoria_id)->nombre === 'SOPORTE DE APLICACIONES') {
-        //     $this->aplicaciones = Aplicaciones::where('sociedad_id', $this->sociedad_id)->where('estado', 0)->get();
-        // }
         if ($this->subcategoria_id) {
             $subcategoriaNombre = Subcategoria::find($this->subcategoria_id)->nombre;
-            if (in_array($subcategoriaNombre, ['SOPORTE DE APLICACIONES', 'DESARROLLO Y PERSONALIZACIONES'])) {
+            if (in_array($subcategoriaNombre, ['SOPORTE DE APLICACIONES', 'DESARROLLO Y PERSONALIZACIONES', 'INSTALACION Y ACTUALIZACION','SOLICITUD DE CAPACITACION'])) {
                 $this->aplicaciones = Aplicaciones::where('sociedad_id', $this->sociedad_id)->where('estado', 0)->get();
             }
         }
@@ -182,16 +179,8 @@ class FormTickets extends Component
     {
         $this->aplicaciones = [];
 
-        // Verificar si la subcategoría seleccionada es SOPORTE DE APLICACIONES
-        // $subcategoria = Subcategoria::find($value);
-        // if ($subcategoria && $subcategoria->nombre === 'SOPORTE DE APLICACIONES') {
-        //     $this->aplicaciones = Aplicaciones::where('sociedad_id', $this->sociedad_id)->where('estado', 0)->get();
-        // } else {
-        //     $this->aplicacion_id = null; // Si no es SOPORTE DE APLICACIONES, ocultar el campo de aplicaciones
-        // }
-
         $subcategoria = Subcategoria::find($value);
-        if ($subcategoria && in_array($subcategoria->nombre, ['SOPORTE DE APLICACIONES', 'DESARROLLO Y PERSONALIZACIONES'])) {
+        if ($subcategoria && in_array($subcategoria->nombre, ['SOPORTE DE APLICACIONES', 'DESARROLLO Y PERSONALIZACIONES', 'INSTALACION Y ACTUALIZACION','SOLICITUD DE CAPACITACION'])) {
             $this->aplicaciones = Aplicaciones::where('sociedad_id', $this->sociedad_id)->where('estado', 0)->get();
         } else {
             $this->aplicacion_id = null;
@@ -237,7 +226,7 @@ class FormTickets extends Component
         $grupo = null;
 
         // Si la subcategoría es SOPORTE DE APLICACIONES, asignar según la aplicación seleccionada
-        if (in_array($subcategoria->nombre, ['SOPORTE DE APLICACIONES', 'DESARROLLO Y PERSONALIZACIONES'])) {
+        if (in_array($subcategoria->nombre, ['SOPORTE DE APLICACIONES', 'DESARROLLO Y PERSONALIZACIONES', 'INSTALACION Y ACTUALIZACION','SOLICITUD DE CAPACITACION'])) {
             // Obtener la aplicación seleccionada
             $aplicacion = Aplicaciones::find($this->aplicacion_id);
 

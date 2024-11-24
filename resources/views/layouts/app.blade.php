@@ -416,8 +416,7 @@
     <script src="https://cdn.ckeditor.com/ckeditor5/27.1.0/classic/ckeditor.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsPlumb/2.15.5/js/jsplumb.min.js"></script>
 
 
     {{-- <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script> --}}

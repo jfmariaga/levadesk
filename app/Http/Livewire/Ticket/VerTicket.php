@@ -45,6 +45,7 @@ class VerTicket extends Component
     public $impacto;
     public $ticket_id;
     public $idcomentario;
+    public $commentType = 9;
 
     protected $queryString = ['ticket_id'];
 
@@ -159,14 +160,54 @@ class VerTicket extends Component
 
     public function addComment()
     {
-        $this->validate(['newComment' => 'required|string']);
 
+
+        $this->validate(['newComment' => 'required|string']);
+        // dd($this->ticket->estado_id);
         // Crear el comentario y guardarlo en la variable $comentario
         $comentario = $this->ticket->comentarios()->create([
             'user_id' => auth()->id(),
             'comentario' => $this->newComment,
             'tipo' => 0,
         ]);
+
+        if ($this->ticket->estado_id == 12) {
+            if ($this->commentType == 9) {
+                Historial::create([
+                    'ticket_id' => $this->ticket->id,
+                    'user_id' => auth()->id(),
+                    'accion' => 'No aceptación',
+                    'detalle' => 'El usuario indico que están funcionando los cambios en producción',
+                ]);
+
+                $this->ticket->update([
+                    'estado_id' => 17,
+                ]);
+            } else {
+                Historial::create([
+                    'ticket_id' => $this->ticket->id,
+                    'user_id' => auth()->id(),
+                    'accion' => 'No aceptación',
+                    'detalle' => 'El usuario indico que NO están funcionando los cambios en producción.',
+                ]);
+
+                $this->ticket->update([
+                    'estado_id' => 18,
+                ]);
+                $this->ticket->cambio->update([
+                    'check_aprobado_ti' => false,
+                ]);
+
+                foreach ($this->ticket->comentarios as $comen) {
+                    if ($comen->check_comentario == true) {
+                        $comen->update([
+                            'check_comentario' => false,
+                        ]);
+                    }
+                }
+            }
+        }
+
 
         // Asocia el archivo con el comentario recién creado si existe
         if ($this->newFile) {

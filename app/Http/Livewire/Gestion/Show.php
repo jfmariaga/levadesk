@@ -39,6 +39,7 @@ use Livewire\Component;
 use Illuminate\Support\Str;
 use Livewire\WithFileUploads;
 use Illuminate\Support\Facades\Notification;
+use \Illuminate\Support\Facades\DB;
 
 class Show extends Component
 {
@@ -90,6 +91,7 @@ class Show extends Component
     public $sociedad_id;
     public $agentes = [];
     public $tipoANS;
+    public $flowData;
 
     protected $rules = [
         'categoria_id' => 'required',
@@ -102,10 +104,101 @@ class Show extends Component
     public function mount()
     {
         $this->loadTicket();
+        $this->loadFlow();
         $this->usuarios = User::where('estado', 1)->where('id', '!=', Auth::id())->get();
         $this->aprobadores = User::where('estado', 1)->where('id', '!=', Auth::id())->where('aprobador_ti', true)->get();
         $this->agentes = User::role(['Admin', 'Agente'])->where('id', '!=', Auth::id())->get();
         $this->identificarTipoAns();
+    }
+
+
+    public function loadFlow()
+    {
+        // Refrescar el modelo del ticket para obtener los datos más recientes
+        $this->ticket = $this->ticket->fresh();
+
+        // Definir las transiciones generales
+        $transitions = [
+            1 => ['RECATEGORIZAR', 'REASIGNAR', 'ASIGNAR IMPACTO'],
+            2 => ['EN ATENCIÓN'],
+            3 => ['REQUIERE CAMBIO', 'ESCALADO A CONSULTORÍA', 'SOLUCIÓN', 'GESTIÓN DE ACCESO'],
+            4 => [],
+            5 => ['EN ESPERA', 'RECHAZADO', 'SET APROBADO'],
+            6 => ['REABIERTO', 'FINALIZADO'],
+            7 => ['REQUIERE CAMBIO', 'ESCALADO A CONSULTORÍA', 'SOLUCIÓN', 'GESTIÓN DE ACCESO'],
+            8 => ['EN PRUEBAS DE USUARIO', 'PRUEBAS AMBIENTE PRODUCTIVO'],
+            9 => ['EN ATENCIÓN'],
+            10 => ['EN ESPERA DE APROBACIÓN PASO A PRODUCTIVO (Líder TI)'],
+            11 => [' 1. EN ESPERAS DE EVIDENCIAS SET DE PRUEBAS','2. ADJUNTAR DOCUMENTACIÓN TÉCNICA', '3. PEDIR APROBACIÓN TRANSPORTE A PRODUCTIVO'],
+            12 => ['EN ESPERAS DE EVIDENCIAS AMBIENTE PRODUCTIVO'],
+            13 => ['1. AGREGAR COLABORADOR', '2. ASIGNAR TAREA DE TRANSPORTE', '3. APLICAR TRANSPORTE (colaborador)'],
+            14 => ['1. AGREGAR COLABORADOR', '2. ASIGNAR TAREA DE TRANSPORTE', '3. APLICAR TRANSPORTE (colaborador)'],
+            15 => ['CONFIGURAR ACCESO'],
+            16 => ['EL USUARIO DEBE DE VALIDAR EL ACCESO'],
+            17 => ['FINALIZAR TICKET'],
+            18 => ['VALIDAR FALLAS EN PRODUCCIÓN','CONFIGURAR NUEVAMENTE EL SET DE PRUEBAS'],
+        ];
+
+        // Definir las transiciones específicas de los cambios
+        $changeTransitions = [
+            'pendiente' => ['EN ESPERA DE APROBACIÓN FUNCIONAL'],
+            'rechazo_funcional' => ['RECHAZADO'],
+            'aprobado_funcional' => ['POR APROBAR LÍDER TI'],
+            'rechazo_ti' => ['ESPERA DE APROBACIÓN FUNCIONAL'],
+            'aprobado' => ['CONFIGURACIÓN DE SET DE PRUEBAS'], // Este es el paso intermedio
+        ];
+
+        // Obtener el estado actual del ticket
+        $currentState = $this->ticket->estado->nombre;
+
+        // Cargar los estados visitados desde la base de datos
+        $ticketEstados = DB::table('ticket_estados')
+            ->where('ticket_id', $this->ticket->id)
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        $visitedStates = [];
+        foreach ($ticketEstados as $estado) {
+            $visitedStates[] = [
+                'estado' => DB::table('estados')->where('id', $estado->estado_id)->value('nombre'),
+                'visitado' => true,
+            ];
+        }
+
+        // Verificar si hay un flujo de cambios asociado al ticket
+        $nextStates = [];
+        $cambio = $this->ticket->cambio;
+
+        if ($cambio) {
+            if ($cambio->estado === 'aprobado') {
+                // Si el cambio está aprobado y el estado actual no es "EN ATENCIÓN", sigue el flujo del ticket
+                if ($this->ticket->estado_id !== 3) { // 2 corresponde a "EN ATENCIÓN"
+                    $nextStates = $transitions[$this->ticket->estado_id] ?? [];
+                } else {
+                    // Si el estado es "EN ATENCIÓN", sigue las transiciones del cambio
+                    $nextStates = $changeTransitions[$cambio->estado] ?? [];
+                }
+            } else {
+                // Si el cambio no está aprobado, sigue las transiciones del cambio
+                $nextStates = $changeTransitions[$cambio->estado] ?? [];
+            }
+        } else {
+            // Si no hay un cambio asociado, sigue las transiciones generales del ticket
+            $nextStates = $transitions[$this->ticket->estado_id] ?? [];
+        }
+
+        // Construir la estructura de datos para el frontend
+        $this->flowData = [
+            'currentState' => $currentState,
+            'nextStates' => $nextStates,
+            'flowStates' => $visitedStates,
+        ];
+    }
+
+    public function updateFlow()
+    {
+        $this->loadFlow();
+        $this->emit('updateFlowDiagram', $this->flowData);
     }
 
     public function identificarTipoAns()
@@ -250,6 +343,7 @@ class Show extends Component
         $this->emit('showToast', ['type' => 'success', 'message' => 'Se inicio el flujo correctamente']);
         $this->selectedTi = "";
         $this->selectedFuncional = "";
+        $this->updateFlow();
         $this->loadTicket();
     }
 
@@ -306,6 +400,7 @@ class Show extends Component
         $this->emit('showToast', ['type' => 'success', 'message' => 'Se inicio el flujo correctamente']);
         $this->selectedTi = "";
         $this->selectedFuncional = "";
+        $this->updateFlow();
         $this->loadTicket();
     }
 
@@ -648,6 +743,7 @@ class Show extends Component
         $usuario->notify(new Reasignado($usuarioAsignado, $this->ticket));
 
         // Recargar los datos del ticket para reflejar los cambios
+        $this->updateFlow();
         $this->loadTicket();
     }
 
@@ -733,7 +829,7 @@ class Show extends Component
         ]);
 
         $this->ticket->usuario->notify(new CambioEstado($this->ticket));
-
+        $this->updateFlow();
         $this->loadTicket();
         $this->emit('editorVisible');
         $this->impacto = false;
@@ -741,7 +837,7 @@ class Show extends Component
 
     public function addComment()
     {
-        $this->validate(['newComment' => 'required|string', 'commentType' => 'required|integer|in:0,1,2,3,4,5,6,7']);
+        $this->validate(['newComment' => 'required|string', 'commentType' => 'required|integer|in:0,1,2,3,4,5,6,7,8']);
 
         // Crear el comentario y guardarlo en la variable $comentario
         $comentario = $this->ticket->comentarios()->create([
@@ -757,7 +853,6 @@ class Show extends Component
 
         // Notificaciones basadas en el tipo de comentario
         if ($this->commentType == 0) {
-            
         } elseif ($this->commentType == 1) {
             if ($this->ticket->colaboradors) {
                 foreach ($this->ticket->colaboradors as $colaborador) {
@@ -823,7 +918,7 @@ class Show extends Component
 
             $this->ticket->usuario->notify(new PruebasProductivo($comentario));
             $this->ticket->asignado->notify(new PruebasProductivo($comentario));
-        } else {
+        } elseif ($this->commentType == 7) {
             $this->ticket->update([
                 'estado_id' => 16
             ]);
@@ -837,11 +932,14 @@ class Show extends Component
 
             $this->ticket->usuario->notify(new PruebasAccesos($comentario));
             $this->ticket->asignado->notify(new PruebasAccesos($comentario));
+        }else{
+             $this->mandarParaAprobacion($comentario->id);
         }
 
         // Limpiar el estado después de agregar el comentario
         $this->newComment = '';
         $this->commentType = 0;
+        $this->updateFlow();
         $this->loadTicket('comentarios'); // Refresca los datos del ticket
         $this->emit('resetearEditor');
     }
@@ -899,6 +997,7 @@ class Show extends Component
         $this->ticket->usuario->notify(new CambioEstado($this->ticket));
 
         $this->emit('showToast', ['type' => 'success', 'message' => 'Cambio de estado a: Escalado a consultoría']);
+        $this->updateFlow();
         $this->loadTicket($this->ticket->id);
     }
 
@@ -937,7 +1036,7 @@ class Show extends Component
         }
 
 
-
+        $this->updateFlow();
         $this->loadTicket($this->ticket->id);
     }
 
@@ -967,6 +1066,7 @@ class Show extends Component
 
         $this->ticket->cambio->aprobadorTiCambio->notify(new AprobarSet($this->ticket));
         $this->emit('showToast', ['type' => 'success', 'message' => 'Enviado para aprobación']);
+        $this->updateFlow();
         $this->loadTicket();
     }
 
@@ -978,6 +1078,7 @@ class Show extends Component
         $this->aplicaciones = Aplicaciones::where('sociedad_id', $this->sociedad_id)->where('estado', 0)->get();
         $this->impactos = Impacto::all();
         $historial = Historial::where('ticket_id', $this->ticket_id)->orderBy('created_at', 'Asc')->get();
+        $this->updateFlow();
         return view('livewire.gestion.show', compact('historial'));
     }
 }
