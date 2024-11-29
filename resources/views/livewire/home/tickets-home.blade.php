@@ -68,11 +68,14 @@
                             <thead>
                                 <tr>
                                     <th>Fecha</th>
-                                    <th>Codigo</th>
+                                    <th>Código</th>
                                     <th>Titulo</th>
                                     <th>Prioridad</th>
+                                    <th>Sociedad</th>
+                                    <th>Tipo de Solicitud</th>
                                     <th>Categoría</th>
                                     <th>Subcategoría</th>
+                                    <th>Aplicación</th>
                                     <th>Usuario</th>
                                     <th>Estado</th>
                                     <th>Agente</th>
@@ -165,7 +168,7 @@
                                 autoFilter: true,
                                 title: 'EStados',
                                 exportOptions: {
-                                    columns: [0, 1, 2, 3, 4]
+                                    columns: [0, 1, 2, 3, 4,5,6,7,8,9,10,11]
                                 },
                             },
                             {
@@ -173,7 +176,7 @@
                                 autoFilter: true,
                                 title: 'Estados',
                                 exportOptions: {
-                                    columns: [0, 1, 2, 3, 4]
+                                    columns: [0, 1, 2, 3, 4,5,6,7,8,9,10,11]
                                 },
                             }
                         ]
@@ -200,7 +203,11 @@
                             categoria,
                             subcategoria,
                             usuario,
+                            tipo_solicitud,
+                            aplicacion,
+                            sociedad
                         } = element;
+                        console.log('Datos completos del ticket:', data);
 
                         // Formatear la fecha
                         let fecha = new Date(created_at);
@@ -214,8 +221,11 @@
                                 <td class="pointer">${nomenclatura}</td>
                                 <td class="pointer">${titulo}</td>
                                 <td class="pointer">${urgencia ? urgencia.nombre :''}</td>
+                                <td class="pointer">${sociedad ? sociedad.nombre :''}</td>
+                                <td class="pointer">${tipo_solicitud ? tipo_solicitud.nombre : ''}</td>
                                 <td class="pointer">${categoria.nombre}</td>
                                 <td class="pointer">${subcategoria.nombre}</td>
+                                <td class="pointer">${ aplicacion ?aplicacion.nombre:'NO APLICA'}</td>
                                 <td class="pointer">${usuario.name}</td>
                                 <td class="pointer">${estado ? estado.nombre:''}</td>
                                 <td class="pointer">${asignado.name}</td>
