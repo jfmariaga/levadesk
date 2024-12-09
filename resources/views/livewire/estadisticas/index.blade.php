@@ -154,74 +154,124 @@
             grid-row-end: 5;
             grid-column-end: 5;
         }
+
+        /* Carrusel */
+        .carousel-inner {
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .carousel-item {
+            transition: transform 0.5s ease, opacity 0.5s ease;
+        }
+
+        /* Card Styling */
+        .carousel-item .inner {
+            border-radius: 10px;
+        }
+
+        .carousel-item .p-4 {
+            padding: 2rem;
+        }
+
+        /* Añadir sombras y bordes redondeados */
+        .carousel-item .shadow-lg {
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Botones de control */
+        .carousel-control-prev-icon,
+        .carousel-control-next-icon {
+            background-color: rgba(0, 0, 0, 0.5);
+            border-radius: 50%;
+        }
+
+        .carousel-indicators li {
+            background-color: #007bff;
+        }
+
+        .carousel-indicators .active {
+            background-color: #0056b3;
+        }
+
+        /* Diseño para la estrella de calificación */
+        .text-warning i {
+            color: #ffcc00;
+        }
     </style>
 
     <div class="row mb-2">
-        <div class="row mb-2">
-            <div class="col-md-3">
-                <label for="sociedadSelect">Selecciona una Sociedad:</label>
-                <select wire:model="sociedadSeleccionada" id="sociedadSelect" class="form-control shadow-sm">
-                    <option value="">Todas las Sociedades</option>
-                    @foreach ($sociedadesDisponibles as $id => $nombre)
-                        <option value="{{ $id }}">{{ $nombre }}</option>
-                    @endforeach
-                </select>
+        <div class="col-md-3">
+            <label for="startDate">Fecha de Inicio:</label>
+            <input type="date" wire:model="startDate" id="startDate" class="form-control shadow-sm">
+        </div>
+
+        <div class="col-md-3">
+            <label for="endDate">Fecha de Fin:</label>
+            <input type="date" wire:model="endDate" id="endDate" class="form-control shadow-sm">
+        </div>
+
+        <div class="col-lg-6 col-md-6 col-sm-12 mb-4 mt-4">
+            <div class="inner">
+                <div id="ticketsSolucionadosCarousel" class="carousel slide" data-ride="carousel">
+                    <!-- Contenido del carrusel -->
+                    <div class="carousel-inner">
+                        @foreach ($ticketsSolucionados as $index => $ticket)
+                            @php
+                                $comentarioCalificado = $ticket->comentarios()->whereNotNull('calificacion')->first();
+                            @endphp
+                            <div class="carousel-item {{ $index == 0 ? 'active' : '' }}">
+                                <div class="d-flex justify-content-center align-items-center p-4 bg-white rounded-lg shadow-lg text-dark"
+                                    style="height: 180px;">
+                                    <div class="text-center w-100">
+                                        <!-- Nomenclatura -->
+                                        <h5 class="badge badge-info mb-2">{{ $ticket->nomenclatura }}</h5>
+
+                                        <!-- Nombre del usuario -->
+                                        <p class="m-0 mb-2 text-muted" style="font-size: 1.1em;">
+                                            {{ $ticket->usuario->name }}</p>
+
+                                        <!-- Comentario Calificado -->
+                                        <p class="text-muted">
+                                            <i>{{ $comentarioCalificado->comentario_calificacion ? $comentarioCalificado->comentario_calificacion : 'Sin comentario' }}</i>
+                                        </p>
+
+                                        <!-- Calificación -->
+                                        <p class="text-warning mt-2">
+                                            <i class="fas fa-star"></i>
+                                            {{ $comentarioCalificado->calificacion ?? 0 }}/5
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+
+                    <!-- Controles del carrusel -->
+                    <a class="carousel-control-prev" href="#ticketsSolucionadosCarousel" role="button"
+                        data-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="sr-only">Anterior</span>
+                    </a>
+                    <a class="carousel-control-next" href="#ticketsSolucionadosCarousel" role="button"
+                        data-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="sr-only">Siguiente</span>
+                    </a>
+
+                    <!-- Indicadores -->
+                    <ol class="carousel-indicators">
+                        @foreach ($ticketsSolucionados as $index => $ticket)
+                            <li data-target="#ticketsSolucionadosCarousel" data-slide-to="{{ $index }}"
+                                class="{{ $index == 0 ? 'active' : '' }}"></li>
+                        @endforeach
+                    </ol>
+                </div>
             </div>
-
-            <div class="col-md-3">
-                <label for="agenteSelect">Selecciona un Agente TI:</label>
-                <select wire:model="asignadoASeleccionado" id="agenteSelect" class="form-control shadow-sm">
-                    <option value="">Todos los Agentes</option>
-                    @foreach ($agentesDisponibles as $id => $nombre)
-                        <option value="{{ $id }}">{{ $nombre }}</option>
-                    @endforeach
-                </select>
-            </div>
-
-            {{-- <div class="col-md-3">
-                <label for="categoriaSelect">Categoría:</label>
-                <select wire:model="categoriaSeleccionada" id="categoriaSelect" class="form-control shadow-sm">
-                    <option value="">Todas las Categorías</option>
-                    @foreach ($categoriasDisponibles as $id => $nombre)
-                        <option value="{{ $id }}">{{ $nombre }}</option>
-                    @endforeach
-                </select>
-            </div> --}}
-
-            <div class="col-md-3">
-                <label for="startDate">Fecha de Inicio:</label>
-                <input type="date" wire:model="startDate" id="startDate" class="form-control shadow-sm">
-            </div>
-
-            <div class="col-md-3">
-                <label for="endDate">Fecha de Fin:</label>
-                <input type="date" wire:model="endDate" id="endDate" class="form-control shadow-sm">
-            </div>
-
-            {{-- <div class="col-md-3">
-                <label for="tipoSolicitudSelect">Tipo de Solicitud:</label>
-                <select wire:model="tipoSolicitudSeleccionado" id="tipoSolicitudSelect" class="form-control shadow-sm">
-                    <option value="">Todos los Tipos</option>
-                    @foreach ($tiposSolicitudDisponibles as $id => $nombre)
-                        <option value="{{ $id }}">{{ $nombre }}</option>
-                    @endforeach
-                </select>
-            </div> --}}
-
-
-
-            {{-- <div class="col-md-3">
-                <label for="prioridadSelect">Prioridad:</label>
-                <select wire:model="prioridadSeleccionada" id="prioridadSelect" class="form-control shadow-sm">
-                    <option value="">Todas las Prioridades</option>
-                    @foreach ($prioridadesDisponibles as $id => $nombre)
-                        <option value="{{ $id }}">{{ $nombre }}</option>
-                    @endforeach
-                </select>
-            </div> --}}
         </div>
 
     </div>
+
 
     <div class="tarjetas">
         <div class="tarjeta tarjeta-1">
@@ -292,11 +342,55 @@
             <div id="volumenTicketsChart" class="large-chart"></div>
         </div>
     </div>
-    <div class="row">
-        <div class="col-12">
-            @livewire('home.tickets-home')
+    {{-- <div class="row justify-content-center">
+        <!-- Tarjeta con carrusel -->
+        <div class="col-lg-10 col-md-12 col-sm-12 mb-2 mt-2">
+            <div class="inner">
+                <div id="ticketsSolucionadosCarousel" class="carousel slide" data-ride="carousel">
+                    <!-- Contenido del carrusel -->
+                    <div class="carousel-inner">
+                        @foreach ($ticketsSolucionados as $index => $ticket)
+                            @php
+                                $comentarioCalificado = $ticket->comentarios()->whereNotNull('calificacion')->first();
+                            @endphp
+                            <div class="carousel-item {{ $index == 0 ? 'active' : '' }}">
+                                <div class="item-container p-3 bg-white rounded text-dark">
+                                    <h5 class="badge badge-info">{{ $ticket->nomenclatura }}</h5>
+                                    <p class="m-0">{{ $ticket->usuario->name }}</p>
+                                    <p><i>{{ $comentarioCalificado->comentario_calificacion ? $comentarioCalificado->comentario_calificacion : 'Sin comentarios' }}</i>
+                                    </p>
+                                    <p class="text-warning">
+                                        <i class="fas fa-star"></i>
+                                        {{ $comentarioCalificado->calificacion ?? 0 }}/5
+                                    </p>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+
+                    <!-- Controles del carrusel -->
+                    <a class="carousel-control-prev" href="#ticketsSolucionadosCarousel" role="button"
+                        data-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="sr-only">Anterior</span>
+                    </a>
+                    <a class="carousel-control-next" href="#ticketsSolucionadosCarousel" role="button"
+                        data-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="sr-only">Siguiente</span>
+                    </a>
+
+                    <!-- Indicadores -->
+                    <ol class="carousel-indicators">
+                        @foreach ($ticketsSolucionados as $index => $ticket)
+                            <li data-target="#ticketsSolucionadosCarousel" data-slide-to="{{ $index }}"
+                                class="{{ $index == 0 ? 'active' : '' }}"></li>
+                        @endforeach
+                    </ol>
+                </div>
+            </div>
         </div>
-    </div>
+    </div> --}}
 
     @push('js')
         <script>

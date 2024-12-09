@@ -2,12 +2,12 @@
     <a class="nav-link" data-toggle="dropdown" href="#">
         <i class="fas fa-bell fa-lg"></i>
         <span class="badge badge-danger navbar-badge">
-            {{ count($aprobaciones) + count($cambios) }}
+            {{ count($aprobaciones) + count($cambios) + count($tareas) }}
         </span>
     </a>
 
     <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
-        @if (count($aprobaciones) > 0 || count($cambios) > 0)
+        @if (count($aprobaciones) > 0 || count($cambios) > 0 || count($tareas) > 0)
             @if (count($aprobaciones) > 0)
                 <span class="dropdown-item dropdown-header">
                     Accesos pendientes por aprobar:
@@ -29,9 +29,20 @@
                     </a>
                 @endforeach
             @endif
+
+            @if (count($tareas) > 0)
+                <span class="dropdown-item dropdown-header">
+                    Tareas pendientes:
+                </span>
+                @foreach ($tareas as $tarea)
+                    <a href="{{ url('/gestionar?ticket_id=' . $tarea->ticket_id) }}" class="dropdown-item">
+                        Tarea pendiente del ticket # {{ $tarea->ticket->nomenclatura }}
+                    </a>
+                @endforeach
+            @endif
         @else
             <span class="dropdown-item dropdown-header">
-                Sin aprobaciones pendientes
+                Sin notificaciones
             </span>
         @endif
     </div>

@@ -340,8 +340,8 @@ class AprobarCambios extends Component
             12 => ['EN ESPERAS DE EVIDENCIAS AMBIENTE PRODUCTIVO'],
             13 => ['1. AGREGAR COLABORADOR', '2. ASIGNAR TAREA DE TRANSPORTE', '3. APLICAR TRANSPORTE (colaborador)'],
             14 => ['1. AGREGAR COLABORADOR', '2. ASIGNAR TAREA DE TRANSPORTE', '3. APLICAR TRANSPORTE (colaborador)'],
-            15 => ['EN ESPERAS DE EVIDENCIAS SET DE PRUEBAS'],
-            16 => ['EN ESPERAS DE EVIDENCIAS SET DE PRUEBAS'],
+            15 => ['CONFIGURAR ACCESOS'],
+            16 => [' 1. EN ESPERAS DE EVIDENCIAS', '2. FINALIZAR TICKET'],
             17 => ['FINALIZAR TICKET'],
             18 => ['VALIDAR FALLAS EN PRODUCCIÓN', 'CONFIGURAR NUEVAMENTE EL SET DE PRUEBAS'],
         ];
@@ -353,6 +353,15 @@ class AprobarCambios extends Component
             'aprobado_funcional' => ['POR APROBAR LÍDER TI'],
             'rechazo_ti' => ['ESPERA DE APROBACIÓN FUNCIONAL'],
             'aprobado' => ['CONFIGURACIÓN DE SET DE PRUEBAS'], // Este es el paso intermedio
+        ];
+
+        // Definir las transiciones específicas para aprobaciones
+        $approvalTransitions = [
+            'pendiente' => ['EN ESPERA DE APROBACIÓN FUNCIONAL'],
+            'rechazo_funcional' => ['RECHAZADO'],
+            'aprobado_funcional' => ['POR APROBAR LÍDER TI'],
+            'rechazo_ti' => ['ESPERA DE APROBACIÓN FUNCIONAL'],
+            'aprobado' => ['CONFIGURACIÓN DE ACCESOS'], // Este es el paso intermedio
         ];
 
         // Obtener el estado actual del ticket
@@ -375,8 +384,17 @@ class AprobarCambios extends Component
         // Verificar si hay un flujo de cambios asociado al ticket
         $nextStates = [];
         $cambio = $this->ticket->cambio;
+        $aprobacion = $this->ticket->aprobacion; // Nueva lógica para aprobaciones
 
-        if ($cambio) {
+        if ($aprobacion) {
+            if ($aprobacion->estado === 'aprobado') {
+                // Si la aprobación está completa, sigue el flujo normal
+                $nextStates = $transitions[$this->ticket->estado_id] ?? [];
+            } else {
+                // Si la aprobación no está completa, sigue las transiciones de la aprobación
+                $nextStates = $approvalTransitions[$aprobacion->estado] ?? [];
+            }
+        } elseif ($cambio) {
             if ($cambio->estado === 'aprobado') {
                 // Si el cambio está aprobado y el estado actual no es "EN ATENCIÓN", sigue el flujo del ticket
                 if ($this->ticket->estado_id !== 3) { // 2 corresponde a "EN ATENCIÓN"
@@ -390,7 +408,7 @@ class AprobarCambios extends Component
                 $nextStates = $changeTransitions[$cambio->estado] ?? [];
             }
         } else {
-            // Si no hay un cambio asociado, sigue las transiciones generales del ticket
+            // Si no hay un cambio o aprobación asociado, sigue las transiciones generales del ticket
             $nextStates = $transitions[$this->ticket->estado_id] ?? [];
         }
 

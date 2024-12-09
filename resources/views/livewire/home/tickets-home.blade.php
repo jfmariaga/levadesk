@@ -43,14 +43,40 @@
                 <div wire:ignore class="card-body card-dashboard">
                     <div class="table-responsive">
                         <div class="row mb-2">
-                            <div class="col-md-6 col-lg-6 mt-1">
+                            <div class="col-md-12 col-lg-12 mt-1">
                                 <div class="d-flex align-items-center">
                                     <input type="text" class="datepicker form-control" id="fecha_desde"
                                         value="{{ $fecha_desde }}" style="width:150px;">
                                     <span class="mx-2">a</span>
-                                    <input type="text" class="datepicker form-control" id="fecha_hasta"
+                                    <input type="text" class="datepicker form-control mr-2" id="fecha_hasta"
                                         value="{{ $fecha_hasta }}" style="width:150px;">
-                                    <button class="btn btn-light mx-2" wire:click="cargarDatos()" style="height:40px;">
+                                    <select wire:ignore id="selectedSociedad" name="sociedades" class="select2" >
+                                        <option value="">Selecciona un sociedad</option>
+                                        @foreach ($sociedades as $s)
+                                            <option value="{{ $s->id }}">{{ $s->nombre }}</option>
+                                        @endforeach
+                                    </select>
+                                    <select wire:ignore name="estados" class="select2" id="SelectedEstado">
+                                        <option value="">Selecciona un estado</option>
+                                        <option value="">Todos los estados</option>
+                                        @foreach ($estados as $e)
+                                            <option value="{{ $e->id }}">{{ $e->nombre }}</option>
+                                        @endforeach
+                                    </select>
+                                    <select wire:ignore id="selectedUsuario" name="usuarios" class="select2">
+                                        <option value="">Seleccionar Usuario</option>
+                                        @foreach ($usuarios as $usuario)
+                                            <option value="{{ $usuario->id }}">{{ $usuario->name }}</option>
+                                        @endforeach
+                                    </select>
+                                    <select wire:ignore id="selectedAgente" name="agentes" class="select2">
+                                        <option value="">Seleccionar Agente</option>
+                                        @foreach ($agentes as $a)
+                                            <option value="{{ $a->id }}">{{ $a->name }}</option>
+                                        @endforeach
+                                    </select>
+                                    <button class="btn btn-light mx-2" wire:click="cargarDatos()"
+                                        style="height:40px;">
                                         <i class="fas fa-filter"></i>
                                     </button>
                                     <a href="javascript:exportTabla('excel')"
@@ -99,6 +125,7 @@
         <script>
             document.addEventListener('livewire:load', function() {
                 @this.cargarDatos()
+                $('.select2').select2();
 
                 $('#fecha_desde').pickadate({
                     format: 'yyyy-mm-dd'
@@ -129,6 +156,26 @@
                 $('#fecha_hasta').on('change', function() {
                     @this.set('fecha_hasta', this.value)
                 })
+
+                $('#SelectedEstado').on('change', function() {
+                    let estado = $(this).val();
+                    @this.set('SelectedEstado', estado === '' ? [] : [estado]);
+                });
+
+                $('#selectedUsuario').on('change', function() {
+                    let selectedUsuario = $(this).val();
+                    @this.set('selectedUsuario', selectedUsuario === '' ? [] : [selectedUsuario]);
+                });
+
+                $('#selectedAgente').on('change', function() {
+                    let selectedAgente = $(this).val();
+                    @this.set('selectedAgente', selectedAgente === '' ? [] : [selectedAgente]);
+                });
+
+                $('#selectedSociedad').on('change', function() {
+                    let selectedSociedad = $(this).val();
+                    @this.set('selectedSociedad', selectedSociedad === '' ? [] : [selectedSociedad]);
+                });
             });
 
             Livewire.on('cargarGestioTicketTabla', data => {
@@ -207,7 +254,6 @@
                             aplicacion,
                             sociedad
                         } = element;
-                        console.log('Datos completos del ticket:', data);
 
                         // Formatear la fecha
                         let fecha = new Date(created_at);

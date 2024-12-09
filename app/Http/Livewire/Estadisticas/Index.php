@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Livewire\Graficas;
+namespace App\Http\Livewire\Estadisticas;
 
 use Livewire\Component;
 use Illuminate\Support\Facades\DB;
@@ -8,9 +8,11 @@ use App\Models\User; // Asegúrate de que estás usando el modelo User
 use App\Models\Sociedad;
 use App\Models\TipoSolicitud;
 use App\Models\Categoria;
+use App\Models\Ticket;
 use App\Models\Urgencia; // Si tienes un modelo para las prioridades
+use Illuminate\Support\Facades\Auth;
 
-class TicketSociedadChart extends Component
+class Index extends Component
 {
     public $sociedadSeleccionada;
     public $asignadoASeleccionado;
@@ -38,6 +40,7 @@ class TicketSociedadChart extends Component
     public $chartDataCumplimientoANS;
     public $chartDataCumplimientoANSInicial;
     public $chartDataEstadoPorMes;
+    public $ticketsSolucionados;
 
     public function mount()
     {
@@ -61,6 +64,12 @@ class TicketSociedadChart extends Component
 
         $this->prioridadesDisponibles = Urgencia::pluck('nombre', 'id')
             ->toArray();
+
+        $this->asignadoASeleccionado = Auth::user()->id;
+        // dd($this->asignadoASeleccionado);
+
+        $this->ticketsSolucionados = Ticket::where('estado_id', 4)->where('asignado_a', Auth::user()->id)->get();
+
 
         $this->actualizarGraficas();
     }
@@ -612,7 +621,8 @@ class TicketSociedadChart extends Component
         return ['labels' => $labels, 'datasets' => [['data' => $data]]];
     }
 
-    public function getChartDataEstadoPorMes() {
+    public function getChartDataEstadoPorMes()
+    {
         $query = DB::table('tickets')
             ->join('estados', 'tickets.estado_id', '=', 'estados.id')
             ->select(
@@ -745,6 +755,6 @@ class TicketSociedadChart extends Component
 
     public function render()
     {
-        return view('livewire.graficas.ticket-sociedad-chart');
+        return view('livewire.estadisticas.index');
     }
 }

@@ -54,6 +54,7 @@ Route::group(['middleware' => ['auth', 'verified']], function () {
     Route::group(['middleware' => 'can:gestion'], function () {
         Route::view('gestion', 'admin.gestion.index')->name('gestion');
         Route::view('gestionar', 'admin.gestionar.index')->name('gestionar');
+        Route::view('estadisticas', 'admin.gestion.estadisticas')->name('estadisticas');
     });
 
     Route::group(['middleware' => 'can:ticket'], function () {

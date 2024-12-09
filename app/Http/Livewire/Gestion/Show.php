@@ -111,7 +111,6 @@ class Show extends Component
         $this->identificarTipoAns();
     }
 
-
     public function loadFlow()
     {
         // Refrescar el modelo del ticket para obtener los datos más recientes
@@ -129,14 +128,14 @@ class Show extends Component
             8 => ['EN PRUEBAS DE USUARIO', 'PRUEBAS AMBIENTE PRODUCTIVO'],
             9 => ['EN ATENCIÓN'],
             10 => ['EN ESPERA DE APROBACIÓN PASO A PRODUCTIVO (Líder TI)'],
-            11 => [' 1. EN ESPERAS DE EVIDENCIAS SET DE PRUEBAS','2. ADJUNTAR DOCUMENTACIÓN TÉCNICA', '3. PEDIR APROBACIÓN TRANSPORTE A PRODUCTIVO'],
+            11 => [' 1. EN ESPERAS DE EVIDENCIAS SET DE PRUEBAS', '2. ADJUNTAR DOCUMENTACIÓN TÉCNICA', '3. PEDIR APROBACIÓN TRANSPORTE A PRODUCTIVO'],
             12 => ['EN ESPERAS DE EVIDENCIAS AMBIENTE PRODUCTIVO'],
             13 => ['1. AGREGAR COLABORADOR', '2. ASIGNAR TAREA DE TRANSPORTE', '3. APLICAR TRANSPORTE (colaborador)'],
             14 => ['1. AGREGAR COLABORADOR', '2. ASIGNAR TAREA DE TRANSPORTE', '3. APLICAR TRANSPORTE (colaborador)'],
-            15 => ['CONFIGURAR ACCESO'],
-            16 => ['EL USUARIO DEBE DE VALIDAR EL ACCESO'],
+            15 => ['CONFIGURAR ACCESOS'],
+            16 => [' 1. EN ESPERAS DE EVIDENCIAS', '2. FINALIZAR TICKET'],
             17 => ['FINALIZAR TICKET'],
-            18 => ['VALIDAR FALLAS EN PRODUCCIÓN','CONFIGURAR NUEVAMENTE EL SET DE PRUEBAS'],
+            18 => ['VALIDAR FALLAS EN PRODUCCIÓN', 'CONFIGURAR NUEVAMENTE EL SET DE PRUEBAS'],
         ];
 
         // Definir las transiciones específicas de los cambios
@@ -146,6 +145,15 @@ class Show extends Component
             'aprobado_funcional' => ['POR APROBAR LÍDER TI'],
             'rechazo_ti' => ['ESPERA DE APROBACIÓN FUNCIONAL'],
             'aprobado' => ['CONFIGURACIÓN DE SET DE PRUEBAS'], // Este es el paso intermedio
+        ];
+
+        // Definir las transiciones específicas para aprobaciones
+        $approvalTransitions = [
+            'pendiente' => ['EN ESPERA DE APROBACIÓN FUNCIONAL'],
+            'rechazo_funcional' => ['RECHAZADO'],
+            'aprobado_funcional' => ['POR APROBAR LÍDER TI'],
+            'rechazo_ti' => ['ESPERA DE APROBACIÓN FUNCIONAL'],
+            'aprobado' => ['CONFIGURACIÓN DE ACCESOS'], // Este es el paso intermedio
         ];
 
         // Obtener el estado actual del ticket
@@ -168,8 +176,17 @@ class Show extends Component
         // Verificar si hay un flujo de cambios asociado al ticket
         $nextStates = [];
         $cambio = $this->ticket->cambio;
+        $aprobacion = $this->ticket->aprobacion; // Nueva lógica para aprobaciones
 
-        if ($cambio) {
+        if ($aprobacion) {
+            if ($aprobacion->estado === 'aprobado') {
+                // Si la aprobación está completa, sigue el flujo normal
+                $nextStates = $transitions[$this->ticket->estado_id] ?? [];
+            } else {
+                // Si la aprobación no está completa, sigue las transiciones de la aprobación
+                $nextStates = $approvalTransitions[$aprobacion->estado] ?? [];
+            }
+        } elseif ($cambio) {
             if ($cambio->estado === 'aprobado') {
                 // Si el cambio está aprobado y el estado actual no es "EN ATENCIÓN", sigue el flujo del ticket
                 if ($this->ticket->estado_id !== 3) { // 2 corresponde a "EN ATENCIÓN"
@@ -183,7 +200,7 @@ class Show extends Component
                 $nextStates = $changeTransitions[$cambio->estado] ?? [];
             }
         } else {
-            // Si no hay un cambio asociado, sigue las transiciones generales del ticket
+            // Si no hay un cambio o aprobación asociado, sigue las transiciones generales del ticket
             $nextStates = $transitions[$this->ticket->estado_id] ?? [];
         }
 
@@ -194,6 +211,7 @@ class Show extends Component
             'flowStates' => $visitedStates,
         ];
     }
+
 
     public function updateFlow()
     {
@@ -757,7 +775,8 @@ class Show extends Component
         $ansCumplido = $this->tiempoRestante > 0;
 
         $this->ticket->update([
-            'impacto_id' => $this->impacto_id
+            'impacto_id' => $this->impacto_id,
+            'notificado' => false
         ]);
 
         $this->ticket->load('impacto');
@@ -932,8 +951,8 @@ class Show extends Component
 
             $this->ticket->usuario->notify(new PruebasAccesos($comentario));
             $this->ticket->asignado->notify(new PruebasAccesos($comentario));
-        }else{
-             $this->mandarParaAprobacion($comentario->id);
+        } else {
+            $this->mandarParaAprobacion($comentario->id);
         }
 
         // Limpiar el estado después de agregar el comentario

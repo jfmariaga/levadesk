@@ -2,6 +2,7 @@
 
 namespace App\Http\Livewire;
 
+use App\Models\Tarea;
 use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Collection;
@@ -9,8 +10,9 @@ use Illuminate\Support\Collection;
 class Notifications extends Component
 {
     public $usuarioId;
-    public $aprobaciones;  // Aprobaciones con ticket_id
-    public $cambios;  // Cambios con ticket_id
+    public $aprobaciones;
+    public $cambios;
+    public $tareas;
 
     public function getListeners()
     {
@@ -51,6 +53,7 @@ class Notifications extends Component
             })
             ->get();
 
+        $this->tareas = Tarea::where('estado', '<>', 'completado')->where('user_id', Auth::user()->id)->get();
 
         // Unir las aprobaciones y los cambios usando concat() para mantener las relaciones intactas
         $this->aprobaciones = $aprobacionesFuncionales->concat($aprobacionesTi);
@@ -62,6 +65,7 @@ class Notifications extends Component
         return view('livewire.notifications', [
             'aprobaciones' => $this->aprobaciones,
             'cambios' => $this->cambios,
+            'tareas' => $this->tareas,
         ]);
     }
 }

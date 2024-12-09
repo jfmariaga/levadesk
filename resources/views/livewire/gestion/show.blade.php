@@ -1342,7 +1342,6 @@
                             @endif
                         </div>
                     </div>
-                    @if ($ticket->tipo_solicitud_id != 4)
                         <div class="card mt-3" style="max-height: 400px; overflow-y: auto;">
                             <div class="card-header">
                                 <h5>Flujo del Ticket</h5>
@@ -1355,7 +1354,6 @@
                                 </div>
                             </div>
                         </div>
-                    @endif
 
                 </div>
             </div>

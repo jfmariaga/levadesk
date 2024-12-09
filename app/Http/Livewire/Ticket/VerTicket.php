@@ -202,6 +202,7 @@ class VerTicket extends Component
                     if ($comen->check_comentario == true) {
                         $comen->update([
                             'check_comentario' => false,
+                            'check_aprobado' => false,
                         ]);
                     }
                 }

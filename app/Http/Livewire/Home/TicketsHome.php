@@ -2,8 +2,11 @@
 
 namespace App\Http\Livewire\Home;
 
+use App\Models\Estado;
+use App\Models\Sociedad;
 use Livewire\Component;
 use App\Models\Ticket;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -16,14 +19,28 @@ class TicketsHome extends Component
     public $totalHorasSoporte;
     public $fecha_desde, $fecha_hasta;
     public $item;
+    public $estados, $SelectedEstado;
+    public $usuarios, $selectedUsuario;
+    public $agentes, $selectedAgente;
+    public $sociedades, $selectedSociedad;
 
     protected $listeners = ['cargarDatos', 'gestionTicket'];
     protected $queryString = ['fecha_desde', 'fecha_hasta'];
 
-
     public function mount()
     {
         $this->iniciarFechas();
+        $this->cargarDatos();
+        $this->estados = Estado::all();
+        $this->usuarios = User::all();
+        $this->agentes = User::role('Agente')->get();
+        $this->sociedades = Sociedad::all();
+    }
+
+    public function filtrarPorIniciar()
+    {
+        // Definir el estado de "Por Iniciar"
+        $this->SelectedEstado = [1];
         $this->cargarDatos();
     }
 
@@ -34,6 +51,23 @@ class TicketsHome extends Component
             $fecha_desde = date('Y-m-d', strtotime($this->fecha_desde));
             $fecha_hasta = date('Y-m-d 23:59:59', strtotime($this->fecha_hasta));
             $tickets = $tickets->whereBetween('created_at', [$fecha_desde, $fecha_hasta]);
+        }
+
+        // Aplicar filtro de estado si SelectedEstado no está vacío
+        if (is_array($this->SelectedEstado) && !empty($this->SelectedEstado)) {
+            $tickets->whereIn('estado_id', $this->SelectedEstado);
+        }
+
+        if ($this->selectedUsuario) {
+            $tickets->where('usuario_id', $this->selectedUsuario);
+        }
+
+        if ($this->selectedAgente) {
+            $tickets->where('asignado_a', $this->selectedAgente);
+        }
+
+        if ($this->selectedSociedad) {
+            $tickets->where('sociedad_id', $this->selectedSociedad);
         }
 
         $tickets = $tickets->get();

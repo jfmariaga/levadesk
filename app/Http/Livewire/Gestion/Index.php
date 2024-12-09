@@ -4,6 +4,7 @@ namespace App\Http\Livewire\Gestion;
 
 use App\Models\Estado;
 use App\Models\Ticket;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
@@ -18,6 +19,8 @@ class Index extends Component
     public $fecha_desde, $fecha_hasta;
     public $item;
     public $estados, $SelectedEstado;
+    public $usuarios, $selectedUsuario;
+
 
     protected $listeners = ['cargarDatos', 'gestionTicket'];
     protected $queryString = ['fecha_desde', 'fecha_hasta'];
@@ -28,52 +31,13 @@ class Index extends Component
         $this->iniciarFechas();
         $this->cargarDatos();
         $this->estados = Estado::all();
+        $this->usuarios = User::all();
     }
-
-    // public function cargarDatos()
-    // {
-    //     $userId = Auth::id();
-
-    //     $query = Ticket::where(function ($query) use ($userId) {
-    //         $query->where('asignado_a', $userId)
-    //             ->orWhereHas('colaboradores', function ($query) use ($userId) {
-    //                 $query->where('user_id', $userId);
-    //             });
-    //     });
-
-    //     if ($this->SelectedEstado) {
-    //         $query->where('estado_id', $this->SelectedEstado);
-    //     }
-
-    //     if ($this->fecha_desde && $this->fecha_hasta) {
-    //         $fecha_desde = date('Y-m-d', strtotime($this->fecha_desde));
-    //         $fecha_hasta = date('Y-m-d 23:59:59', strtotime($this->fecha_hasta));
-    //         $query->whereBetween('created_at', [$fecha_desde, $fecha_hasta]);
-    //     }
-
-    //     $tickets = $query->with('urgencia', 'estado', 'colaboradores', 'categoria', 'subcategoria', 'usuario')->get();
-
-    //     $this->tickets = $tickets->map(function ($ticket) use ($userId) {
-    //         if ($ticket->asignado_a == $userId) {
-    //             $ticket->rol = 'Agente';
-    //         } elseif ($ticket->colaboradores->contains('id', $userId)) {
-    //             $ticket->rol = 'Colaborador';
-    //         }
-    //         return $ticket;
-    //     });
-
-    //     $this->ticketsSolucionados = $this->tickets->where('estado_id', 4);
-    //     $this->ticketsEnProceso = $this->tickets->whereIn('estado_id', ['3', '8', '7', '6', '9', '10', '11', '12', '13', '14', '15', '16'])->count();
-    //     $this->ticketsPorIniciar = $this->tickets->where('estado_id', 1)->count();
-    //     $this->totalHorasSoporte = $this->calcularHorasSoporte($this->tickets);
-
-    //     $this->emit('cargarGestioTicketTabla', json_encode($this->tickets));
-    // }
 
     public function filtrarEnProceso()
     {
         // Definir los estados en proceso según los IDs que tienes en la lógica
-        $this->SelectedEstado = ['3', '8', '7', '6', '9', '10', '11', '12', '13', '14', '15', '16','17','18'];
+        $this->SelectedEstado = ['3', '8', '7', '6', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18'];
         $this->cargarDatos();
     }
 
@@ -81,6 +45,13 @@ class Index extends Component
     {
         // Definir el estado de "Por Iniciar"
         $this->SelectedEstado = [1];
+        $this->cargarDatos();
+    }
+
+    public function filtrarSolucionados()
+    {
+        // Definir el estado de "Por Iniciar"
+        $this->SelectedEstado = [4];
         $this->cargarDatos();
     }
 
@@ -101,6 +72,10 @@ class Index extends Component
             $query->whereIn('estado_id', $this->SelectedEstado);
         }
 
+        if ($this->selectedUsuario) {
+            $query->where('usuario_id', $this->selectedUsuario);
+        }
+
         // Filtro de fechas
         if ($this->fecha_desde && $this->fecha_hasta) {
             $fecha_desde = date('Y-m-d', strtotime($this->fecha_desde));
@@ -108,7 +83,7 @@ class Index extends Component
             $query->whereBetween('created_at', [$fecha_desde, $fecha_hasta]);
         }
 
-        $tickets = $query->with('urgencia', 'estado', 'colaboradores', 'categoria', 'subcategoria', 'usuario')->get();
+        $tickets = $query->with('urgencia', 'estado', 'colaboradores', 'asignado','categoria','subcategoria','usuario','tipoSolicitud','aplicacion', 'sociedad')->get();
 
         $this->tickets = $tickets->map(function ($ticket) use ($userId) {
             if ($ticket->asignado_a == $userId) {
@@ -120,7 +95,7 @@ class Index extends Component
         });
 
         $this->ticketsSolucionados = $this->tickets->where('estado_id', 4);
-        $this->ticketsEnProceso = $this->tickets->whereIn('estado_id', ['3', '8', '7', '6', '9', '10', '11', '12', '13', '14', '15', '16','17','18'])->count();
+        $this->ticketsEnProceso = $this->tickets->whereIn('estado_id', ['3', '8', '7', '6', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18'])->count();
         $this->ticketsPorIniciar = $this->tickets->where('estado_id', 1)->count();
         $this->totalHorasSoporte = $this->calcularHorasSoporte($this->tickets);
 
@@ -152,6 +127,7 @@ class Index extends Component
         return $totalHoras; // Devuelve el total de horas de soporte para el usuario logueado
     }
 
+
     public function render()
     {
         if (!$this->fecha_desde && !$this->fecha_hasta) {
@@ -164,7 +140,7 @@ class Index extends Component
     public function iniciarFechas()
     {
         // $hoy = date('Y-m-d');
-        $this->fecha_desde = date('Y-m-1');
+        $this->fecha_desde = date('2024-11-1');
         $this->fecha_hasta = date('Y-m-d');
     }
 
@@ -177,19 +153,4 @@ class Index extends Component
             $this->tickets = Ticket::where('asignado_a', Auth::id())->get();
         }
     }
-
-    // public function addComment($ticketId, $comentario)
-    // {
-    //     $ticket = Ticket::find($ticketId);
-    //     // $this->validate([
-    //     //     'comentario' => 'required|string|max:255',
-    //     // ]);
-    //     if ($ticket && $ticket->asignado_a == Auth::id()) {
-    //         $ticket->comentarios()->create([
-    //             'user_id' => Auth::id(),
-    //             'comentario' => $comentario,
-    //         ]);
-    //         $this->tickets = Ticket::where('asignado_a', Auth::id())->get();
-    //     }
-    // }
 }

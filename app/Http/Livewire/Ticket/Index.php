@@ -35,7 +35,7 @@ class Index extends Component
 
     public function iniciarFechas()
     {
-        $this->fecha_desde = date('Y-m-1');
+        $this->fecha_desde = date('2024-11-1');
         $this->fecha_hasta = date('Y-m-d');
     }
 
