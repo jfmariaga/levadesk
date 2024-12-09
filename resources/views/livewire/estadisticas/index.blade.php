@@ -235,7 +235,7 @@
                                         <p class="text-muted">
                                             <i>
                                                 @isset($comentarioCalificado)
-                                                    {{ $comentarioCalificado->comentario_calificacion : 'Sin comentario'}}
+                                                    {{ $comentarioCalificado->comentario_calificacion ? $comentarioCalificado->comentario_calificacion : 'Sin comentarios' }}
                                                 @else
                                                     Sin comentario
                                                 @endisset
