@@ -233,7 +233,13 @@
 
                                         <!-- Comentario Calificado -->
                                         <p class="text-muted">
-                                            <i>{{ $comentarioCalificado->comentario_calificacion ? $comentarioCalificado->comentario_calificacion : 'Sin comentario' }}</i>
+                                            <i>
+                                                @isset($comentarioCalificado)
+                                                    {{ $comentarioCalificado->comentario_calificacion : 'Sin comentario'}}
+                                                @else
+                                                    Sin comentario
+                                                @endisset
+                                            </i>
                                         </p>
 
                                         <!-- Calificación -->
