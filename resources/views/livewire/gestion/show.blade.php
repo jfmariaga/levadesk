@@ -444,6 +444,7 @@
                                                                 <div>
                                                                     @if ($hora >= $horaRecordatorio)
                                                                         <del>
+                                                                            
                                                                             Recordatorio para el
                                                                             {{ $horaRecordatorio }}:
                                                                             {{ $recordatorio->detalle }}
