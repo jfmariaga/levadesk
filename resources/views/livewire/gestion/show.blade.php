@@ -444,7 +444,6 @@
                                                                 <div>
                                                                     @if ($hora >= $horaRecordatorio)
                                                                         <del>
-                                                                            
                                                                             Recordatorio para el
                                                                             {{ $horaRecordatorio }}:
                                                                             {{ $recordatorio->detalle }}
@@ -1179,9 +1178,13 @@
                                                                     <label for="file" class="custom-file-upload">
                                                                         <i class="fa fa-paperclip"></i>
                                                                     </label>
+                                                                    {{-- <input type="file" id="file"
+                                                                        name="file" multiple class="d-none"
+                                                                        wire:model="newFile"> --}}
                                                                     <input type="file" id="file"
-                                                                        name="file" class="d-none"
-                                                                        wire:model="newFile">
+                                                                        name="files[]" multiple class="d-none"
+                                                                        wire:model="newFiles">
+
                                                                 </span>
                                                             </div>
                                                             <div class="input-group-append">
@@ -1253,7 +1256,7 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        @if ($newFile)
+                                        {{-- @if ($newFile)
                                             <div class="d-flex align-items-center border-file p-2 rounded-file">
                                                 <div class="mr-2">
                                                     <i class="fa fa-check-circle text-success-file"></i>
@@ -1271,7 +1274,27 @@
                                                     </button>
                                                 </div>
                                             </div>
+                                        @endif --}}
+
+                                        @if ($newFiles)
+                                            @foreach ($newFiles as $file)
+                                                <div class="d-flex align-items-center border-file p-2 rounded-file">
+                                                    <div class="mr-2">
+                                                        <i class="fa fa-check-circle text-success-file"></i>
+                                                    </div>
+                                                    <div class="flex-grow-1-file">
+                                                        <span>{{ $file->getClientOriginalName() }}</span>
+                                                    </div>
+                                                    <div class="ml-2">
+                                                        <button class="btn btn-link-file text-danger-file p-0"
+                                                            wire:click="removeFile({{ $loop->index }})">
+                                                            <i class="fa fa-times"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            @endforeach
                                         @endif
+
                                     @endif
                                 </div>
                             </div>
@@ -1343,18 +1366,17 @@
                             @endif
                         </div>
                     </div>
-                        <div class="card mt-3" style="max-height: 400px; overflow-y: auto;">
-                            <div class="card-header">
-                                <h5>Flujo del Ticket</h5>
-                            </div>
-                            <div class="card-body">
-                                {{-- <p><strong>Estado Actual:</strong> {{ $flowData['currentState'] }}</p> --}}
-                                <div id="flow-diagram"
-                                    style="position: relative; background: #f9f9f9; padding: 10px;">
-                                    <!-- El flujo se renderizará aquí -->
-                                </div>
+                    <div class="card mt-3" style="max-height: 400px; overflow-y: auto;">
+                        <div class="card-header">
+                            <h5>Flujo del Ticket</h5>
+                        </div>
+                        <div class="card-body">
+                            {{-- <p><strong>Estado Actual:</strong> {{ $flowData['currentState'] }}</p> --}}
+                            <div id="flow-diagram" style="position: relative; background: #f9f9f9; padding: 10px;">
+                                <!-- El flujo se renderizará aquí -->
                             </div>
                         </div>
+                    </div>
 
                 </div>
             </div>

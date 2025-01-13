@@ -71,7 +71,8 @@ class Show extends Component
     public $newComment;
     public $reminder_at;
     public $desDetalle;
-    public $newFile;
+    // public $newFile;
+    public $newFiles = [];
     public $newFileCambio;
     public $commentType = 0; // Valor por defecto es 'Público'
     public $usuarios = [];
@@ -866,10 +867,13 @@ class Show extends Component
         ]);
 
         // Asocia el archivo con el comentario recién creado si existe
-        if ($this->newFile) {
-            $this->addFile($comentario->id);
-        }
+        // if ($this->newFile) {
+        //     $this->addFile($comentario->id);
+        // }
 
+        if (!empty($this->newFiles)) {
+            $this->addFiles($comentario->id);
+        }
         // Notificaciones basadas en el tipo de comentario
         if ($this->commentType == 0) {
         } elseif ($this->commentType == 1) {
@@ -963,29 +967,63 @@ class Show extends Component
         $this->emit('resetearEditor');
     }
 
-    public function addFile($comentario_id = null)
+    // public function addFile($comentario_id = null)
+    // {
+    //     $this->validate(['newFile' => 'required|file|max:10240']);
+    //     $nombre_original = $this->newFile->getClientOriginalName();
+    //     $nombre_sin_extension = pathinfo($nombre_original, PATHINFO_FILENAME);
+    //     $extension = $this->newFile->getClientOriginalExtension();
+    //     $nombre_db = Str::slug($nombre_sin_extension);
+    //     $nombre_a_guardar = $nombre_db . '.' . $extension;
+    //     $path = $this->newFile->storeAs('public/tickets', $nombre_a_guardar);
+    //     // Guardar el archivo con la referencia al comentario (si existe) y al ticket
+    //     $this->ticket->archivos()->create([
+    //         'ruta' => $path,
+    //         'comentario_id' => $comentario_id,
+    //     ]);
+    //     $this->newFile = null;
+    //     $this->loadTicket($this->ticket->id); // Refresh ticket data
+    // }
+
+    public function addFiles($comentario_id = null)
     {
-        $this->validate(['newFile' => 'required|file|max:10240']);
-        $nombre_original = $this->newFile->getClientOriginalName();
-        $nombre_sin_extension = pathinfo($nombre_original, PATHINFO_FILENAME);
-        $extension = $this->newFile->getClientOriginalExtension();
-        $nombre_db = Str::slug($nombre_sin_extension);
-        $nombre_a_guardar = $nombre_db . '.' . $extension;
-        $path = $this->newFile->storeAs('public/tickets', $nombre_a_guardar);
-        // Guardar el archivo con la referencia al comentario (si existe) y al ticket
-        $this->ticket->archivos()->create([
-            'ruta' => $path,
-            'comentario_id' => $comentario_id,
+        $this->validate([
+            'newFiles.*' => 'required|file|max:10240', // Valida cada archivo
         ]);
-        $this->newFile = null;
+
+        foreach ($this->newFiles as $file) {
+            $nombre_original = $file->getClientOriginalName();
+            $nombre_sin_extension = pathinfo($nombre_original, PATHINFO_FILENAME);
+            $extension = $file->getClientOriginalExtension();
+            $nombre_db = Str::slug($nombre_sin_extension);
+            $nombre_a_guardar = $nombre_db . '-' . time() . '.' . $extension; // Agrega un timestamp para evitar colisiones
+            $path = $file->storeAs('public/tickets', $nombre_a_guardar);
+
+            // Guardar el archivo con la referencia al comentario (si existe) y al ticket
+            $this->ticket->archivos()->create([
+                'ruta' => $path,
+                'comentario_id' => $comentario_id,
+            ]);
+        }
+
+        // Limpiar los archivos después de procesarlos
+        $this->newFiles = [];
         $this->loadTicket($this->ticket->id); // Refresh ticket data
     }
 
-    public function removeFile()
+
+    // public function removeFile()
+    // {
+    //     // Remover el archivo temporal
+    //     $this->reset('newFile');
+    // }
+
+    public function removeFile($index)
     {
-        // Remover el archivo temporal
-        $this->reset('newFile');
+        unset($this->newFiles[$index]);
+        $this->newFiles = array_values($this->newFiles); // Reindexar el array
     }
+
 
     public function removeFileCambio()
     {
