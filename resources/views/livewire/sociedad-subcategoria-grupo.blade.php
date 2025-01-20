@@ -102,6 +102,17 @@
                             <span class="text-danger">{{ $message }}</span>
                         @enderror
                     </div>
+                    <div class="form-group">
+                        <label for="supervisor_id_2">Supervisor Secundario</label>
+                        <select wire:model="supervisor_id_2" id="supervisor_id_2" class="form-control">
+                            <option value="">Seleccione un Supervisor</option>
+                            @foreach($supervisores as $supervisor)
+                                <option value="{{ $supervisor->id }}">{{ $supervisor->name }}</option>
+                            @endforeach
+                        </select>
+                        @error('supervisor_id_2') <span class="text-danger">{{ $message }}</span> @enderror
+                    </div>
+
 
                 </div>
 
@@ -129,7 +140,7 @@
                     <th>Categoría</th>
                     <th>Subcategoría</th>
                     <th>Grupo</th>
-                    <th>Supervisor</th>
+                    <th>Supervisores</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
@@ -204,9 +215,9 @@
                             solicitud,
                             subcategoria,
                             grupo,
-                            supervisor
+                            supervisor,
+                            supervisor_2
                         } = element; // Ahora también tienes la solicitud
-
                         // Mostrar categoría junto con la solicitud
                         body.append(`
                             <tr id="tr_${id}">
@@ -214,7 +225,7 @@
                                 <td>${solicitud} - ${categoria}</td> <!-- Pinta categoria-solicitud -->
                                 <td>${subcategoria } - ${categoria}</td>
                                 <td>${grupo}</td>
-                                <td>${supervisor}</td>
+                                <td>${supervisor}- ${supervisor_2 ? supervisor_2:''}</td>
                                 <td>
                                     <div class="d-flex">
                                         <button onclick="editarRelacion(${id})" class="btn btn-xs btn-default text-primary mx-1 shadow" title="Editar">

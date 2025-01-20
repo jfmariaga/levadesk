@@ -24,6 +24,7 @@ class SociedadSubcategoriaGrupo extends Component
     public $relacion_id;  // ID de la relación que se va a editar
     public $supervisores;
     public $supervisor_id;
+    public $supervisor_id_2;
 
     // Definir el listener que escuchará el evento para cargar relaciones y editar
     protected $listeners = ['cargarRelaciones', 'editRelacion'];
@@ -35,6 +36,7 @@ class SociedadSubcategoriaGrupo extends Component
         'subcategoria_id' => 'required',
         'grupo_id' => 'required',
         'supervisor_id' => 'required|exists:users,id',
+        'supervisor_id_2' => 'nullable|exists:users,id',
     ];
 
     // Mensajes de error personalizados
@@ -82,7 +84,8 @@ class SociedadSubcategoriaGrupo extends Component
                     'categoria_id' => $this->categoria_id,  // Actualizar la categoría
                     'subcategoria_id' => $this->subcategoria_id,
                     'grupo_id' => $this->grupo_id,
-                    'supervisor_id' => $this->supervisor_id
+                    'supervisor_id' => $this->supervisor_id,
+                    'supervisor_id_2' => $this->supervisor_id_2,
                 ]);
 
             $this->emit('showToast', ['type' => 'success', 'message' => 'Relación actualizada exitosamente!']);
@@ -94,6 +97,7 @@ class SociedadSubcategoriaGrupo extends Component
                 'subcategoria_id' => $this->subcategoria_id,
                 'grupo_id' => $this->grupo_id,
                 'supervisor_id' => $this->supervisor_id,
+                'supervisor_id_2' => $this->supervisor_id_2,
             ]);
 
             $this->emit('showToast', ['type' => 'success', 'message' => 'Relación agregada exitosamente!']);
@@ -137,11 +141,13 @@ class SociedadSubcategoriaGrupo extends Component
                 'sociedad_subcategoria_grupo.id',
                 'sociedades.nombre as sociedad',
                 'categorias.nombre as categoria',
-                'tipo_solicitudes.nombre as solicitud', // Añadir la solicitud asociada
+                'tipo_solicitudes.nombre as solicitud',
                 'subcategorias.nombre as subcategoria',
                 'grupos.nombre as grupo',
-                'users.name as supervisor'
+                'users.name as supervisor',
+                DB::raw('(SELECT name FROM users WHERE users.id = sociedad_subcategoria_grupo.supervisor_id_2) as supervisor_2') // Segundo supervisor
             )
+
             ->get()->toArray();
     }
 
@@ -157,6 +163,8 @@ class SociedadSubcategoriaGrupo extends Component
         $this->subcategoria_id = $relacion->subcategoria_id;
         $this->grupo_id = $relacion->grupo_id;
         $this->relacion_id = $relacion->id;
+        $this->supervisor_id = $relacion->supervisor_id;
+        $this->supervisor_id_2 = $relacion->supervisor_id_2;
 
         // Cambiar a modo edición
         $this->edit_mode = true;
@@ -175,6 +183,8 @@ class SociedadSubcategoriaGrupo extends Component
         $this->edit_mode = false;
         $this->relacion_id = null;
         $this->supervisor_id = null;
+        $this->supervisor_id_2 = null;
+
     }
 
     public function render()

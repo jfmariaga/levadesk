@@ -324,6 +324,12 @@ return [
                     'can' => 'cambios',
 
                 ],
+                [
+                    'text' => 'Buscador',
+                    'route' => 'buscador',
+                    'can' => 'cambios',
+
+                ],
             ],
         ],
         [

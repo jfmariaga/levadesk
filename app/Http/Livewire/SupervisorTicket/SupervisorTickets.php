@@ -33,6 +33,7 @@ class SupervisorTickets extends Component
 
         $asignadosIds = Ticket::whereIn('sociedad_id', DB::table('sociedad_subcategoria_grupo')
             ->where('supervisor_id', $user->id)
+            ->orWhere('supervisor_id_2', $user->id)
             ->pluck('sociedad_id'))
             ->pluck('asignado_a')
             ->unique();
@@ -47,6 +48,7 @@ class SupervisorTickets extends Component
         // Obtener las asignaciones del supervisor
         $asignacionesSupervisor = DB::table('sociedad_subcategoria_grupo')
             ->where('supervisor_id', $user->id)
+            ->orWhere('supervisor_id_2', $user->id)
             ->select('sociedad_id', 'categoria_id', 'subcategoria_id')
             ->get();
 

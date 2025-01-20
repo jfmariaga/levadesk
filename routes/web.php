@@ -6,6 +6,22 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Artisan;
 
 // Rutas públicas
+Route::get('error', function(){
+    abort('404');
+})->name('page_404');
+
+Route::get('error', function(){
+    abort('403');
+})->name('page_403');
+
+Route::get('error', function(){
+    abort('500');
+})->name('page_500');
+
+Route::get('error', function(){
+    abort('419');
+})->name('page_419');
+
 Route::get('/', function () {
     return view('auth.login');
 });
@@ -67,6 +83,7 @@ Route::group(['middleware' => ['auth', 'verified']], function () {
         Route::view('aprobar', 'admin.aprobacion.aprobar')->name('aprobar');
         Route::view('cambios', 'admin.cambios.index')->name('cambios');
         Route::view('cambio', 'admin.cambios.cambios')->name('cambio');
+        Route::view('buscador', 'admin.buscador.buscador')->name('buscador');
     });
 
     Route::view('perfil', 'admin.perfil.perfil')->name('perfil');
