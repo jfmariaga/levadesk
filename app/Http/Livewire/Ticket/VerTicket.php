@@ -215,12 +215,12 @@ class VerTicket extends Component
             $this->addFile($comentario->id);
         }
 
-        // $this->ticket->asignado->notify(new NuevoComentario($comentario));
-        // if ($this->ticket->colaboradors) {
-        //     foreach ($this->ticket->colaboradors as $colaborador) {
-        //         $colaborador->user->notify(new NuevoComentario($comentario));
-        //     }
-        // }
+        $this->ticket->asignado->notify(new NuevoComentario($comentario));
+        if ($this->ticket->colaboradors) {
+            foreach ($this->ticket->colaboradors as $colaborador) {
+                $colaborador->user->notify(new NuevoComentario($comentario));
+            }
+        }
 
         // Limpiar el estado después de agregar el comentario
         $this->newComment = '';

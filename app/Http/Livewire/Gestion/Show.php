@@ -876,6 +876,7 @@ class Show extends Component
         }
         // Notificaciones basadas en el tipo de comentario
         if ($this->commentType == 0) {
+            $this->ticket->usuario->notify(new NuevoComentario($comentario));
         } elseif ($this->commentType == 1) {
             if ($this->ticket->colaboradors) {
                 foreach ($this->ticket->colaboradors as $colaborador) {

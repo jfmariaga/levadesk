@@ -44,7 +44,7 @@ class Index extends Component
         $tickets = Ticket::with(['comentarios', 'tareas'])
             ->whereBetween('created_at', [$this->startDate, $this->endDate])
             ->where(function ($query) {
-                $query->where('nomenclatura', 'LIKE', '%' . $this->search . '%')
+                $query->where('titulo', 'LIKE', '%' . $this->search . '%')
                       ->orWhereHas('comentarios', function ($query) {
                           $query->where('comentario', 'LIKE', '%' . $this->search . '%');
                       })
