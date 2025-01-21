@@ -55,85 +55,90 @@
             }
         }
     </style>
-    <div class="col-lg-12 col-md-12 mb-3">
-        <div class="card" id="supervisor_tickets_section">
-            <div class="card-header">
-                <h5>Supervisión de Tickets</h5>
-            </div>
-            <div class="card-body">
-                <div class="container mb-3 mt-1">
-                    <div class="row justify-content-center align-items-center" wire:ignore>
-                        <div class="col-12 col-md-auto mb-2 mb-md-0 d-flex flex-wrap align-items-center">
-                            <input type="text" class="datepicker form-control me-2" id="fecha_desde"
-                                value="{{ $fecha_desde }}" placeholder="Fecha desde">
-                            <span class="mx-2">a</span>
-                            <input type="text" class="datepicker form-control ms-2" id="fecha_hasta"
-                                value="{{ $fecha_hasta }}" placeholder="Fecha hasta">
-                        </div>
-                        <div class="col-12 col-md-auto mb-2 mb-md-0">
-                            <select name="estados" class="select2" id="SelectedEstado">
-                                <option value="">Todos los estados</option>
-                                @foreach ($estados as $e)
-                                    <option value="{{ $e->id }}">{{ $e->nombre }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-12 col-md-auto mb-2 mb-md-0">
-                            <select name="asignados" class="select2" id="SelectedAsignado">
-                                <option value="">Todos los asignados</option>
-                                @foreach ($asignados as $asignado)
-                                    <option value="{{ $asignado->id }}">{{ $asignado->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-12 col-md-auto mb-2 mb-md-0">
-                            <button class="btn btn-light btn-sm" wire:click="cargarDatosSupervisor()">
-                                <i class="fas fa-filter"></i>
-                            </button>
-                        </div>
-                        <div class="col-12 col-md-auto mb-2 mb-md-0 text-center">
-                            <a href="javascript:exportTabla('excel')"
-                                class="btn btn-default text-success shadow btn-sm">
-                                <i class="far fa-file-excel"></i>
-                            </a>
-                        </div>
-                        <div class="col-12 col-md-auto mb-2 mb-md-0 text-center">
-                            <a href="javascript:exportTabla('pdf')" class="btn btn-default text-danger shadow btn-sm">
-                                <i class="far fa-file-pdf"></i>
-                            </a>
-                        </div>
-                    </div>
+    @if (count($tickets) > 0)
+        <div class="col-lg-12 col-md-12 mb-3">
+            <div class="card" id="supervisor_tickets_section">
+                <div class="card-header">
+                    <h5>Supervisión de Tickets</h5>
                 </div>
-                <div wire:ignore class="card-body card-dashboard">
-                    <div class="table-responsive">
-                        <table wire:ignore class="table table-striped tabla_gestion_supervisores" style="width:100%;">
-                            <thead>
-                                <tr>
-                                    <th>Fecha</th>
-                                    <th>Codigo</th>
-                                    <th>Titulo</th>
-                                    <th>Prioridad</th>
-                                    <th>Categoría</th>
-                                    <th>Subcategoría</th>
-                                    <th>Usuario</th>
-                                    <th>Agente</th>
-                                    <th>Estado</th>
-                                    <th>Acc</th>
-                                </tr>
-                            </thead>
-                            <tbody id="content_tabla_gestion_supervisores">
-                            </tbody>
-                        </table>
+                <div class="card-body">
+                    <div class="container mb-3 mt-1">
+                        <div class="row justify-content-center align-items-center" wire:ignore>
+                            <div class="col-12 col-md-auto mb-2 mb-md-0 d-flex flex-wrap align-items-center">
+                                <input type="text" class="datepicker form-control me-2" id="fecha_desde"
+                                    value="{{ $fecha_desde }}" placeholder="Fecha desde">
+                                <span class="mx-2">a</span>
+                                <input type="text" class="datepicker form-control ms-2" id="fecha_hasta"
+                                    value="{{ $fecha_hasta }}" placeholder="Fecha hasta">
+                            </div>
+                            <div class="col-12 col-md-auto mb-2 mb-md-0">
+                                <select name="estados" class="select2" id="SelectedEstado">
+                                    <option value="">Todos los estados</option>
+                                    @foreach ($estados as $e)
+                                        <option value="{{ $e->id }}">{{ $e->nombre }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-12 col-md-auto mb-2 mb-md-0">
+                                <select name="asignados" class="select2" id="SelectedAsignado">
+                                    <option value="">Todos los asignados</option>
+                                    @foreach ($asignados as $asignado)
+                                        <option value="{{ $asignado->id }}">{{ $asignado->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-12 col-md-auto mb-2 mb-md-0">
+                                <button class="btn btn-light btn-sm" wire:click="cargarDatosSupervisor()">
+                                    <i class="fas fa-filter"></i>
+                                </button>
+                            </div>
+                            <div class="col-12 col-md-auto mb-2 mb-md-0 text-center">
+                                <a href="javascript:exportTabla('excel')"
+                                    class="btn btn-default text-success shadow btn-sm">
+                                    <i class="far fa-file-excel"></i>
+                                </a>
+                            </div>
+                            <div class="col-12 col-md-auto mb-2 mb-md-0 text-center">
+                                <a href="javascript:exportTabla('pdf')"
+                                    class="btn btn-default text-danger shadow btn-sm">
+                                    <i class="far fa-file-pdf"></i>
+                                </a>
+                            </div>
+                        </div>
                     </div>
-                    <div class="margin_20 loading_p">
-                        <div class="centrar_todo w_100px">
-                            <i class="la la-spinner spinner" style="font-size:30px;"></i>
+                    <div wire:ignore class="card-body card-dashboard">
+                        <div class="table-responsive">
+                            <table wire:ignore class="table table-striped tabla_gestion_supervisores"
+                                style="width:100%;">
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Codigo</th>
+                                        <th>Titulo</th>
+                                        <th>Prioridad</th>
+                                        <th>Categoría</th>
+                                        <th>Subcategoría</th>
+                                        <th>Usuario</th>
+                                        <th>Agente</th>
+                                        <th>Estado</th>
+                                        <th>Acc</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="content_tabla_gestion_supervisores">
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="margin_20 loading_p">
+                            <div class="centrar_todo w_100px">
+                                <i class="la la-spinner spinner" style="font-size:30px;"></i>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
+    @endif
+
 
     @push('js')
         <script>

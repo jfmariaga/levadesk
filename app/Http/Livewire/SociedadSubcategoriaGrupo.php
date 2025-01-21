@@ -89,6 +89,7 @@ class SociedadSubcategoriaGrupo extends Component
                 ]);
 
             $this->emit('showToast', ['type' => 'success', 'message' => 'Relación actualizada exitosamente!']);
+            $this->resetForm();
         } else {
             // Si no estamos en modo de edición y la relación no existe, insertamos la nueva relación
             DB::table('sociedad_subcategoria_grupo')->insert([
@@ -101,13 +102,13 @@ class SociedadSubcategoriaGrupo extends Component
             ]);
 
             $this->emit('showToast', ['type' => 'success', 'message' => 'Relación agregada exitosamente!']);
+            $this->resetForm();
         }
 
         // Emitir el evento para recargar la tabla con las nuevas relaciones
         $this->emit('cargarRelacionesTabla', json_encode($this->obtenerRelaciones()));
 
         // Resetear el formulario después de agregar o editar
-        $this->resetForm();
     }
 
     public function eliminarRelacion($relacionId)
@@ -184,7 +185,6 @@ class SociedadSubcategoriaGrupo extends Component
         $this->relacion_id = null;
         $this->supervisor_id = null;
         $this->supervisor_id_2 = null;
-
     }
 
     public function render()

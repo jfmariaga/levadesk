@@ -51,21 +51,5 @@ class CheckAnsVencimiento implements ShouldQueue
             // }
         }
 
-        // foreach ($aceptacion as $ticket) {
-        //     $tiempoPasadoAceptacion = now()->diffInSeconds($ticket->tiempo_inicio_aceptacion);
-
-        //     $tiempoRestanteAceptacion = $ans->t_aceptacion_segundos - $tiempoPasadoAceptacion;
-
-        //     if ($tiempoRestanteAceptacion < 0 && $ticket->estado_id == 6) {
-        //         $ticket->update(['estado_id' => 4]);
-        //         Comentario::create([
-        //             'ticket_id' => $ticket->id,
-        //             'user_id' => 16,
-        //             'comentario' => 'Tiempo agotado para la aceptación, se finaliza el ticket con una calificación de 5/5⭐',
-        //             'calificacion' => 5,
-        //         ]);
-        //         $ticket->asignado->notify(new AnsCercaDeVencer($ticket));
-        //     }
-        // }
     }
 }

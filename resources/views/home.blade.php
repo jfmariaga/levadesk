@@ -23,7 +23,6 @@
                     @livewire('supervisor-ticket.supervisor-tickets')
                 </div>
             @endif
-
         </div>
     </div>
 @stop
