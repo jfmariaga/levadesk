@@ -611,12 +611,16 @@
                                                                 <div>
                                                                     <strong>{{ $tarea->titulo }}</strong>
                                                                     <p>{{ $tarea->descripcion }}</p>
-                                                                    <span>Fecha de Creación:{{ \Carbon\Carbon::parse($tarea->created_at)->format('d-m-Y H:i:s') }}</span><br>
-                                                                    <span>Última Modificación:{{ \Carbon\Carbon::parse($tarea->updated_at)->format('d-m-Y H:i:s') }}</span><br>
-                                                                    <span>Fecha limite de ejecución:{{ \Carbon\Carbon::parse($tarea->fecha_cumplimiento)->format('d-m-Y H:i:s') }}</span>
+                                                                    <span>Fecha de
+                                                                        Creación:{{ \Carbon\Carbon::parse($tarea->created_at)->format('d-m-Y H:i:s') }}</span><br>
+                                                                    <span>Última
+                                                                        Modificación:{{ \Carbon\Carbon::parse($tarea->updated_at)->format('d-m-Y H:i:s') }}</span><br>
+                                                                    <span>Fecha limite de
+                                                                        ejecución:{{ \Carbon\Carbon::parse($tarea->fecha_cumplimiento)->format('d-m-Y H:i:s') }}</span>
                                                                     <br>
                                                                     <span class="text-muted">
-                                                                        <strong>Estado:</strong> {{ $tarea->estado }}</span><br>
+                                                                        <strong>Estado:</strong>
+                                                                        {{ $tarea->estado }}</span><br>
 
                                                                     @if ($tarea->user_id)
                                                                         <span class="text-muted">Responsable:
@@ -666,7 +670,7 @@
 
                                                                         {{-- Botones de cambio de estado (deshabilitados si hay solicitud pendiente) --}}
                                                                         @if (!($tarea->autorizado == 0 && $tarea->solicitud_confirmacion == 1))
-                                                                            @if (($tarea->estado == 'pendiente' || $tarea->estado == 'Aprobada')  && $tarea->user_id == auth()->id())
+                                                                            @if (($tarea->estado == 'pendiente' || $tarea->estado == 'Aprobada') && $tarea->user_id == auth()->id())
                                                                                 <button
                                                                                     wire:click="marcarEnProgreso({{ $tarea->id }})"
                                                                                     class="btn btn-outline-warning btn-sm me-2">
@@ -818,7 +822,7 @@
                                                         </div>
                                                     @endif
                                                     @if ($ticket->estado_id != 4 && $ticket->estado_id != 5 && $ticket->estado_id != 6)
-                                                        <p class="ml-2">¿Escalar a consultoría?</p>
+                                                        <p class="ml-2">¿Detener ANS?</p>
                                                         <div class="float-right">
                                                             <label class="switch"
                                                                 style="margin-left:10px; margin-top: 5px">
@@ -1053,39 +1057,50 @@
 
                                             @if ($escalar)
                                                 @if ($ticket->escalar == false)
-                                                    <p>Se cambiará el estado del ticket por: <strong>Escalado a
-                                                            consultoría</strong></p>
-                                                    <p>Recuerda mantener informado al usuario sobre cualquier novedad
+                                                    <p>Se cambiará el estado del ticket por: <strong>ANS
+                                                            DETENIDO</strong></p>
+                                                    <p>Si vas a detener el ANS por escalar a consultoría recuerda
+                                                        mantener informado al usuario sobre cualquier novedad
                                                         (Nombre de la consultoría,# del caso y cambio de estados), lo
                                                         puedes
                                                         hacer mediante la caja de comentarios, si es necesario
                                                         adjunta evidencias.
                                                     </p>
-                                                    <p>Durante el tiempo que este el estado en: <strong>Escalado a
-                                                            consultoría</strong>. No podras marcar respuestas como
-                                                        sulución,
-                                                        hasta que cambies manualmente el estado a: <strong>En
-                                                            atención</strong></p>
+                                                    <p>Durante el tiempo que este el estado en: <strong>ANS
+                                                            DETENIDO</strong>. No podras marcar respuestas como
+                                                        sulución, hasta que cambies manualmente el estado a: <strong>EN
+                                                            ATENCIÓN</strong></p>
+                                                    <textarea wire:model="justificacion" class="form-control" placeholder="Escribe la justificación aquí..."></textarea>
+
+                                                    @error('justificacion')
+                                                        <span class="text-danger">{{ $message }}</span>
+                                                    @enderror
                                                     <div class="d-flex">
                                                         <button wire:click="consultoria"
                                                             class="float-right btn btn-sm btn-outline-info">Confirmar</button>
                                                     </div>
                                                     <hr>
                                                 @elseif ($ticket->escalar == true && $ticket->estado_id == 9)
-                                                    <p><strong>Cambiar estado</strong></p>
-                                                    <p><i>Si cambias el estado, se entendera que la consultoría ya
-                                                            proporcionó una solución</i></p>
-                                                    <div class="d-flex">
+                                                    <p><strong>Activar ANS</strong></p>
+                                                    <p><i>Si cambias el estado, podras marcar respuestas como
+                                                            solución</i></p>
+                                                    <div class="d-flex col-12">
                                                         <button wire:click="consultoriaCambio"
-                                                            class="float-right btn btn-sm btn-outline-info">Cambiar
-                                                            estado</button>
+                                                            class="float-left btn btn-sm btn-outline-info">Activar
+                                                            ANS</button>
                                                     </div>
                                                     <hr>
                                                 @else
                                                     <div class="justify-content-center align-items-center">
-                                                        <p>¿Volver a escalar?</p>
-                                                        <button wire:click="consultoria"
-                                                            class=" btn btn-sm btn-outline-info">Confirmar</button>
+                                                        <p><strong>¿Volver a detener el ANS?</strong></p>
+                                                        <textarea wire:model="justificacion" class="form-control" placeholder="Escribe la justificación aquí..."></textarea>
+
+                                                        @error('justificacion')
+                                                            <span class="text-danger">{{ $message }}</span>
+                                                        @enderror
+                                                    </div>
+                                                    <div>
+                                                        <button wire:click="consultoria" class=" btn btn-sm btn-outline-info">Confirmar</button>
                                                     </div>
                                                     <hr>
                                                 @endif

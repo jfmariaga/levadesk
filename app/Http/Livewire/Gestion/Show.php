@@ -10,11 +10,13 @@ use App\Models\Ticket;
 use App\Models\Categoria;
 use App\Models\Colaborador;
 use App\Models\Comentario;
+use App\Models\Estado;
 use App\Models\Subcategoria;
 use App\Models\Historial;
 use App\Models\Impacto;
 use App\Models\Recordatorio;
 use App\Models\Tarea;
+use App\Models\TicketEstado;
 use App\Models\TicketHistorial;
 use App\Models\TipoSolicitud;
 use App\Models\User;
@@ -96,6 +98,7 @@ class Show extends Component
     public $tipoANS;
     public $flowData;
     public $tareasCount = 0;
+    public $justificacion;
 
     protected $rules = [
         'categoria_id' => 'required',
@@ -431,7 +434,6 @@ class Show extends Component
         ]);
 
         $tarea->user->notify(new ResultadoTarea($tarea, $resultado, $this->ticket));
-
     }
 
     public function rechazarTarea($tareaId)
@@ -1011,11 +1013,6 @@ class Show extends Component
             'tipo' => $this->commentType,
         ]);
 
-        // Asocia el archivo con el comentario recién creado si existe
-        // if ($this->newFile) {
-        //     $this->addFile($comentario->id);
-        // }
-
         if (!empty($this->newFiles)) {
             $this->addFiles($comentario->id);
         }
@@ -1050,11 +1047,6 @@ class Show extends Component
             ]);
 
             $this->ticket->usuario->notify(new NuevoComentarioSolucion($comentario));
-            // if ($this->ticket->colaboradors) {
-            //     foreach ($this->ticket->colaboradors as $colaborador) {
-            //         $colaborador->user->notify(new NuevoComentarioSolucion($comentario));
-            //     }
-            // }
         } elseif ($this->commentType == 5) {
             $this->ticket->update([
                 'estado_id' => 11
@@ -1068,11 +1060,6 @@ class Show extends Component
             ]);
 
             $this->ticket->usuario->notify(new PruebasSet($comentario));
-            // if ($this->ticket->colaboradors) {
-            //     foreach ($this->ticket->colaboradors as $colaborador) {
-            //         $colaborador->user->notify(new NuevoComentario($comentario));
-            //     }
-            // }
         } elseif ($this->commentType == 6) {
             $this->ticket->update([
                 'estado_id' => 12
@@ -1113,24 +1100,6 @@ class Show extends Component
         $this->emit('resetearEditor');
     }
 
-    // public function addFile($comentario_id = null)
-    // {
-    //     $this->validate(['newFile' => 'required|file|max:10240']);
-    //     $nombre_original = $this->newFile->getClientOriginalName();
-    //     $nombre_sin_extension = pathinfo($nombre_original, PATHINFO_FILENAME);
-    //     $extension = $this->newFile->getClientOriginalExtension();
-    //     $nombre_db = Str::slug($nombre_sin_extension);
-    //     $nombre_a_guardar = $nombre_db . '.' . $extension;
-    //     $path = $this->newFile->storeAs('public/tickets', $nombre_a_guardar);
-    //     // Guardar el archivo con la referencia al comentario (si existe) y al ticket
-    //     $this->ticket->archivos()->create([
-    //         'ruta' => $path,
-    //         'comentario_id' => $comentario_id,
-    //     ]);
-    //     $this->newFile = null;
-    //     $this->loadTicket($this->ticket->id); // Refresh ticket data
-    // }
-
     public function addFiles($comentario_id = null)
     {
         $this->validate([
@@ -1157,13 +1126,6 @@ class Show extends Component
         $this->loadTicket($this->ticket->id); // Refresh ticket data
     }
 
-
-    // public function removeFile()
-    // {
-    //     // Remover el archivo temporal
-    //     $this->reset('newFile');
-    // }
-
     public function removeFile($index)
     {
         unset($this->newFiles[$index]);
@@ -1177,68 +1139,163 @@ class Show extends Component
         $this->reset('newFileCambio');
     }
 
+    // public function consultoria()
+    // {
+    //     $this->ticket->update([
+    //         'escalar' => true,
+    //         'estado_id' => 9
+    //     ]);
+
+    //     Historial::create([
+    //         'ticket_id' => $this->ticket->id,
+    //         'user_id' => Auth::id(),
+    //         'accion' => 'Escalado',
+    //         'detalle' =>  Auth::user()->name . ' Cambió el estado del ticket a: ANS DETENIDO',
+    //     ]);
+
+    //     TicketHistorial::create([
+    //         'ticket_id' => $this->ticket->id,
+    //         'estado_id' => 9,
+    //         'fecha_cambio' => now(),
+    //     ]);
+
+    //     $this->ticket->usuario->notify(new CambioEstado($this->ticket));
+
+    //     $this->emit('showToast', ['type' => 'success', 'message' => 'Cambio de estado a: ANS DETENIDO']);
+    //     $this->updateFlow();
+    //     $this->loadTicket($this->ticket->id);
+    // }
+
     public function consultoria()
     {
+        // Validar que se ingrese una justificación antes de cambiar el estado
+        $this->validate([
+            'justificacion' => 'required|string|min:15'
+        ]);
+
+        // Guardar la justificación como comentario
+        $comentario = $this->ticket->comentarios()->create([
+            'user_id' => auth()->id(),
+            'comentario' => 'Justificación: '. $this->justificacion,
+            'tipo' => 0, // Tipo 0: Comentario público
+        ]);
+
+        // Actualizar el estado del ticket
         $this->ticket->update([
             'escalar' => true,
             'estado_id' => 9
         ]);
 
+        // Registrar en el historial
         Historial::create([
             'ticket_id' => $this->ticket->id,
             'user_id' => Auth::id(),
             'accion' => 'Escalado',
-            'detalle' =>  Auth::user()->name . ' Cambió el estado del ticket a: Escalado a consultoría',
+            'detalle' => Auth::user()->name . ' Cambió el estado del ticket a: ANS DETENIDO',
         ]);
 
+        // Registrar en la tabla TicketHistorial
         TicketHistorial::create([
             'ticket_id' => $this->ticket->id,
             'estado_id' => 9,
             'fecha_cambio' => now(),
         ]);
 
+        // Notificar al usuario del ticket
         $this->ticket->usuario->notify(new CambioEstado($this->ticket));
 
-        $this->emit('showToast', ['type' => 'success', 'message' => 'Cambio de estado a: Escalado a consultoría']);
+        // Emitir alerta de éxito
+        $this->emit('showToast', ['type' => 'success', 'message' => 'Cambio de estado a: ANS DETENIDO']);
+
+        // Limpiar la justificación después del cambio
+        $this->justificacion = '';
+
+        // Actualizar flujo y recargar ticket
         $this->updateFlow();
         $this->loadTicket($this->ticket->id);
     }
 
+    // public function consultoriaCambio()
+    // {
+    //     if ($this->ticket->cambio && $this->ticket->cambio->check_aprobado_ti == true) {
+    //         $this->ticket->update([
+    //             'estado_id' => 14
+    //         ]);
+
+    //         Historial::create([
+    //             'ticket_id' => $this->ticket->id,
+    //             'user_id' => Auth::id(),
+    //             'accion' => 'FinEscalado',
+    //             'detalle' =>  Auth::user()->name . ' Cambió el estado del ticket a: SET Aprobado',
+    //         ]);
+
+    //         $this->ticket->usuario->notify(new CambioEstado($this->ticket));
+
+    //         $this->emit('showToast', ['type' => 'success', 'message' => 'Ahora puedes dar gestión a este ticket']);
+    //     } else {
+    //         $this->ticket->update([
+    //             'estado_id' => 3
+    //         ]);
+
+    //         Historial::create([
+    //             'ticket_id' => $this->ticket->id,
+    //             'user_id' => Auth::id(),
+    //             'accion' => 'FinEscalado',
+    //             'detalle' =>  Auth::user()->name . ' Cambió el estado del ticket a: En atención',
+    //         ]);
+
+    //         $this->ticket->usuario->notify(new CambioEstado($this->ticket));
+
+    //         $this->emit('showToast', ['type' => 'success', 'message' => 'Cambio de estado a: En atención']);
+    //     }
+
+
+    //     $this->updateFlow();
+    //     $this->loadTicket($this->ticket->id);
+    // }
+
     public function consultoriaCambio()
     {
-        if ($this->ticket->cambio && $this->ticket->cambio->check_aprobado_ti == true) {
-            $this->ticket->update([
-                'estado_id' => 14
-            ]);
+        // Obtener el último registro donde el estado fue 9
+        $ultimoEstado9 = TicketEstado::where('ticket_id', $this->ticket->id)
+            ->where('estado_id', 9)
+            ->orderBy('id', 'desc')
+            ->first();
 
-            Historial::create([
-                'ticket_id' => $this->ticket->id,
-                'user_id' => Auth::id(),
-                'accion' => 'FinEscalado',
-                'detalle' =>  Auth::user()->name . ' Cambió el estado del ticket a: SET Aprobado',
-            ]);
-
-            $this->ticket->usuario->notify(new CambioEstado($this->ticket));
-
-            $this->emit('showToast', ['type' => 'success', 'message' => 'Ahora puedes dar gestión a este ticket']);
-        } else {
-            $this->ticket->update([
-                'estado_id' => 3
-            ]);
-
-            Historial::create([
-                'ticket_id' => $this->ticket->id,
-                'user_id' => Auth::id(),
-                'accion' => 'FinEscalado',
-                'detalle' =>  Auth::user()->name . ' Cambió el estado del ticket a: En atención',
-            ]);
-
-            $this->ticket->usuario->notify(new CambioEstado($this->ticket));
-
-            $this->emit('showToast', ['type' => 'success', 'message' => 'Cambio de estado a: En atención']);
+        // Si hay un estado 9, buscar el estado inmediatamente anterior a ese registro
+        if ($ultimoEstado9) {
+            $estadoAnterior = TicketEstado::where('ticket_id', $this->ticket->id)
+                ->where('id', '<', $ultimoEstado9->id)
+                ->orderBy('id', 'desc')
+                ->value('estado_id');
         }
 
+        // Si existe un estado anterior, usarlo; si no, usar 3 como fallback
+        $nuevoEstado = $estadoAnterior ?? 3;
 
+        // Obtener el nombre del estado desde la tabla estados
+        $nombreEstado = Estado::where('id', $nuevoEstado)->value('nombre');
+
+        // Actualizar el estado del ticket
+        $this->ticket->update([
+            'estado_id' => $nuevoEstado
+        ]);
+
+        // Registrar el cambio en el historial
+        Historial::create([
+            'ticket_id' => $this->ticket->id,
+            'user_id' => Auth::id(),
+            'accion' => 'FinEscalado',
+            'detalle' => Auth::user()->name . " Cambió el estado del ticket a: {$nombreEstado}",
+        ]);
+
+        // Notificar al usuario
+        $this->ticket->usuario->notify(new CambioEstado($this->ticket));
+
+        // Mostrar mensaje en la interfaz
+        $this->emit('showToast', ['type' => 'success', 'message' => "Cambio de estado a: {$nombreEstado}"]);
+
+        // Actualizar flujo y recargar el ticket
         $this->updateFlow();
         $this->loadTicket($this->ticket->id);
     }
