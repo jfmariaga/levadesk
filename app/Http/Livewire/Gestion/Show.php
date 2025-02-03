@@ -20,6 +20,7 @@ use App\Models\TipoSolicitud;
 use App\Models\User;
 use App\Notifications\AnsCercaDeVencer;
 use App\Notifications\AprobarSet;
+use App\Notifications\AutorizarTarea;
 use App\Notifications\CambioEstado;
 use App\Notifications\EstadoTarea;
 use App\Notifications\FlujoAcceso;
@@ -33,6 +34,7 @@ use App\Notifications\PruebasAccesos;
 use App\Notifications\PruebasProductivo;
 use App\Notifications\PruebasSet;
 use App\Notifications\Reasignado;
+use App\Notifications\ResultadoTarea;
 use App\Notifications\TicketAsignado;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
@@ -93,6 +95,7 @@ class Show extends Component
     public $agentes = [];
     public $tipoANS;
     public $flowData;
+    public $tareasCount = 0;
 
     protected $rules = [
         'categoria_id' => 'required',
@@ -253,6 +256,38 @@ class Show extends Component
         return $tiempoFormateado;
     }
 
+    // public function crearTarea()
+    // {
+    //     $this->validate([
+    //         'titulo' => 'required|string',
+    //         'descripcion' => 'nullable|string',
+    //         'asignado_a' => 'nullable|integer|exists:users,id',
+    //         'fecha_cumplimiento' => 'required|date',
+    //     ]);
+
+
+    //     $tarea = Tarea::create([
+    //         'titulo' => $this->titulo,
+    //         'descripcion' => $this->descripcion,
+    //         'user_id' => $this->asignado_a ? $this->asignado_a : auth()->id(),
+    //         'fecha_cumplimiento' => $this->fecha_cumplimiento,
+    //         'ticket_id' => $this->ticket->id,
+    //         'estado' => 'pendiente',
+    //     ]);
+
+    //     if ($this->asignado_a) {
+    //         $usuario = User::find($this->asignado_a);
+    //         $usuario->notify(new NuevaTarea($tarea, $this->ticket));
+    //     }
+
+    //     $this->titulo = '';
+    //     $this->descripcion = '';
+    //     $this->asignado_a = '';
+    //     $this->fecha_cumplimiento = '';
+    //     $this->loadTicket();
+    //     $this->emit('tareaCreada');
+    // }
+
     public function crearTarea()
     {
         $this->validate([
@@ -262,28 +297,50 @@ class Show extends Component
             'fecha_cumplimiento' => 'required|date',
         ]);
 
+        $estadoTarea = 'pendiente'; // Estado por defecto
+        $autorizado = true; // Valor por defecto
+        // Verificar si el ticket tiene un cambio asociado
+        if ($this->ticket->cambio) {
+            if ($this->ticket->estado_id == 14) {
+                $this->tareasCount = $this->ticket->tareas()->count();
+                if ($this->tareasCount >= 1) {
+                    $estadoTarea = 'pendiente';
+                    $autorizado = false; // Requiere autorización
+                }
+            } else {
+                $this->emit('tareaNoAutorizada');
+                return;
+            }
+        }
 
+        // Crear la tarea con el nuevo campo de autorización
         $tarea = Tarea::create([
             'titulo' => $this->titulo,
             'descripcion' => $this->descripcion,
             'user_id' => $this->asignado_a ? $this->asignado_a : auth()->id(),
             'fecha_cumplimiento' => $this->fecha_cumplimiento,
             'ticket_id' => $this->ticket->id,
-            'estado' => 'pendiente',
+            'estado' => $estadoTarea,
+            'autorizado' => $autorizado,
         ]);
 
-        if ($this->asignado_a) {
+        // Notificar al usuario asignado si no requiere autorización
+        if ($this->asignado_a && $autorizado !== null) {
             $usuario = User::find($this->asignado_a);
             $usuario->notify(new NuevaTarea($tarea, $this->ticket));
         }
 
+        // Limpiar los campos del formulario
         $this->titulo = '';
         $this->descripcion = '';
         $this->asignado_a = '';
         $this->fecha_cumplimiento = '';
+
         $this->loadTicket();
+
         $this->emit('tareaCreada');
     }
+
 
     // Marcar tarea como "en_progreso"
     public function marcarEnProgreso($tareaId)
@@ -315,6 +372,94 @@ class Show extends Component
 
         $this->ticket->asignado->notify(new EstadoTarea($tarea, $this->ticket));
     }
+
+    public function pedirConfirmacion($tareaId)
+    {
+        $tarea = Tarea::findOrFail($tareaId);
+
+        // Verificar que el ticket tenga un cambio asociado
+        if (!$tarea->ticket->cambio) {
+            return;
+        }
+        $logueado = Auth::user()->name;
+        // Obtener el administrador que debe aprobar
+        $aprobador = $tarea->ticket->cambio->aprobadorTiCambio;
+
+        if ($aprobador) {
+            // Notificar al administrador
+            $aprobador->notify(new AutorizarTarea($this->ticket, $tarea, $logueado));
+
+            // Guardar en base de datos que la confirmación ha sido solicitada
+            $tarea->update([
+                'solicitud_confirmacion' => true,
+                'aprobador_id' => $aprobador->id,
+            ]);
+
+            // Emitir evento para mostrar mensaje en frontend
+            $this->emit('confirmacionSolicitada');
+        }
+
+        Historial::create([
+            'ticket_id' => $this->ticket_id,
+            'user_id' => Auth::id(),
+            'accion' => 'autorizacion de tarea',
+            'detalle' => $logueado . " Pidió la autorización de la tarea: " . $tarea->titulo,
+        ]);
+    }
+
+    public function autorizarTarea($tareaId)
+    {
+        $tarea = Tarea::with('user', 'ticket.cambio')->find($tareaId);
+
+        if (!$tarea || !$tarea->ticket->cambio) {
+            return;
+        }
+
+        $tarea->update([
+            'autorizado' => true,
+            'estado' => 'Aprobada',
+        ]);
+
+
+        $resultado = Auth::user()->name . ' autorizó la tarea: ' . $tarea->titulo;
+
+        Historial::create([
+            'ticket_id' => $tarea->ticket_id,
+            'user_id' => Auth::id(),
+            'accion' => 'autorización de tarea',
+            'detalle' => $resultado,
+        ]);
+
+        $tarea->user->notify(new ResultadoTarea($tarea, $resultado, $this->ticket));
+
+    }
+
+    public function rechazarTarea($tareaId)
+    {
+        $tarea = Tarea::with('user', 'ticket.cambio')->find($tareaId);
+
+        if (!$tarea || !$tarea->ticket->cambio) {
+            return;
+        }
+
+        $tarea->update([
+            'autorizado' => false,
+            'estado' => 'Rechazada',
+        ]);
+
+
+        $resultado = Auth::user()->name . ' Rechazo la tarea: ' . $tarea->titulo;
+
+        Historial::create([
+            'ticket_id' => $tarea->ticket_id,
+            'user_id' => Auth::id(),
+            'accion' => 'autorización de tarea',
+            'detalle' => $resultado,
+        ]);
+
+        $tarea->user->notify(new ResultadoTarea($tarea, $resultado, $this->ticket));
+    }
+
 
     public function flujoAprobacion()
     {

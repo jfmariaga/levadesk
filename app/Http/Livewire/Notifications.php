@@ -13,6 +13,7 @@ class Notifications extends Component
     public $aprobaciones;
     public $cambios;
     public $tareas;
+    public $tareasCount;
 
     public function getListeners()
     {
@@ -53,8 +54,8 @@ class Notifications extends Component
             })
             ->get();
 
-        $this->tareas = Tarea::where('estado', '<>', 'completado')->where('user_id', Auth::user()->id)->get();
-
+        $this->tareas = Tarea::whereIn('estado', ['en_progreso','pendiente','Aprobada'])->where('user_id', Auth::user()->id)->latest()->get();
+        $this->tareasCount = Tarea::where('aprobador_id', Auth::user()->id)->where('estado', 'pendiente')->get();
         // Unir las aprobaciones y los cambios usando concat() para mantener las relaciones intactas
         $this->aprobaciones = $aprobacionesFuncionales->concat($aprobacionesTi);
         $this->cambios = $aprobacionesFuncionalesCambios->concat($aprobacionesTiCambios);
@@ -66,6 +67,7 @@ class Notifications extends Component
             'aprobaciones' => $this->aprobaciones,
             'cambios' => $this->cambios,
             'tareas' => $this->tareas,
+            'tareasCount' => $this->tareasCount,
         ]);
     }
 }

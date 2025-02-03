@@ -169,8 +169,18 @@ class FormTickets extends Component
 
         if ($this->subcategoria_id) {
             $subcategoriaNombre = Subcategoria::find($this->subcategoria_id)->nombre;
-            if (in_array($subcategoriaNombre, ['SOPORTE DE APLICACIONES', 'DESARROLLO Y PERSONALIZACIONES', 'INSTALACION Y ACTUALIZACION','SOLICITUD DE CAPACITACION'])) {
-                $this->aplicaciones = Aplicaciones::where('sociedad_id', $this->sociedad_id)->where('estado', 0)->get();
+            if (in_array($subcategoriaNombre, ['SOPORTE DE APLICACIONES', 'DESARROLLO Y PERSONALIZACIONES', 'INSTALACION Y ACTUALIZACION', 'SOLICITUD DE CAPACITACION'])) {
+                $this->aplicaciones = Aplicaciones::where('sociedad_id', $this->sociedad_id)
+                ->where('estado', 0)
+                ->orderByRaw("
+                    CASE
+                        WHEN nombre = 'ESTRATEGIAS DE LIBERACIÓN SAP' THEN 0
+                        WHEN nombre = 'OTRA' THEN 2
+                        ELSE 1
+                    END, nombre ASC
+                ")
+                ->get();
+
             }
         }
     }
@@ -180,8 +190,17 @@ class FormTickets extends Component
         $this->aplicaciones = [];
 
         $subcategoria = Subcategoria::find($value);
-        if ($subcategoria && in_array($subcategoria->nombre, ['SOPORTE DE APLICACIONES', 'DESARROLLO Y PERSONALIZACIONES', 'INSTALACION Y ACTUALIZACION','SOLICITUD DE CAPACITACION'])) {
-            $this->aplicaciones = Aplicaciones::where('sociedad_id', $this->sociedad_id)->where('estado', 0)->get();
+        if ($subcategoria && in_array($subcategoria->nombre, ['SOPORTE DE APLICACIONES', 'DESARROLLO Y PERSONALIZACIONES', 'INSTALACION Y ACTUALIZACION', 'SOLICITUD DE CAPACITACION'])) {
+            $this->aplicaciones = Aplicaciones::where('sociedad_id', $this->sociedad_id)
+                ->where('estado', 0)
+                ->orderByRaw("
+                        CASE
+                            WHEN nombre = 'ESTRATEGIAS DE LIBERACIÓN SAP' THEN 0
+                            WHEN nombre = 'OTRA' THEN 2
+                            ELSE 1
+                        END, nombre ASC
+                    ")
+                                ->get();
         } else {
             $this->aplicacion_id = null;
         }
@@ -226,7 +245,7 @@ class FormTickets extends Component
         $grupo = null;
 
         // Si la subcategoría es SOPORTE DE APLICACIONES, asignar según la aplicación seleccionada
-        if (in_array($subcategoria->nombre, ['SOPORTE DE APLICACIONES', 'DESARROLLO Y PERSONALIZACIONES', 'INSTALACION Y ACTUALIZACION','SOLICITUD DE CAPACITACION'])) {
+        if (in_array($subcategoria->nombre, ['SOPORTE DE APLICACIONES', 'DESARROLLO Y PERSONALIZACIONES', 'INSTALACION Y ACTUALIZACION', 'SOLICITUD DE CAPACITACION'])) {
             // Obtener la aplicación seleccionada
             $aplicacion = Aplicaciones::find($this->aplicacion_id);
 

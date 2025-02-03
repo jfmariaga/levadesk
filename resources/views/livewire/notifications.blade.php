@@ -2,7 +2,7 @@
     <a class="nav-link" data-toggle="dropdown" href="#">
         <i class="fas fa-bell fa-lg"></i>
         <span class="badge badge-danger navbar-badge">
-            {{ count($aprobaciones) + count($cambios) + count($tareas) }}
+            {{ count($aprobaciones) + count($cambios) + count($tareas) + count($tareasCount)}}
         </span>
     </a>
 
@@ -39,6 +39,17 @@
                         Tarea pendiente del ticket # {{ $tarea->ticket->nomenclatura }}
                     </a>
                 @endforeach
+            @endif
+            @if (count($tareasCount) > 0)
+                <span class="dropdown-item dropdown-header">
+                    Tareas pendientes por autorizar:
+                </span>
+                @foreach ($tareasCount as $tarea)
+                    <a href="{{ url('/gestionar?ticket_id=' . $tarea->ticket_id) }}" class="dropdown-item">
+                        Tarea por autorizar del ticket # {{ $tarea->ticket->nomenclatura }}
+                    </a>
+                @endforeach
+
             @endif
         @else
             <span class="dropdown-item dropdown-header">

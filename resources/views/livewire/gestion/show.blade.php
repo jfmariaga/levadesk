@@ -468,7 +468,7 @@
                                 @endif
                             </div>
                             <div class="form-row align-items-start mt-2 mb-1">
-                                @if ($tarea)
+                                {{-- @if ($tarea)
                                     <!-- Tarjeta de creación de nueva tarea -->
                                     @if ($ticket->estado_id != 4 && $ticket->estado_id != 5 && Auth::id() == $ticket->asignado_a)
                                         <div class="col-md-4">
@@ -542,6 +542,152 @@
                                                         @endforeach
                                                     </ul>
                                                 @endif
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif --}}
+                                @if ($tarea)
+                                    @if ($ticket->estado_id != 4 && $ticket->estado_id != 5 && Auth::id() == $ticket->asignado_a)
+                                        <div class="col-md-12">
+                                            <div class="card mb-3">
+                                                <div class="card-body">
+                                                    <p><strong>Nueva tarea</strong></p>
+
+                                                    <!-- Título -->
+                                                    <div class="form-group">
+                                                        <input type="text" class="form-control" wire:model="titulo"
+                                                            placeholder="Título de la tarea" required>
+                                                        @error('titulo')
+                                                            <span class="text-danger">{{ $message }}</span>
+                                                        @enderror
+                                                    </div>
+
+                                                    <!-- Descripción -->
+                                                    <div class="form-group">
+                                                        <textarea wire:model="descripcion" class="form-control"
+                                                            placeholder="Si la tarea es un transporte, por favor relaciona todos los transportes posibles para este ticket, ya que si asignas una nueva tarea que implique un transporte este sera tratado como un nuevo flujo de aprobación "></textarea>
+                                                    </div>
+
+                                                    <!-- Fecha límite y Responsable -->
+                                                    <div class="form-row">
+                                                        <div class="col-md-6">
+                                                            <p><strong>Fecha límite para esta tarea:</strong></p>
+                                                            <input type="datetime-local" wire:model="fecha_cumplimiento"
+                                                                class="form-control">
+                                                            @error('fecha_cumplimiento')
+                                                                <span class="text-danger">{{ $message }}</span>
+                                                            @enderror
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <p><strong>Responsable:</strong></p>
+                                                            <select wire:model="asignado_a" class="form-control">
+                                                                <option value="">No asignado</option>
+                                                                @foreach ($ticket->colaboradores as $colaborador)
+                                                                    <option value="{{ $colaborador->id }}">
+                                                                        {{ $colaborador->name }}
+                                                                    </option>
+                                                                @endforeach
+                                                            </select>
+                                                        </div>
+                                                    </div>
+
+                                                    <button wire:click="crearTarea"
+                                                        class="btn btn-outline-info btn-sm float-right mt-3">
+                                                        Guardar
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endif
+
+                                    <!-- Tarjeta de visualización de tareas -->
+                                    <div class="col-md-12">
+                                        <div class="card" style="height: 300px; overflow-y: auto;">
+                                            <div class="card-body p-2">
+                                                @if ($ticket->tareas)
+                                                    <ul class="list-group">
+                                                        @foreach ($ticket->tareas as $index => $tarea)
+                                                            <li class="list-group-item">
+                                                                <div>
+                                                                    <strong>{{ $tarea->titulo }}</strong>
+                                                                    <p>{{ $tarea->descripcion }}</p>
+                                                                    <span>Fecha de Creación:{{ \Carbon\Carbon::parse($tarea->created_at)->format('d-m-Y H:i:s') }}</span><br>
+                                                                    <span>Última Modificación:{{ \Carbon\Carbon::parse($tarea->updated_at)->format('d-m-Y H:i:s') }}</span><br>
+                                                                    <span>Fecha limite de ejecución:{{ \Carbon\Carbon::parse($tarea->fecha_cumplimiento)->format('d-m-Y H:i:s') }}</span>
+                                                                    <br>
+                                                                    <span class="text-muted">
+                                                                        <strong>Estado:</strong> {{ $tarea->estado }}</span><br>
+
+                                                                    @if ($tarea->user_id)
+                                                                        <span class="text-muted">Responsable:
+                                                                            {{ $tarea->user->name }}</span>
+                                                                    @endif
+
+                                                                    <div class="mt-3">
+                                                                        {{-- Botón "Pedir Confirmación" solo si la tarea está pendiente --}}
+                                                                        @if ($ticket->cambio && $loop->index > 0 && $tarea->estado == 'pendiente' && $tarea->user_id == auth()->id())
+                                                                            @if ($tarea->autorizado == 0 && $tarea->solicitud_confirmacion == 1)
+                                                                                <button
+                                                                                    class="btn btn-outline-secondary btn-sm me-2"
+                                                                                    disabled>
+                                                                                    En espera de confirmación
+                                                                                </button>
+                                                                            @else
+                                                                                <button
+                                                                                    wire:click="pedirConfirmacion({{ $tarea->id }})"
+                                                                                    class="btn btn-outline-info btn-sm me-2">
+                                                                                    Pedir Confirmación
+                                                                                </button>
+                                                                            @endif
+                                                                        @endif
+
+                                                                        @if ($ticket->cambio && $loop->index > 0 && $tarea->estado == 'pendiente' && $tarea->aprobador_id == auth()->id())
+                                                                            @if ($tarea->autorizado == 0 && $tarea->solicitud_confirmacion == 1)
+                                                                                <button
+                                                                                    wire:click="autorizarTarea({{ $tarea->id }})"
+                                                                                    class="btn btn-outline-info btn-sm me-2">
+                                                                                    Autorizar
+                                                                                </button>
+                                                                                <button
+                                                                                    wire:click="rechazarTarea({{ $tarea->id }})"
+                                                                                    class="btn btn-outline-warning btn-sm me-2">
+                                                                                    Rechazar
+                                                                                </button>
+                                                                            @endif
+                                                                        @endif
+
+                                                                        {{-- Mostrar mensaje si la tarea fue rechazada --}}
+                                                                        @if ($tarea->estado == 'Rechazada')
+                                                                            <p class="text-danger fw-bold">
+                                                                                El aprobador TI rechazó la ejecución de
+                                                                                esta tarea.
+                                                                            </p>
+                                                                        @endif
+
+                                                                        {{-- Botones de cambio de estado (deshabilitados si hay solicitud pendiente) --}}
+                                                                        @if (!($tarea->autorizado == 0 && $tarea->solicitud_confirmacion == 1))
+                                                                            @if (($tarea->estado == 'pendiente' || $tarea->estado == 'Aprobada')  && $tarea->user_id == auth()->id())
+                                                                                <button
+                                                                                    wire:click="marcarEnProgreso({{ $tarea->id }})"
+                                                                                    class="btn btn-outline-warning btn-sm me-2">
+                                                                                    Marcar como en progreso
+                                                                                </button>
+                                                                            @elseif ($tarea->estado == 'en_progreso' && $tarea->user_id == auth()->id())
+                                                                                <button
+                                                                                    wire:click="marcarCompletada({{ $tarea->id }})"
+                                                                                    class="btn btn-outline-success btn-sm">
+                                                                                    Marcar como completada
+                                                                                </button>
+                                                                            @endif
+                                                                        @endif
+                                                                    </div>
+                                                                </div>
+                                                            </li>
+                                                            <hr>
+                                                        @endforeach
+                                                    </ul>
+                                                @endif
+
                                             </div>
                                         </div>
                                     </div>
@@ -1545,6 +1691,25 @@
 
                 Livewire.on('borrarRecordatorio', () => {
                     toastRight('success', 'Recordatorio eliminado!');
+                });
+
+                Livewire.on('tareaNoAutorizada', () => {
+                    toastRight('warning',
+                        'Solo se pueden asignar tareas cuando el ticket este en estado SET APROBADO!');
+                });
+
+                Livewire.on('tareaCreada', () => {
+                    toastRight('success', 'Se registro la tarea correctamente!');
+                });
+
+                Livewire.on('confirmacionSolicitada', () => {
+                    toastRight('success', 'Se ha enviado la solicitud de confirmacion!');
+                });
+
+                Livewire.on('nuevoTransporte', () => {
+                    toastRight('success',
+                        'Se registro la tarea correctamente y se le notifico al aprobador TI para que apruebe!'
+                    );
                 });
 
                 Livewire.on('colaboradorOk', () => {

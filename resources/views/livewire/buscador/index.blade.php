@@ -58,7 +58,7 @@
                                     <td>{{ $ticket->usuario->name }}</td>
                                     <td>{{ $ticket->estado->nombre }}</td>
                                     <td>
-                                        <a href="gestionar?ticket_id={{ $ticket->id }}"
+                                        <a target="_blank" href="gestionar?ticket_id={{ $ticket->id }}"
                                             class="btn btn-outline-primary btn-sm">
                                             <i class="far fa-eye"></i> Ver
                                         </a>
