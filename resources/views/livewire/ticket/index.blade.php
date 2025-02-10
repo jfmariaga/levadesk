@@ -183,7 +183,7 @@
                                 autoFilter: true,
                                 title: 'Tickets',
                                 exportOptions: {
-                                    columns: [0, 1, 2, 3, 4]
+                                    columns: [0, 1, 2, 3, 4, 5, 6]
                                 },
                             }
                         ]
@@ -217,22 +217,33 @@
                         let dia = ('0' + fecha.getDate()).slice(-2);
                         let mes = ('0' + (fecha.getMonth() + 1)).slice(-2);
                         let anio = fecha.getFullYear();
-                        let fechaFormateada = `${dia}-${mes}-${anio}`;
-
-                        body.append(`<tr id="tr_${id}">
-                                        <td class="pointer">${fechaFormateada}</td>
-                                        <td class="pointer">${nomenclatura}</td>
-                                        <td class="pointer">${titulo}</td>
-                                        <td class="pointer">${categoria ? categoria.nombre : ''}</td>
-                                        <td class="pointer">${subcategoria ? subcategoria.nombre : ''}</td>
-                                        <td class="pointer">${estado ? estado.nombre : ''}</td>
-                                        <td class="pointer">${asignado ? asignado.name : ''}</td>
+                        let fechaFormateada = `${anio}-${mes}-${dia}`;
+                        // Crear la fila y agregar evento de click
+                        let row = $(`
+                                    <tr id="tr_${id}" class="clickable-row" data-href="verTicket?ticket_id=${id}" style="cursor: pointer;">
+                                        <td>${fechaFormateada}</td>
+                                        <td>${nomenclatura}</td>
+                                        <td>${titulo}</td>
+                                        <td>${categoria ? categoria.nombre : ''}</td>
+                                        <td>${subcategoria ? subcategoria.nombre : ''}</td>
+                                        <td>${estado ? estado.nombre : ''}</td>
+                                        <td>${asignado ? asignado.name : ''}</td>
                                         <td>
                                             <div class="d-flex">
-                                                <a href="verTicket?ticket_id=${id}" class="btn btn-xs btn-default text-primary mx-1 shadow" title="Edit"><i class="far fa-eye"></i></a>
+                                                <a href="verTicket?ticket_id=${id}" target="_blank" class="btn btn-xs btn-default text-primary mx-1 shadow" title="Ver"><i class="far fa-eye"></i></a>
                                             </div>
                                         </td>
-                                    </tr>`);
+                                    </tr>
+                                `);
+
+                        // Agregar evento click a la fila para abrir en nueva pestaña
+                        row.on("click", function(event) {
+                            if (!$(event.target).closest("a").length) {
+                                window.open($(this).data("href"), '_blank');
+                            }
+                        });
+
+                        body.append(row);
                     }
                     resolve(body);
                 });

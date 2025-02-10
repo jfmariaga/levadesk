@@ -50,7 +50,7 @@
                                     <span class="mx-2">a</span>
                                     <input type="text" class="datepicker form-control mr-2" id="fecha_hasta"
                                         value="{{ $fecha_hasta }}" style="width:150px;">
-                                    <select wire:ignore id="selectedSociedad" name="sociedades" class="select2" >
+                                    <select wire:ignore id="selectedSociedad" name="sociedades" class="select2">
                                         <option value="">Selecciona un sociedad</option>
                                         @foreach ($sociedades as $s)
                                             <option value="{{ $s->id }}">{{ $s->nombre }}</option>
@@ -75,8 +75,7 @@
                                             <option value="{{ $a->id }}">{{ $a->name }}</option>
                                         @endforeach
                                     </select>
-                                    <button class="btn btn-light mx-2" wire:click="cargarDatos()"
-                                        style="height:40px;">
+                                    <button class="btn btn-light mx-2" wire:click="cargarDatos()" style="height:40px;">
                                         <i class="fas fa-filter"></i>
                                     </button>
                                     <a href="javascript:exportTabla('excel')"
@@ -113,8 +112,10 @@
                         </table>
                     </div>
                     <div class="margin_20 loading_p">
-                        <div class="centrar_todo w_100px">
-                            <i class="la la-spinner spinner" style="font-size:30px;"></i>
+                        <div class="d-flex justify-content-center">
+                            <div class="spinner-border" role="status">
+                                <span class="sr-only">Loading...</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -215,7 +216,7 @@
                                 autoFilter: true,
                                 title: 'EStados',
                                 exportOptions: {
-                                    columns: [0, 1, 2, 3, 4,5,6,7,8,9,10,11]
+                                    columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
                                 },
                             },
                             {
@@ -223,7 +224,7 @@
                                 autoFilter: true,
                                 title: 'Estados',
                                 exportOptions: {
-                                    columns: [0, 1, 2, 3, 4,5,6,7,8,9,10,11]
+                                    columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
                                 },
                             }
                         ]
@@ -260,9 +261,9 @@
                         let dia = ('0' + fecha.getDate()).slice(-2);
                         let mes = ('0' + (fecha.getMonth() + 1)).slice(-2);
                         let anio = fecha.getFullYear();
-                        let fechaFormateada = `${dia}-${mes}-${anio}`;
+                        let fechaFormateada = `${anio}-${mes}-${dia}`;
 
-                        body.append(`<tr id="tr_${id}">
+                        let row = $(`<tr id="tr_${id}" class="clickable-row" data-href="gestionar?ticket_id=${id}" style="cursor: pointer;">
                                 <td class="pointer">${fechaFormateada}</td>
                                 <td class="pointer">${nomenclatura}</td>
                                 <td class="pointer">${titulo}</td>
@@ -281,6 +282,14 @@
                                     </div>
                                 </td>
                             </tr>`);
+                        // Agregar evento click a la fila para abrir en nueva pestaña
+                        row.on("click", function(event) {
+                            if (!$(event.target).closest("a").length) {
+                                window.open($(this).data("href"), '_blank');
+                            }
+                        });
+
+                        body.append(row);
                     }
                     resolve(body);
                 });

@@ -438,9 +438,9 @@
                         let dia = ('0' + fecha.getDate()).slice(-2);
                         let mes = ('0' + (fecha.getMonth() + 1)).slice(-2);
                         let anio = fecha.getFullYear();
-                        let fechaFormateada = `${dia}-${mes}-${anio}`;
+                        let fechaFormateada = `${anio}-${mes}-${dia}`;
 
-                        body.append(`<tr id="tr_${id}">
+                        let row = $(`<tr id="tr_${id}" class="clickable-row" data-href="gestionar?ticket_id=${id}" style="cursor: pointer;">
                         <td class="pointer">${fechaFormateada}</td>
                                 <td class="pointer">${nomenclatura}</td>
                                 <td class="pointer">${titulo}</td>
@@ -455,10 +455,18 @@
                         <td class="pointer">${rol}</td>
                         <td>
                             <div class="d-flex">
-                                <a href="gestionar?ticket_id=${id}" class="btn btn-xs btn-default text-primary mx-1 shadow" title="Edit"><i class="far fa-eye"></i></a>
+                                <a href="gestionar?ticket_id=${id}" target="_blank" class="btn btn-xs btn-default text-primary mx-1 shadow" title="Ver mas"><i class="far fa-eye"></i></a>
                             </div>
                         </td>
                     </tr>`);
+                    // Agregar evento click a la fila para abrir en nueva pestaña
+                    row.on("click", function(event) {
+                            if (!$(event.target).closest("a").length) {
+                                window.open($(this).data("href"), '_blank');
+                            }
+                        });
+
+                        body.append(row);
                     }
                     resolve(body);
                 });

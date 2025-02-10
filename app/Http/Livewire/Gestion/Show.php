@@ -1176,7 +1176,7 @@ class Show extends Component
         // Guardar la justificación como comentario
         $comentario = $this->ticket->comentarios()->create([
             'user_id' => auth()->id(),
-            'comentario' => 'Justificación: '. $this->justificacion,
+            'comentario' => 'El agente TI detuvo el ANS, Justificación: '. $this->justificacion,
             'tipo' => 0, // Tipo 0: Comentario público
         ]);
 

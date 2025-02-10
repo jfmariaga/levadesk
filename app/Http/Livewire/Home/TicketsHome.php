@@ -33,7 +33,7 @@ class TicketsHome extends Component
         $this->cargarDatos();
         $this->estados = Estado::all();
         $this->usuarios = User::all();
-        $this->agentes = User::role('Agente')->get();
+        $this->agentes = User::role(['Agente', 'Admin'])->get();
         $this->sociedades = Sociedad::all();
     }
 

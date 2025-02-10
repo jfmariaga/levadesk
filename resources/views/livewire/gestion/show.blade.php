@@ -259,9 +259,26 @@
             margin-bottom: 15px;
             font-size: 12px;
         }
+
+        .ans-badge {
+            font-size: 0.9rem;
+        }
+
+        /* Ajustar tamaño para dispositivos móviles */
+        @media (max-width: 768px) {
+            .ans-badge {
+                font-size: 0.7rem;
+                /* Reducir el tamaño en pantallas pequeñas */
+                padding: 5px;
+            }
+        }
     </style>
     @if ($ticket)
         <div class="container-fluid">
+            <div class="row">
+                <a href="{{ route('gestion') }}" class="btn btn-sm btn-outline-secondary ml-3 mb-2 float-right"><i
+                    class="fas fa-angle-double-left"></i> Volver</a>
+            </div>
             <div class="row">
                 <div class="col-lg-9">
                     <div class="card">
@@ -341,52 +358,47 @@
                             </div>
                         </div>
                         <div class="card-header col-md-12">
-                            <div class="mb-1 d-flex  align-items-center" style="background-color: #eeeeee">
-                                <div class="col-md-4 mt-2">
+                            <div class="mb-1 d-flex flex-column flex-md-row align-items-center p-2"
+                                style="background-color: #eeeeee">
+                                <div class="col-12 col-md-4 mt-2 text-center text-md-left">
                                     <p><strong>{{ $ticket->estado->nombre }}</strong></p>
                                 </div>
-                                <div class="col-md-8">
-                                    <p class="text-right mt-2">
+                                <div class="col-12 col-md-8">
+                                    <p class="text-center text-md-right mt-2">
                                         @if ($ticket->estado_id != 4 && $ticket->estado_id != 5)
                                             @php
                                                 $tiempoRestante = $ticket->tiempo_restante;
                                             @endphp
 
                                             @if ($tiempoRestante > 900)
-                                                {{-- Más de 15 minutos --}}
-                                                <span
-                                                    style="background-color: #4CAF50; color: white; padding: 5px 10px; border-radius: 3px; font-weight: bold;">
+                                                <span class="badge badge-success p-2 ans-badge">
                                                     <i class="fas fa-check-circle"></i> Tiempo restante ANS
                                                     {{ $tipoANS }}:
                                                     {{ $this->formatTiempoRestante($tiempoRestante) }}
                                                 </span>
                                             @elseif ($tiempoRestante <= 900 && $tiempoRestante > 300)
-                                                {{-- Entre 5 y 15 minutos --}}
-                                                <span
-                                                    style="background-color: #FF5722; color: white; padding: 5px 10px; border-radius: 3px; font-weight: bold;">
+                                                <span class="badge badge-warning p-2 ans-badge">
                                                     <i class="fas fa-exclamation-circle"></i> Tiempo restante ANS
                                                     {{ $tipoANS }}:
                                                     {{ $this->formatTiempoRestante($tiempoRestante) }}
                                                 </span>
                                             @elseif ($tiempoRestante > 0)
-                                                {{-- Menos de 5 minutos --}}
-                                                <span
-                                                    style="background-color: #eb2e20; color: white; padding: 5px 10px; border-radius: 3px; font-weight: bold;">
+                                                <span class="badge badge-danger p-2 ans-badge">
                                                     <i class="fas fa-times-circle"></i> Tiempo restante ANS
                                                     {{ $tipoANS }}:
                                                     {{ $this->formatTiempoRestante($tiempoRestante) }}
                                                 </span>
                                             @else
-                                                {{-- ANS no cumplido --}}
-                                                <span
-                                                    style="background-color: #ec3022; color: white; padding: 5px 10px; border-radius: 3px; font-weight: bold;">
+                                                <span class="badge badge-danger p-2 ans-badge">
                                                     <i class="fas fa-times-circle"></i> No cumpliste con el ANS
                                                     {{ $tipoANS }}
                                                 </span>
                                             @endif
                                         @endif
+
                                         <span
                                             class="solicitud-badge font-weight-bold">{{ $ticket->nomenclatura }}</span>
+
                                         <button wire:click="recordatorios" class="ml-1 icono-notificacion">
                                             <i class="fas fa-bell"></i>
                                         </button>
@@ -394,6 +406,7 @@
                                             <span
                                                 class="contar-recordatorios">{{ count($ticket->recordatorios) }}</span>
                                         @endif
+
                                         <button wire:click="tareas" class="icono-todo">
                                             <i class="fas fa-tasks"></i>
                                         </button>
@@ -402,8 +415,8 @@
                                         @endif
                                     </p>
                                 </div>
-
                             </div>
+
                             <div class="form-row align-items-start mt-2 mb-1">
                                 @if ($recordatorio)
                                     <!-- Tarjeta de creación de nuevo recordatorio -->
@@ -1100,7 +1113,8 @@
                                                         @enderror
                                                     </div>
                                                     <div>
-                                                        <button wire:click="consultoria" class=" btn btn-sm btn-outline-info">Confirmar</button>
+                                                        <button wire:click="consultoria"
+                                                            class=" btn btn-sm btn-outline-info">Confirmar</button>
                                                     </div>
                                                     <hr>
                                                 @endif

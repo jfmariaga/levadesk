@@ -129,8 +129,10 @@
                             </table>
                         </div>
                         <div class="margin_20 loading_p">
-                            <div class="centrar_todo w_100px">
-                                <i class="la la-spinner spinner" style="font-size:30px;"></i>
+                            <div class="d-flex justify-content-center">
+                                <div class="spinner-border" role="status">
+                                    <span class="sr-only">Loading...</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -263,9 +265,9 @@
                         let dia = ('0' + fecha.getDate()).slice(-2);
                         let mes = ('0' + (fecha.getMonth() + 1)).slice(-2);
                         let anio = fecha.getFullYear();
-                        let fechaFormateada = `${dia}-${mes}-${anio}`;
+                        let fechaFormateada = `${anio}-${mes}-${dia}`;
 
-                        body.append(`<tr id="tr_${id}">
+                        let row = $(`<tr id="tr_${id}" class="clickable-row" data-href="gestionar?ticket_id=${id}" style="cursor: pointer;">
                             <td class="pointer">${fechaFormateada}</td>
                             <td class="pointer">${nomenclatura}</td>
                             <td class="pointer">${titulo}</td>
@@ -281,6 +283,14 @@
                                 </div>
                             </td>
                         </tr>`);
+                        // Agregar evento click a la fila para abrir en nueva pestaña
+                        row.on("click", function(event) {
+                            if (!$(event.target).closest("a").length) {
+                                window.open($(this).data("href"), '_blank');
+                            }
+                        });
+
+                        body.append(row);
                     }
                     resolve(body);
                 });
