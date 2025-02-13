@@ -278,7 +278,7 @@
                                 <td class="pointer">${asignado.name}</td>
                                 <td>
                                     <div class="d-flex">
-                                        <a href="gestionar?ticket_id=${id}" class="btn btn-xs btn-default text-primary mx-1 shadow" title="Edit"><i class="far fa-eye"></i></a>
+                                        <a href="gestionar?ticket_id=${id}" target="_blank" class="btn btn-xs btn-default text-primary mx-1 shadow" title="Edit"><i class="far fa-eye"></i></a>
                                     </div>
                                 </td>
                             </tr>`);

@@ -797,7 +797,7 @@
                                     @if ($showGestion)
                                         <div class="selector-gestion">
                                             <li class="col-12 list-group-item">
-                                                @if ($ticket->estado_id == 1)
+                                                @if ($ticket->estado_id == 1 || auth()->user()->hasAnyRole('Admin'))
                                                     <p>¿Recategorizar?</p>
                                                     <div class="float-right">
                                                         <label class="switch"
@@ -814,14 +814,17 @@
                                                             <span class="slider round"></span>
                                                         </label>
                                                     </div>
-                                                    <p class="ml-2">Asignar impacto</p>
-                                                    <div class="float-right">
-                                                        <label class="switch"
-                                                            style="margin-left:10px; margin-top: 5px">
-                                                            <input type="checkbox" wire:model="impacto">
-                                                            <span class="slider round"></span>
-                                                        </label>
-                                                    </div>
+
+                                                @endif
+                                                @if ($ticket->estado_id == 1)
+                                                <p class="ml-2">Asignar impacto</p>
+                                                <div class="float-right">
+                                                    <label class="switch"
+                                                        style="margin-left:10px; margin-top: 5px">
+                                                        <input type="checkbox" wire:model="impacto">
+                                                        <span class="slider round"></span>
+                                                    </label>
+                                                </div>
                                                 @endif
                                                 @if ($ticket->estado_id != 1)
                                                     @if ($ticket->tipoSolicitud->id == 4)
@@ -835,7 +838,7 @@
                                                         </div>
                                                     @endif
                                                     @if ($ticket->estado_id != 4 && $ticket->estado_id != 5 && $ticket->estado_id != 6)
-                                                        <p class="ml-2">¿Detener ANS?</p>
+                                                        <p class="ml-2">¿Escalar a tercero?</p>
                                                         <div class="float-right">
                                                             <label class="switch"
                                                                 style="margin-left:10px; margin-top: 5px">

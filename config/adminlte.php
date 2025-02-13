@@ -340,7 +340,7 @@ return [
             'text' => 'Dashboard',
             'route' => 'dashboard',
             'icon' => 'fas fa-chart-pie',
-            'can' => 'sociedad',
+            'can' => 'dashboard',
         ],
 
         [

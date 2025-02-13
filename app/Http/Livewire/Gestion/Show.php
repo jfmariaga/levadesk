@@ -626,7 +626,9 @@ class Show extends Component
         $this->emit('showToast', ['type' => 'success', 'message' => "Ticket reasignado a {$usuario->name}."]);
         $this->loadTicket();
         $this->asignar = false;
-        $this->emit('redirectAfterDelay');
+        if (!$usuario_logueado->hasRole('Admin')) {
+            $this->emit('redirectAfterDelay');
+        }
     }
 
 
@@ -1176,7 +1178,7 @@ class Show extends Component
         // Guardar la justificación como comentario
         $comentario = $this->ticket->comentarios()->create([
             'user_id' => auth()->id(),
-            'comentario' => 'El agente TI detuvo el ANS, Justificación: '. $this->justificacion,
+            'comentario' => 'El agente TI detuvo el ANS, Justificación: ' . $this->justificacion,
             'tipo' => 0, // Tipo 0: Comentario público
         ]);
 

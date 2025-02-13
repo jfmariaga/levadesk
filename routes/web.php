@@ -64,7 +64,6 @@ Route::group(['middleware' => ['auth', 'verified']], function () {
         Route::view('sociedades', 'admin.sociedad.aplicaciones')->name('sociedades');
         Route::view('relacion', 'admin.relacion.index')->name('relacion');
         Route::view('roles', 'admin.roles.index')->name('roles');
-        Route::view('dashboard', 'admin.dashboard.dashboard')->name('dashboard');
     });
 
     Route::group(['middleware' => 'can:gestion'], function () {
@@ -84,6 +83,10 @@ Route::group(['middleware' => ['auth', 'verified']], function () {
         Route::view('cambios', 'admin.cambios.index')->name('cambios');
         Route::view('cambio', 'admin.cambios.cambios')->name('cambio');
         Route::view('buscador', 'admin.buscador.buscador')->name('buscador');
+    });
+
+    Route::group(['middleware' => 'can:dashboard'], function () {
+        Route::view('dashboard', 'admin.dashboard.dashboard')->name('dashboard');
     });
 
     Route::view('perfil', 'admin.perfil.perfil')->name('perfil');
