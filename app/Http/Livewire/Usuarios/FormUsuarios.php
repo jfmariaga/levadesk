@@ -9,7 +9,7 @@ use Spatie\Permission\Models\Role;
 
 class FormUsuarios extends Component
 {
-    public $name, $email, $rol, $sociedad_id, $estado, $aprobador_ti;
+    public $name, $email, $rol = [], $sociedad_id, $estado, $aprobador_ti;
     public $usuario_old;
     public $sociedades =[];
     public $roles =[];
@@ -35,7 +35,8 @@ class FormUsuarios extends Component
         $this->usuario_old = User::find($id);
         $this->name = $this->usuario_old->name;
         $this->email  = $this->usuario_old->email;
-        $this->rol  = $this->usuario_old->roles->pluck('id');
+        // $this->rol  = $this->usuario_old->roles->pluck('id');
+        $this->rol = $this->usuario_old->roles->pluck('id')->toArray();
         $this->sociedad_id  = $this->usuario_old->sociedad_id;
         $this->estado  = $this->usuario_old->estado;
         $this->aprobador_ti  = $this->usuario_old->aprobador_ti;

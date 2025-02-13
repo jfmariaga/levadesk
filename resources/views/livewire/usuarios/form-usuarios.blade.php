@@ -48,7 +48,7 @@
                     </div>
                     <div wire:ignore class="form-group col-md-6">
                         <label for="rol"><i class="fas fa-user-tag"></i> Rol <b class="text-danger">*</b></label>
-                        <select id="rol" class="form-control select2" wire:model="rol">
+                        <select id="rol" class="form-control select2" wire:model="rol" multiple>
                             <option value="">Seleccionar...</option>
                             @foreach ($roles as $rol)
                                 <option value="{{ $rol->id }}">{{ $rol->name }}</option>
@@ -62,7 +62,8 @@
 
                 <div class="form-row">
                     <div class="form-group col-md-6">
-                        <label for="estado"><i class="fas fa-toggle-on"></i> Estado <b class="text-danger">*</b></label>
+                        <label for="estado"><i class="fas fa-toggle-on"></i> Estado <b
+                                class="text-danger">*</b></label>
                         <select id="estado" class="form-control" wire:model="estado">
                             <option value="">Seleccionar...</option>
                             <option value="1">Activo</option>
@@ -74,7 +75,8 @@
                     </div>
 
                     <div class="form-group col-md-6">
-                        <label for="estado"><i class="fas fa-toggle-on"></i> Aprobador TI <b class="text-danger">*</b></label>
+                        <label for="estado"><i class="fas fa-toggle-on"></i> Aprobador TI <b
+                                class="text-danger">*</b></label>
                         <select id="estado" class="form-control" wire:model="aprobador_ti">
                             <option value="">Seleccionar...</option>
                             <option value="1">Si</option>
@@ -147,8 +149,10 @@
                 });
 
                 $('#rol').on('change', function() {
-                    @this.set('rol', $(this).val());
+                    let valores = $(this).val() || []; // Asegurar un array vacío si no hay selección
+                    @this.set('rol', valores);
                 });
+
 
                 // Manejar eventos emitidos desde Livewire para seleccionar opciones en Select2
                 Livewire.on('selectSociedad', (id = null) => {
@@ -159,13 +163,10 @@
                     }
                 });
 
-                Livewire.on('selectRol', (id = null) => {
-                    if (id) {
-                        $('#rol').val(id).trigger('change');
-                    } else {
-                        $('#rol').val('').trigger('change');
-                    }
+                Livewire.on('selectRol', (ids = []) => {
+                    $('#rol').val(ids).trigger('change');
                 });
+
 
                 Livewire.on('usuario_actualizado', () => {
                     $('#form_usuarios').modal('hide');
