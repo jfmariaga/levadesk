@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\VerificationController;
+use App\Http\Controllers\HomeController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Artisan;
@@ -47,7 +48,7 @@ Route::get('storage-link', function () {
 
 Route::group(['middleware' => ['auth', 'verified']], function () {
 
-    Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->middleware('can:home')->name('home');
+    Route::get('/home', [HomeController::class, 'index'])->middleware('can:home')->name('home');
 
     Route::group(['middleware' => 'can:sociedad'], function () {
         Route::view('sociedad', 'admin.sociedad.index')->name('sociedad');
