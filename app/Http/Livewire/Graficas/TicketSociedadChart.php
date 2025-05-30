@@ -223,79 +223,206 @@ class TicketSociedadChart extends Component
         return $query->count();
     }
 
+    // public function getChartDataCumplimientoANS()
+    // {
+    //     $queryCumplidos = DB::table('tickets')
+    //         ->join('a_n_s', 'tickets.ans_id', '=', 'a_n_s.id')
+    //         ->whereNotNull('tickets.tiempo_inicio_resolucion')
+    //         ->whereRaw('TIMESTAMPDIFF(SECOND, tickets.tiempo_inicio_resolucion, NOW()) <= a_n_s.t_resolucion_segundos')
+    //         ->whereNotNull('tickets.tiempo_inicio_aceptacion');
+
+    //     if ($this->sociedadSeleccionada) {
+    //         $queryCumplidos->where('tickets.sociedad_id', $this->sociedadSeleccionada);
+    //     }
+
+    //     if ($this->startDate && $this->endDate) {
+    //         $queryCumplidos->whereBetween('tickets.created_at', [$this->startDate, $this->endDate]);
+    //     }
+
+    //     if ($this->asignadoASeleccionado) {
+    //         $queryCumplidos->where('tickets.asignado_a', $this->asignadoASeleccionado);
+    //     }
+
+    //     if ($this->tipoSolicitudSeleccionado) {
+    //         $queryCumplidos->where('tickets.tipo_solicitud_id', $this->tipoSolicitudSeleccionado);
+    //     }
+
+    //     if ($this->categoriaSeleccionada) {
+    //         $queryCumplidos->where('tickets.categoria_id', $this->categoriaSeleccionada);
+    //     }
+
+    //     if ($this->prioridadSeleccionada) {
+    //         $queryCumplidos->where('tickets.prioridad_id', $this->prioridadSeleccionada);
+    //     }
+
+    //     $cumplidos = $queryCumplidos->count();
+    //     $queryNoCumplidos = DB::table('tickets')
+    //         ->join('a_n_s', 'tickets.ans_id', '=', 'a_n_s.id')
+    //         ->whereNotNull('tickets.tiempo_inicio_resolucion')
+    //         ->where(function ($query) {
+    //             $query->whereRaw('TIMESTAMPDIFF(SECOND, tickets.tiempo_inicio_resolucion, NOW()) > a_n_s.t_resolucion_segundos')
+    //                 ->orWhereNull('tickets.tiempo_inicio_aceptacion');
+    //         });
+
+    //     if ($this->sociedadSeleccionada) {
+    //         $queryNoCumplidos->where('tickets.sociedad_id', $this->sociedadSeleccionada);
+    //     }
+
+    //     if ($this->startDate && $this->endDate) {
+    //         $queryNoCumplidos->whereBetween('tickets.created_at', [$this->startDate, $this->endDate]);
+    //     }
+
+    //     if ($this->asignadoASeleccionado) {
+    //         $queryNoCumplidos->where('tickets.asignado_a', $this->asignadoASeleccionado);
+    //     }
+
+    //     if ($this->tipoSolicitudSeleccionado) {
+    //         $queryNoCumplidos->where('tickets.tipo_solicitud_id', $this->tipoSolicitudSeleccionado);
+    //     }
+
+    //     if ($this->categoriaSeleccionada) {
+    //         $queryNoCumplidos->where('tickets.categoria_id', $this->categoriaSeleccionada);
+    //     }
+
+    //     if ($this->prioridadSeleccionada) {
+    //         $queryNoCumplidos->where('tickets.prioridad_id', $this->prioridadSeleccionada);
+    //     }
+
+    //     $noCumplidos = $queryNoCumplidos->count();
+    //     dd($noCumplidos, $cumplidos);
+
+    //     return [
+    //         'labels' => ['Cumplidos', 'No Cumplidos'],
+    //         'datasets' => [
+    //             [
+    //                 'data' => [$cumplidos, $noCumplidos],
+    //             ]
+    //         ]
+    //     ];
+    // }
+
+    // public function getChartDataCumplimientoANS()
+    // {
+    //     $queryCumplidos = DB::table('tickets')
+    //         ->join('a_n_s', 'tickets.ans_id', '=', 'a_n_s.id')
+    //         ->whereNotNull('tickets.tiempo_inicio_resolucion')
+    //         ->whereNotNull('tickets.updated_at')
+    //         ->whereRaw('TIMESTAMPDIFF(SECOND, tickets.tiempo_inicio_resolucion, tickets.updated_at) <= a_n_s.t_resolucion_segundos')
+    //         ->whereNotNull('tickets.tiempo_inicio_aceptacion');
+
+    //     if ($this->sociedadSeleccionada) {
+    //         $queryCumplidos->where('tickets.sociedad_id', $this->sociedadSeleccionada);
+    //     }
+
+    //     if ($this->startDate && $this->endDate) {
+    //         $queryCumplidos->whereBetween('tickets.created_at', [$this->startDate, $this->endDate]);
+    //     }
+
+    //     if ($this->asignadoASeleccionado) {
+    //         $queryCumplidos->where('tickets.asignado_a', $this->asignadoASeleccionado);
+    //     }
+
+    //     if ($this->tipoSolicitudSeleccionado) {
+    //         $queryCumplidos->where('tickets.tipo_solicitud_id', $this->tipoSolicitudSeleccionado);
+    //     }
+
+    //     if ($this->categoriaSeleccionada) {
+    //         $queryCumplidos->where('tickets.categoria_id', $this->categoriaSeleccionada);
+    //     }
+
+    //     if ($this->prioridadSeleccionada) {
+    //         $queryCumplidos->where('tickets.prioridad_id', $this->prioridadSeleccionada);
+    //     }
+
+    //     $cumplidos = $queryCumplidos->count();
+
+    //     $queryNoCumplidos = DB::table('tickets')
+    //         ->join('a_n_s', 'tickets.ans_id', '=', 'a_n_s.id')
+    //         ->whereNotNull('tickets.tiempo_inicio_resolucion')
+    //         ->whereNotNull('tickets.updated_at')
+    //         ->where(function ($query) {
+    //             $query->whereRaw('TIMESTAMPDIFF(SECOND, tickets.tiempo_inicio_resolucion, tickets.updated_at) > a_n_s.t_resolucion_segundos')
+    //                 ->orWhereNull('tickets.tiempo_inicio_aceptacion');
+    //         });
+
+    //     if ($this->sociedadSeleccionada) {
+    //         $queryNoCumplidos->where('tickets.sociedad_id', $this->sociedadSeleccionada);
+    //     }
+
+    //     if ($this->startDate && $this->endDate) {
+    //         $queryNoCumplidos->whereBetween('tickets.created_at', [$this->startDate, $this->endDate]);
+    //     }
+
+    //     if ($this->asignadoASeleccionado) {
+    //         $queryNoCumplidos->where('tickets.asignado_a', $this->asignadoASeleccionado);
+    //     }
+
+    //     if ($this->tipoSolicitudSeleccionado) {
+    //         $queryNoCumplidos->where('tickets.tipo_solicitud_id', $this->tipoSolicitudSeleccionado);
+    //     }
+
+    //     if ($this->categoriaSeleccionada) {
+    //         $queryNoCumplidos->where('tickets.categoria_id', $this->categoriaSeleccionada);
+    //     }
+
+    //     if ($this->prioridadSeleccionada) {
+    //         $queryNoCumplidos->where('tickets.prioridad_id', $this->prioridadSeleccionada);
+    //     }
+
+    //     $noCumplidos = $queryNoCumplidos->count();
+
+    //     return [
+    //         'labels' => ['Cumplidos', 'No Cumplidos'],
+    //         'datasets' => [
+    //             [
+    //                 'data' => [$cumplidos, $noCumplidos],
+    //                 'backgroundColor' => ['#4e73df', '#1cc88a'],
+    //             ]
+    //         ]
+    //     ];
+    // }
+
     public function getChartDataCumplimientoANS()
     {
-        $queryCumplidos = DB::table('tickets')
-            ->join('a_n_s', 'tickets.ans_id', '=', 'a_n_s.id')
-            ->whereNotNull('tickets.tiempo_inicio_resolucion')
-            ->whereRaw('TIMESTAMPDIFF(SECOND, tickets.tiempo_inicio_resolucion, NOW()) <= a_n_s.t_resolucion_segundos')
-            ->whereNotNull('tickets.tiempo_inicio_aceptacion');
+        $queryBase = DB::table('tickets')
+            ->whereNotNull('tiempo_inicio_resolucion')
+            ->whereNotNull('updated_at')
+            ->whereNotNull('tiempo_inicio_aceptacion');
 
         if ($this->sociedadSeleccionada) {
-            $queryCumplidos->where('tickets.sociedad_id', $this->sociedadSeleccionada);
+            $queryBase->where('sociedad_id', $this->sociedadSeleccionada);
         }
 
         if ($this->startDate && $this->endDate) {
-            $queryCumplidos->whereBetween('tickets.created_at', [$this->startDate, $this->endDate]);
+            $queryBase->whereBetween('created_at', [$this->startDate, $this->endDate]);
         }
 
         if ($this->asignadoASeleccionado) {
-            $queryCumplidos->where('tickets.asignado_a', $this->asignadoASeleccionado);
+            $queryBase->where('asignado_a', $this->asignadoASeleccionado);
         }
 
         if ($this->tipoSolicitudSeleccionado) {
-            $queryCumplidos->where('tickets.tipo_solicitud_id', $this->tipoSolicitudSeleccionado);
+            $queryBase->where('tipo_solicitud_id', $this->tipoSolicitudSeleccionado);
         }
 
         if ($this->categoriaSeleccionada) {
-            $queryCumplidos->where('tickets.categoria_id', $this->categoriaSeleccionada);
+            $queryBase->where('categoria_id', $this->categoriaSeleccionada);
         }
 
         if ($this->prioridadSeleccionada) {
-            $queryCumplidos->where('tickets.prioridad_id', $this->prioridadSeleccionada);
+            $queryBase->where('prioridad_id', $this->prioridadSeleccionada);
         }
 
-        $cumplidos = $queryCumplidos->count();
-
-        $queryNoCumplidos = DB::table('tickets')
-            ->join('a_n_s', 'tickets.ans_id', '=', 'a_n_s.id')
-            ->whereNotNull('tickets.tiempo_inicio_resolucion')
-            ->where(function ($query) {
-                $query->whereRaw('TIMESTAMPDIFF(SECOND, tickets.tiempo_inicio_resolucion, NOW()) > a_n_s.t_resolucion_segundos')
-                    ->orWhereNull('tickets.tiempo_inicio_aceptacion');
-            });
-
-        if ($this->sociedadSeleccionada) {
-            $queryNoCumplidos->where('tickets.sociedad_id', $this->sociedadSeleccionada);
-        }
-
-        if ($this->startDate && $this->endDate) {
-            $queryNoCumplidos->whereBetween('tickets.created_at', [$this->startDate, $this->endDate]);
-        }
-
-        if ($this->asignadoASeleccionado) {
-            $queryNoCumplidos->where('tickets.asignado_a', $this->asignadoASeleccionado);
-        }
-
-        if ($this->tipoSolicitudSeleccionado) {
-            $queryNoCumplidos->where('tickets.tipo_solicitud_id', $this->tipoSolicitudSeleccionado);
-        }
-
-        if ($this->categoriaSeleccionada) {
-            $queryNoCumplidos->where('tickets.categoria_id', $this->categoriaSeleccionada);
-        }
-
-        if ($this->prioridadSeleccionada) {
-            $queryNoCumplidos->where('tickets.prioridad_id', $this->prioridadSeleccionada);
-        }
-
-        $noCumplidos = $queryNoCumplidos->count();
+        // Duplicar la query base para obtener cada conteo
+        $cumplidos = (clone $queryBase)->where('ans_vencido', 0)->count();
+        $noCumplidos = (clone $queryBase)->where('ans_vencido', 1)->count();
 
         return [
             'labels' => ['Cumplidos', 'No Cumplidos'],
             'datasets' => [
                 [
                     'data' => [$cumplidos, $noCumplidos],
+                    'backgroundColor' => ['#36b9cc', '#e74a3b'],
                 ]
             ]
         ];
@@ -612,7 +739,8 @@ class TicketSociedadChart extends Component
         return ['labels' => $labels, 'datasets' => [['data' => $data]]];
     }
 
-    public function getChartDataEstadoPorMes() {
+    public function getChartDataEstadoPorMes()
+    {
         $query = DB::table('tickets')
             ->join('estados', 'tickets.estado_id', '=', 'estados.id')
             ->select(

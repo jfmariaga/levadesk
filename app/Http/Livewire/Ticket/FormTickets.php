@@ -12,6 +12,7 @@ use App\Models\Aplicaciones;
 use App\Models\Estado;
 use App\Models\Grupo;
 use App\Models\Historial;
+use App\Models\TicketEstado;
 use App\Models\Urgencia;
 use App\Models\User;
 use App\Notifications\TicketAsignado;
@@ -361,6 +362,11 @@ class FormTickets extends Component
             'user_id' => Auth::id(),
             'accion' => 'Asignado',
             'detalle' => 'Ticket asignado por el sistema a ' . $usuario->name,
+        ]);
+
+        TicketEstado::create([
+            'ticket_id' => $ticket->id,
+            'estado_id' => $this->estado_id,
         ]);
 
         $this->emit('cargarTickets');

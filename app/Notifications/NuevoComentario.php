@@ -31,7 +31,7 @@ class NuevoComentario extends Notification implements ShouldQueue
             ->line($this->comentario->user->name . ' hizo el siguiente comentario:')
             ->line(new HtmlString($this->comentario->comentario))
             ->line('Ticket: '.$this->comentario->ticket->nomenclatura)
-            ->action('Ver Ticket', url('/verTicket?ticket_id='  . $this->comentario->ticket->id));
+            ->action('Ver Ticket', url('/gestionar?ticket_id='  . $this->comentario->ticket->id));
     }
 
     public function toArray($notifiable)

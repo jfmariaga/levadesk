@@ -337,13 +337,15 @@
                                     </div>
                                     <div class="col-md-3">
                                         @if ($ticket->cambio)
-                                            <p><strong>Formato adjunto</strong></p>
-                                            @foreach ($ticket->cambio->archivos as $archivo)
-                                                <li>
-                                                    <a href="{{ Storage::url($archivo->ruta) }}" target="_blank">
-                                                        {{ str_replace('-', ' ', basename($archivo->ruta, '.pdf')) }}
-                                                    </a>
-                                                </li>
+                                            <p><strong>Adjunto</strong></p>
+                                            @foreach ($ticket->archivos as $archivo)
+                                                @if ($archivo->comentario_id == null)
+                                                    <li>
+                                                        <a href="{{ Storage::url($archivo->ruta) }}" target="_blank">
+                                                            {{ str_replace('-', ' ', basename($archivo->ruta, '.pdf')) }}
+                                                        </a>
+                                                    </li>
+                                                @endif
                                             @endforeach
                                         @endif
                                     </div>
@@ -549,7 +551,7 @@
                         </div>
                         <div class="card-body">
                             @if (
-                                $estado_aprobacion_old === 'pendiente' ||
+                                    $estado_aprobacion_old === 'pendiente' ||
                                     $estado_aprobacion_old === 'aprobado_funcional' ||
                                     $estado_aprobacion_old === 'rechazado_funcional' ||
                                     $estado_aprobacion_old === 'rechazado_ti' ||
@@ -718,67 +720,181 @@
                 });
 
                 function renderFlowDiagram(flowData) {
+                    console.log('Datos recibidos en frontend:', flowData);
                     const container = document.getElementById('flow-diagram');
-                    if (!container) {
-                        console.error('El contenedor "flow-diagram" no existe en el DOM.');
-                        return;
+                    if (!container) return;
+                    container.innerHTML = '';
+
+                    // Estilos base
+                    container.style.fontFamily = 'Arial, sans-serif';
+                    container.style.padding = '15px';
+                    container.style.color = '#333';
+
+                    // Título
+                    const titleElement = document.createElement('h5');
+                    titleElement.innerText = '';
+                    titleElement.style.margin = '0 0 25px 0';
+                    titleElement.style.fontSize = '16px';
+                    container.appendChild(titleElement);
+
+                    // Contenedor de la línea de tiempo
+                    const timeline = document.createElement('div');
+                    timeline.style.position = 'relative';
+                    timeline.style.paddingLeft = '30px';
+                    container.appendChild(timeline);
+
+                    // Línea vertical gris principal
+                    const mainLine = document.createElement('div');
+                    mainLine.style.position = 'absolute';
+                    mainLine.style.left = '10px';
+                    mainLine.style.top = '0';
+                    mainLine.style.width = '2px';
+                    mainLine.style.backgroundColor = '#E0E0E0';
+                    timeline.appendChild(mainLine);
+
+                    // Variables para control de posición
+                    let lastItemHeight = 0;
+                    let totalHeight = 0;
+
+                    // Mostrar estados visitados
+                    if (flowData.flowStates && flowData.flowStates.length > 0) {
+                        flowData.flowStates.forEach((state) => {
+                            const item = document.createElement('div');
+                            item.style.position = 'relative';
+                            item.style.marginBottom = '25px';
+                            item.style.display = 'flex';
+                            item.style.alignItems = 'center';
+                            item.style.minHeight = '24px';
+
+                            // Punto indicador
+                            const dot = document.createElement('div');
+                            dot.style.width = '14px';
+                            dot.style.height = '14px';
+                            dot.style.borderRadius = '50%';
+                            dot.style.position = 'absolute';
+                            dot.style.left = '-26px';
+                            dot.style.backgroundColor = state.estado === flowData.currentState ? '#2196F3' :
+                                '#9E9E9E';
+                            dot.style.border = '2px solid white';
+                            dot.style.boxShadow = '0 0 0 2px ' + (state.estado === flowData.currentState ?
+                                '#2196F3' : '#9E9E9E');
+                            dot.style.zIndex = '2';
+                            item.appendChild(dot);
+
+                            // Texto del estado
+                            const stateText = document.createElement('span');
+                            stateText.innerText = state.estado;
+                            stateText.style.color = state.estado === flowData.currentState ? '#2196F3' :
+                                '#616161';
+                            stateText.style.fontWeight = state.estado === flowData.currentState ? 'bold' :
+                                'normal';
+                            stateText.style.fontSize = '14px';
+                            stateText.style.lineHeight = '1.4';
+                            item.appendChild(stateText);
+
+                            timeline.appendChild(item);
+
+                            // Actualizar altura de la línea principal
+                            lastItemHeight = item.offsetHeight + 25;
+                            totalHeight += lastItemHeight;
+                            mainLine.style.height = totalHeight + 'px';
+                        });
                     }
-                    container.innerHTML = ''; // Limpiar contenido previo
 
-                    let yPosition = 20; // Posición inicial vertical
-                    const stepHeight = 60; // Espacio entre cada estado
+                    // Mostrar siguientes pasos (en verde)
+                    if (flowData.nextStates) {
+                        // Línea verde para acciones
+                        const greenLine = document.createElement('div');
+                        greenLine.style.position = 'absolute';
+                        greenLine.style.left = '10px';
+                        greenLine.style.top = totalHeight + 'px';
+                        greenLine.style.width = '2px';
+                        greenLine.style.backgroundColor = '#4CAF50';
+                        greenLine.style.zIndex = '1';
+                        timeline.appendChild(greenLine);
 
-                    // // Mostrar los estados visitados
-                    // flowData.flowStates.forEach(state => {
-                    //     const stateElement = document.createElement('div');
-                    //     stateElement.innerText = state.estado; // Muestra solo el nombre del estado
-                    //     stateElement.style.padding = '5px';
-                    //     stateElement.style.marginBottom = '10px';
-                    //     stateElement.style.background = '#d9f7be'; // Verde para estados visitados
-                    //     stateElement.style.border = '1px solid #b7eb8f';
-                    //     stateElement.style.borderRadius = '4px';
-                    //     stateElement.style.fontSize = '12px'; // Reducir tamaño de fuente
-                    //     stateElement.style.textAlign = 'center';
-                    //     stateElement.style.width = '100%'; // Ancho completo del contenedor
-                    //     container.appendChild(stateElement);
+                        let greenSectionHeight = 0;
 
-                    //     yPosition += stepHeight; // Incrementar posición vertical
-                    // });
+                        // Verificar si nextStates es un objeto (caso especial estado 11)
+                        if (typeof flowData.nextStates === 'object' && !Array.isArray(flowData.nextStates)) {
+                            // Procesar el objeto de acciones condicionales
+                            Object.entries(flowData.nextStates).forEach(([action, isActive]) => {
+                                const item = document.createElement('div');
+                                item.style.position = 'relative';
+                                item.style.marginBottom = '25px';
+                                item.style.display = 'flex';
+                                item.style.alignItems = 'center';
+                                item.style.minHeight = '24px';
 
-                    // Mostrar el estado actual
-                    const currentStateElement = document.createElement('div');
-                    currentStateElement.innerText = `Estado Actual: ${flowData.currentState}`;
-                    currentStateElement.style.padding = '5px';
-                    currentStateElement.style.marginBottom = '10px';
-                    currentStateElement.style.background = '#ffa07a'; // Naranja para el estado actual
-                    currentStateElement.style.border = '1px solid #ff6347';
-                    currentStateElement.style.borderRadius = '4px';
-                    currentStateElement.style.fontSize = '12px';
-                    currentStateElement.style.textAlign = 'center';
-                    currentStateElement.style.width = '100%';
-                    container.appendChild(currentStateElement);
+                                // Punto verde (activo) o gris (inactivo)
+                                const dot = document.createElement('div');
+                                dot.style.width = '14px';
+                                dot.style.height = '14px';
+                                dot.style.borderRadius = '50%';
+                                dot.style.position = 'absolute';
+                                dot.style.left = '-26px';
+                                dot.style.backgroundColor = isActive ? '#4CAF50' : '#9E9E9E';
+                                dot.style.border = '2px solid white';
+                                dot.style.boxShadow = `0 0 0 2px ${isActive ? '#4CAF50' : '#9E9E9E'}`;
+                                dot.style.zIndex = '2';
+                                item.appendChild(dot);
 
-                    // Mostrar las posibles acciones
-                    const possibleActionsTitle = document.createElement('div');
-                    possibleActionsTitle.innerText = 'Posibles Acciones:';
-                    possibleActionsTitle.style.fontWeight = 'bold';
-                    possibleActionsTitle.style.marginBottom = '5px';
-                    possibleActionsTitle.style.fontSize = '14px';
-                    container.appendChild(possibleActionsTitle);
+                                // Texto de la acción (verde si está activa, gris si no)
+                                const actionText = document.createElement('span');
+                                actionText.innerText = action.replace(/^\d+\.\s*/, '');
+                                actionText.style.color = isActive ? '#4CAF50' : '#9E9E9E';
+                                actionText.style.fontSize = '14px';
+                                actionText.style.lineHeight = '1.4';
+                                actionText.style.fontWeight = isActive ? 'bold' : 'normal';
+                                item.appendChild(actionText);
 
-                    flowData.nextStates.forEach(action => {
-                        const actionElement = document.createElement('div');
-                        actionElement.innerText = action; // Muestra el nombre de la acción
-                        actionElement.style.padding = '5px';
-                        actionElement.style.marginBottom = '5px';
-                        actionElement.style.background = '#f9f9f9'; // Gris claro para las acciones
-                        actionElement.style.border = '1px solid #ddd';
-                        actionElement.style.borderRadius = '4px';
-                        actionElement.style.fontSize = '12px';
-                        actionElement.style.textAlign = 'center';
-                        actionElement.style.width = '100%';
-                        container.appendChild(actionElement);
-                    });
+                                timeline.appendChild(item);
+
+                                // Actualizar altura de la línea verde
+                                const itemHeight = item.offsetHeight + 25;
+                                greenSectionHeight += itemHeight;
+                                greenLine.style.height = greenSectionHeight + 'px';
+                            });
+                        } else if (Array.isArray(flowData.nextStates)) {
+                            // Procesamiento normal para arrays
+                            flowData.nextStates.forEach((action) => {
+                                const item = document.createElement('div');
+                                item.style.position = 'relative';
+                                item.style.marginBottom = '25px';
+                                item.style.display = 'flex';
+                                item.style.alignItems = 'center';
+                                item.style.minHeight = '24px';
+
+                                // Punto verde
+                                const dot = document.createElement('div');
+                                dot.style.width = '14px';
+                                dot.style.height = '14px';
+                                dot.style.borderRadius = '50%';
+                                dot.style.position = 'absolute';
+                                dot.style.left = '-26px';
+                                dot.style.backgroundColor = '#4CAF50';
+                                dot.style.border = '2px solid white';
+                                dot.style.boxShadow = '0 0 0 2px #4CAF50';
+                                dot.style.zIndex = '2';
+                                item.appendChild(dot);
+
+                                // Texto de la acción
+                                const actionText = document.createElement('span');
+                                actionText.innerText = action.replace(/^\d+\.\s*/, '');
+                                actionText.style.color = '#4CAF50';
+                                actionText.style.fontSize = '14px';
+                                actionText.style.lineHeight = '1.4';
+                                item.appendChild(actionText);
+
+                                timeline.appendChild(item);
+
+                                // Actualizar altura de la línea verde
+                                const itemHeight = item.offsetHeight + 25;
+                                greenSectionHeight += itemHeight;
+                                greenLine.style.height = greenSectionHeight + 'px';
+                            });
+                        }
+                    }
                 }
             });
 

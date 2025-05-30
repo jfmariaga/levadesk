@@ -24,20 +24,24 @@ use App\Notifications\AnsCercaDeVencer;
 use App\Notifications\AprobarSet;
 use App\Notifications\AutorizarTarea;
 use App\Notifications\CambioEstado;
+use App\Notifications\EditarTarea;
 use App\Notifications\EstadoTarea;
 use App\Notifications\FlujoAcceso;
+use App\Notifications\NoAprobarProductivo;
 use App\Notifications\NotificacionAprobacion;
 use App\Notifications\NuevaTarea;
 use App\Notifications\NuevoColaborador;
 use App\Notifications\NuevoComentario;
 use App\Notifications\NuevoComentarioPrivado;
 use App\Notifications\NuevoComentarioSolucion;
+use App\Notifications\NuevoComentarioUsuario;
 use App\Notifications\PruebasAccesos;
 use App\Notifications\PruebasProductivo;
 use App\Notifications\PruebasSet;
 use App\Notifications\Reasignado;
 use App\Notifications\ResultadoTarea;
 use App\Notifications\TicketAsignado;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Illuminate\Support\Str;
@@ -99,6 +103,9 @@ class Show extends Component
     public $flowData;
     public $tareasCount = 0;
     public $justificacion;
+    public bool $transporte = false;
+    public $aplicarTrans;
+    public $tarea_id = null;
 
     protected $rules = [
         'categoria_id' => 'required',
@@ -123,25 +130,52 @@ class Show extends Component
         // Refrescar el modelo del ticket para obtener los datos más recientes
         $this->ticket = $this->ticket->fresh();
 
+        $initialState = [
+            'estado' => 'ASIGNADO',
+            'visitado' => true
+        ];
         // Definir las transiciones generales
         $transitions = [
             1 => ['RECATEGORIZAR', 'REASIGNAR', 'ASIGNAR IMPACTO'],
             2 => ['EN ATENCIÓN'],
-            3 => ['REQUIERE CAMBIO', 'ESCALADO A CONSULTORÍA', 'SOLUCIÓN', 'GESTIÓN DE ACCESO'],
+            3 => ['REQUIERE CAMBIO', 'ESCALADO A CONSULTORÍA', 'PENDIENTE POR VALIDACIÓN DE USUARIO'],
             4 => [],
             5 => ['EN ESPERA', 'RECHAZADO', 'SET APROBADO'],
             6 => ['REABIERTO', 'FINALIZADO'],
             7 => ['REQUIERE CAMBIO', 'ESCALADO A CONSULTORÍA', 'SOLUCIÓN', 'GESTIÓN DE ACCESO'],
             8 => ['EN PRUEBAS DE USUARIO', 'PRUEBAS AMBIENTE PRODUCTIVO'],
             9 => ['EN ATENCIÓN'],
-            10 => ['EN ESPERA DE APROBACIÓN PASO A PRODUCTIVO (Líder TI)'],
-            11 => [' 1. EN ESPERAS DE EVIDENCIAS SET DE PRUEBAS', '2. ADJUNTAR DOCUMENTACIÓN TÉCNICA', '3. PEDIR APROBACIÓN TRANSPORTE A PRODUCTIVO'],
+            10 => function ($ticket) {
+                $tarea = $ticket->tareas()->latest()->first(); // 👈 la última tarea
+                // dd($tarea);
+                if ($tarea->editar == true) {
+                    return ['EDITAR TAREA'];
+                } else {
+                    return ['EN ESPERA DE APROBACIÓN PASO A PRODUCTIVO (Líder TI)'];
+                }
+            },            
+            // 11 => [' 1. EN ESPERAS DE EVIDENCIAS SET DE PRUEBAS', '2. ADJUNTAR DOCUMENTACIÓN TÉCNICA', '3. PEDIR APROBACIÓN TRANSPORTE A PRODUCTIVO'],
+            11 => function ($ticket) {
+                // Verificar primero si existe el cambio
+                if (!$ticket->cambio) {
+                    return ['1. EN ESPERAS DE EVIDENCIAS SET DE PRUEBAS'];
+                }
+
+                // Lógica condicional mejorada
+                if ($ticket->cambio->evidencia == false) {
+                    return ['1. EN ESPERAS DE EVIDENCIAS SET DE PRUEBAS'];
+                } elseif ($ticket->cambio->doc_tecnico == false) {
+                    return ['2. ADJUNTAR DOCUMENTACIÓN TÉCNICA'];
+                } else {
+                    return ['3. PEDIR APROBACIÓN TRANSPORTE A PRODUCTIVO'];
+                }
+            },
             12 => ['EN ESPERAS DE EVIDENCIAS AMBIENTE PRODUCTIVO'],
-            13 => ['1. AGREGAR COLABORADOR', '2. ASIGNAR TAREA DE TRANSPORTE', '3. APLICAR TRANSPORTE (colaborador)'],
-            14 => ['1. AGREGAR COLABORADOR', '2. ASIGNAR TAREA DE TRANSPORTE', '3. APLICAR TRANSPORTE (colaborador)'],
+            13 => ['1. AGREGAR COLABORADOR', '2. ASIGNAR TAREA DE TRANSPORTE', '3. ESPERAR APROBACION POR LIDER TI'],
+            14 => ['1. APLICAR TRANSPORTE (colaborador)'],
             15 => ['CONFIGURAR ACCESOS'],
             16 => [' 1. EN ESPERAS DE EVIDENCIAS', '2. FINALIZAR TICKET'],
-            17 => ['FINALIZAR TICKET'],
+            17 => ['MARCAR COMO SOLUCIÓN'],
             18 => ['VALIDAR FALLAS EN PRODUCCIÓN', 'CONFIGURAR NUEVAMENTE EL SET DE PRUEBAS'],
         ];
 
@@ -151,7 +185,7 @@ class Show extends Component
             'rechazo_funcional' => ['RECHAZADO'],
             'aprobado_funcional' => ['POR APROBAR LÍDER TI'],
             'rechazo_ti' => ['ESPERA DE APROBACIÓN FUNCIONAL'],
-            'aprobado' => ['CONFIGURACIÓN DE SET DE PRUEBAS'], // Este es el paso intermedio
+            'aprobado' => ['ESCARLAR A CONSULTORIA', 'CONFIGURACIÓN DE SET DE PRUEBAS'], // Este es el paso intermedio
         ];
 
         // Definir las transiciones específicas para aprobaciones
@@ -171,6 +205,8 @@ class Show extends Component
             ->where('ticket_id', $this->ticket->id)
             ->orderBy('created_at', 'asc')
             ->get();
+
+        $visitedStates = [$initialState];
 
         $visitedStates = [];
         foreach ($ticketEstados as $estado) {
@@ -212,10 +248,17 @@ class Show extends Component
         }
 
         // Construir la estructura de datos para el frontend
+        // $this->flowData = [
+        //     'currentState' => $currentState,
+        //     'nextStates' => $nextStates,
+        //     'flowStates' => $visitedStates,
+        // ];
+        // dd($this->flowData);
+        // Cambia esta parte al final del método:
         $this->flowData = [
             'currentState' => $currentState,
-            'nextStates' => $nextStates,
-            'flowStates' => $visitedStates,
+            'nextStates' => is_callable($nextStates) ? $nextStates($this->ticket) : $nextStates,
+            'flowStates' => $visitedStates
         ];
     }
 
@@ -259,44 +302,16 @@ class Show extends Component
         return $tiempoFormateado;
     }
 
-    // public function crearTarea()
-    // {
-    //     $this->validate([
-    //         'titulo' => 'required|string',
-    //         'descripcion' => 'nullable|string',
-    //         'asignado_a' => 'nullable|integer|exists:users,id',
-    //         'fecha_cumplimiento' => 'required|date',
-    //     ]);
-
-
-    //     $tarea = Tarea::create([
-    //         'titulo' => $this->titulo,
-    //         'descripcion' => $this->descripcion,
-    //         'user_id' => $this->asignado_a ? $this->asignado_a : auth()->id(),
-    //         'fecha_cumplimiento' => $this->fecha_cumplimiento,
-    //         'ticket_id' => $this->ticket->id,
-    //         'estado' => 'pendiente',
-    //     ]);
-
-    //     if ($this->asignado_a) {
-    //         $usuario = User::find($this->asignado_a);
-    //         $usuario->notify(new NuevaTarea($tarea, $this->ticket));
-    //     }
-
-    //     $this->titulo = '';
-    //     $this->descripcion = '';
-    //     $this->asignado_a = '';
-    //     $this->fecha_cumplimiento = '';
-    //     $this->loadTicket();
-    //     $this->emit('tareaCreada');
-    // }
-
     public function crearTarea()
     {
+        if ($this->ticket->estado_id == 11 && $this->ticket->cambio && $this->ticket->cambio->doc_tecnico ==  false) {
+            $this->emit('faltaDocumentoTecnico');
+            return;
+        }
         $this->validate([
-            'titulo' => 'required|string',
-            'descripcion' => 'nullable|string',
-            'asignado_a' => 'nullable|integer|exists:users,id',
+            'titulo'             => 'required|string',
+            'descripcion'        => 'nullable|string',
+            'asignado_a'         => 'nullable|integer|exists:users,id',
             'fecha_cumplimiento' => 'required|date',
         ]);
 
@@ -304,18 +319,13 @@ class Show extends Component
         $autorizado = true; // Valor por defecto
         // Verificar si el ticket tiene un cambio asociado
         if ($this->ticket->cambio) {
-            if ($this->ticket->estado_id == 14) {
-                $this->tareasCount = $this->ticket->tareas()->count();
-                if ($this->tareasCount >= 1) {
-                    $estadoTarea = 'pendiente';
-                    $autorizado = false; // Requiere autorización
-                }
+            if ($this->ticket->estado_id == 11) {
+                $autorizado = false; // Requiere autorización
             } else {
                 $this->emit('tareaNoAutorizada');
                 return;
             }
         }
-
         // Crear la tarea con el nuevo campo de autorización
         $tarea = Tarea::create([
             'titulo' => $this->titulo,
@@ -325,12 +335,24 @@ class Show extends Component
             'ticket_id' => $this->ticket->id,
             'estado' => $estadoTarea,
             'autorizado' => $autorizado,
+            'transporte' => $this->transporte,
         ]);
 
-        // Notificar al usuario asignado si no requiere autorización
-        if ($this->asignado_a && $autorizado !== null) {
-            $usuario = User::find($this->asignado_a);
-            $usuario->notify(new NuevaTarea($tarea, $this->ticket));
+        if ($autorizado) {
+            // Notificar al usuario asignado si no requiere autorización
+            if ($this->asignado_a && $autorizado !== null) {
+                $usuario = User::find($this->asignado_a);
+                $usuario->notify(new NuevaTarea($tarea, $this->ticket));
+                $this->loadTicket();
+
+                $this->emit('tareaCreada');
+            }
+        } else {
+            $this->ticket->update([
+                'estado_id' => 10 // Estoy revisando esto 
+            ]);
+
+            $this->pedirConfirmacion($tarea->id);
         }
 
         // Limpiar los campos del formulario
@@ -338,12 +360,8 @@ class Show extends Component
         $this->descripcion = '';
         $this->asignado_a = '';
         $this->fecha_cumplimiento = '';
-
-        $this->loadTicket();
-
-        $this->emit('tareaCreada');
+        $this->transporte = false;
     }
-
 
     // Marcar tarea como "en_progreso"
     public function marcarEnProgreso($tareaId)
@@ -379,7 +397,6 @@ class Show extends Component
     public function pedirConfirmacion($tareaId)
     {
         $tarea = Tarea::findOrFail($tareaId);
-
         // Verificar que el ticket tenga un cambio asociado
         if (!$tarea->ticket->cambio) {
             return;
@@ -408,6 +425,8 @@ class Show extends Component
             'accion' => 'autorizacion de tarea',
             'detalle' => $logueado . " Pidió la autorización de la tarea: " . $tarea->titulo,
         ]);
+        $this->updateFlow();
+        $this->loadTicket();
     }
 
     public function autorizarTarea($tareaId)
@@ -421,6 +440,15 @@ class Show extends Component
         $tarea->update([
             'autorizado' => true,
             'estado' => 'Aprobada',
+        ]);
+
+        $this->ticket->update([
+            'estado_id' => 14
+        ]);
+
+        $this->ticket->cambio->update([
+            'check_aprobado' => true,
+            'check_aprobado_ti' => true,
         ]);
 
 
@@ -444,9 +472,20 @@ class Show extends Component
             return;
         }
 
+        $this->ticket->update([
+            'estado_id' => 3
+        ]);
+
         $tarea->update([
             'autorizado' => false,
             'estado' => 'Rechazada',
+        ]);
+
+        $this->ticket->cambio->update([
+            'check_aprobado'    => false,
+            'check_aprobado_ti' => false,
+            'evidencia'         => false,
+            'doc_tecnico'       => false,
         ]);
 
 
@@ -458,8 +497,116 @@ class Show extends Component
             'accion' => 'autorización de tarea',
             'detalle' => $resultado,
         ]);
+        $this->ticket->asignado->notify(new NoAprobarProductivo($this->ticket));
 
         $tarea->user->notify(new ResultadoTarea($tarea, $resultado, $this->ticket));
+    }
+
+    public function modificarTarea($tareaId)
+    {
+
+        $tarea = Tarea::with('user', 'ticket.cambio')->find($tareaId);
+
+        // Verificar que el ticket tenga un cambio asociado
+        if (!$tarea->ticket->cambio) {
+            return;
+        }
+        $logueado = Auth::user()->name;
+        // Obtener el administrador que debe aprobar
+        $agente = $this->ticket->asignado;
+        // dd($agente);
+
+        if ($agente) {
+            // Notificar al administrador
+            $agente->notify(new EditarTarea($this->ticket, $tarea, $logueado));
+
+            // Guardar en base de datos que la confirmación ha sido solicitada
+            $tarea->update([
+                'estado'                 => 'Editar',
+                'solicitud_confirmacion' => false,
+                'editar'                 => true,
+            ]);
+        }
+
+        Historial::create([
+            'ticket_id' => $this->ticket_id,
+            'user_id' => Auth::id(),
+            'accion' => 'autorizacion de tarea',
+            'detalle' => $logueado . " Pidió modificar la tarea: " . $tarea->titulo,
+        ]);
+        $this->updateFlow();
+        $this->loadTicket();
+    }
+
+    public function editarTarea($id)
+    {
+        $tarea = Tarea::findOrFail($id);
+
+        if (!$tarea->editar) {
+            $this->emit('error', 'Esta tarea no puede ser editada.');
+            return;
+        }
+
+        $this->tarea_id = $tarea->id;
+        $this->titulo = $tarea->titulo;
+        $this->descripcion = $tarea->descripcion;
+        $this->asignado_a = $tarea->user_id;
+        $this->fecha_cumplimiento = $tarea->fecha_cumplimiento
+            ? Carbon::parse($tarea->fecha_cumplimiento)->format('Y-m-d\TH:i')
+            : null;
+        $this->transporte = $tarea->transporte;
+    }
+
+    public function actualizarTarea()
+    {
+        $this->validate([
+            'titulo'             => 'required|string',
+            'descripcion'        => 'nullable|string',
+            'asignado_a'         => 'nullable|exists:users,id',
+            'fecha_cumplimiento' => 'required|date',
+        ]);
+
+        $tarea = Tarea::findOrFail($this->tarea_id);
+
+        if (!$tarea->editar) {
+            $this->emit('error', 'Esta tarea ya no puede ser editada.');
+            return;
+        }
+
+        $tarea->update([
+            'titulo'             => $this->titulo,
+            'descripcion'        => $this->descripcion,
+            'user_id'            => $this->asignado_a ? $this->asignado_a : auth()->id(),
+            'fecha_cumplimiento' => $this->fecha_cumplimiento,
+            'transporte'         => $this->transporte,
+            'editar'             => false,
+            'solicitud_confirmacion' => true,
+            'estado' => 'pendiente',
+        ]);
+
+        $aprobador = $tarea->ticket->cambio->aprobadorTiCambio;
+        $logueado = Auth::user()->name;
+        if ($aprobador) {
+            // Notificar al administrador
+            $aprobador->notify(new AutorizarTarea($this->ticket, $tarea, $logueado));
+        }
+
+        Historial::create([
+            'ticket_id' => $this->ticket_id,
+            'user_id' => Auth::id(),
+            'accion' => 'Editó la tarea',
+            'detalle' => $logueado . " Editó la tarea: " . $tarea->titulo,
+        ]);
+
+        $this->resetFormularioTarea();
+
+        $this->emit('tareaEditada');
+        $this->ticket->refresh();
+    }
+
+    public function resetFormularioTarea()
+    {
+        $this->reset(['tarea_id', 'titulo', 'descripcion', 'asignado_a', 'fecha_cumplimiento', 'transporte']);
     }
 
 
@@ -717,6 +864,12 @@ class Show extends Component
     public function participantes()
     {
         $this->participante = !$this->participante;
+    }
+
+    public function updatedTransporte($value)
+    {
+        //Aparentemente no hace nada, pero si se borra te tiras el modulo
+
     }
 
     // public function newAsignado(){
@@ -1006,6 +1159,10 @@ class Show extends Component
 
     public function addComment()
     {
+        if ($this->ticket->estado_id == 11  && $this->ticket->cambio->evidencia == true && $this->newFiles == null && $this->ticket->cambio->doc_tecnico == false) {
+            $this->emit('faltaDocumentoTecnico');
+            return;
+        }
         $this->validate(['newComment' => 'required|string', 'commentType' => 'required|integer|in:0,1,2,3,4,5,6,7,8']);
 
         // Crear el comentario y guardarlo en la variable $comentario
@@ -1020,7 +1177,12 @@ class Show extends Component
         }
         // Notificaciones basadas en el tipo de comentario
         if ($this->commentType == 0) {
-            $this->ticket->usuario->notify(new NuevoComentario($comentario));
+            if ($this->ticket->estado_id == 11  && $this->ticket->cambio->evidencia == true && $this->ticket->cambio->doc_tecnico == false) {
+                $this->ticket->cambio->update([
+                    'doc_tecnico' => true,
+                ]);
+            }
+            $this->ticket->usuario->notify(new NuevoComentarioUsuario($comentario));
         } elseif ($this->commentType == 1) {
             if ($this->ticket->colaboradors) {
                 foreach ($this->ticket->colaboradors as $colaborador) {
@@ -1141,33 +1303,6 @@ class Show extends Component
         $this->reset('newFileCambio');
     }
 
-    // public function consultoria()
-    // {
-    //     $this->ticket->update([
-    //         'escalar' => true,
-    //         'estado_id' => 9
-    //     ]);
-
-    //     Historial::create([
-    //         'ticket_id' => $this->ticket->id,
-    //         'user_id' => Auth::id(),
-    //         'accion' => 'Escalado',
-    //         'detalle' =>  Auth::user()->name . ' Cambió el estado del ticket a: ANS DETENIDO',
-    //     ]);
-
-    //     TicketHistorial::create([
-    //         'ticket_id' => $this->ticket->id,
-    //         'estado_id' => 9,
-    //         'fecha_cambio' => now(),
-    //     ]);
-
-    //     $this->ticket->usuario->notify(new CambioEstado($this->ticket));
-
-    //     $this->emit('showToast', ['type' => 'success', 'message' => 'Cambio de estado a: ANS DETENIDO']);
-    //     $this->updateFlow();
-    //     $this->loadTicket($this->ticket->id);
-    // }
-
     public function consultoria()
     {
         // Validar que se ingrese una justificación antes de cambiar el estado
@@ -1216,45 +1351,6 @@ class Show extends Component
         $this->updateFlow();
         $this->loadTicket($this->ticket->id);
     }
-
-    // public function consultoriaCambio()
-    // {
-    //     if ($this->ticket->cambio && $this->ticket->cambio->check_aprobado_ti == true) {
-    //         $this->ticket->update([
-    //             'estado_id' => 14
-    //         ]);
-
-    //         Historial::create([
-    //             'ticket_id' => $this->ticket->id,
-    //             'user_id' => Auth::id(),
-    //             'accion' => 'FinEscalado',
-    //             'detalle' =>  Auth::user()->name . ' Cambió el estado del ticket a: SET Aprobado',
-    //         ]);
-
-    //         $this->ticket->usuario->notify(new CambioEstado($this->ticket));
-
-    //         $this->emit('showToast', ['type' => 'success', 'message' => 'Ahora puedes dar gestión a este ticket']);
-    //     } else {
-    //         $this->ticket->update([
-    //             'estado_id' => 3
-    //         ]);
-
-    //         Historial::create([
-    //             'ticket_id' => $this->ticket->id,
-    //             'user_id' => Auth::id(),
-    //             'accion' => 'FinEscalado',
-    //             'detalle' =>  Auth::user()->name . ' Cambió el estado del ticket a: En atención',
-    //         ]);
-
-    //         $this->ticket->usuario->notify(new CambioEstado($this->ticket));
-
-    //         $this->emit('showToast', ['type' => 'success', 'message' => 'Cambio de estado a: En atención']);
-    //     }
-
-
-    //     $this->updateFlow();
-    //     $this->loadTicket($this->ticket->id);
-    // }
 
     public function consultoriaCambio()
     {
@@ -1305,13 +1401,12 @@ class Show extends Component
     public function mandarParaAprobacion($id)
     {
         $comentario = Comentario::find($id);
-        // dd($comentario);
         $comentario->update([
             'check_comentario' => true
         ]);
 
         $this->ticket->update([
-            'estado_id' => 10
+            'estado_id' => 10 // Estoy revisando esto 
         ]);
 
         $this->ticket->cambio->update([

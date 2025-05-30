@@ -20,6 +20,8 @@ class Cambios extends Model
         'aprobador_final_ti_id',
         'check_aprobado',
         'check_aprobado_ti',
+        'evidencia',
+        'doc_tecnico',
     ];
 
     public function ticket()

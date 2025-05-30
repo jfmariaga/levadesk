@@ -69,8 +69,8 @@ class AprobarCambios extends Component
     public function mount()
     {
         $this->verTicket();
-        $this->usuarios = User::all();
         $this->loadFlow();
+        $this->usuarios = User::all();
 
     }
 
@@ -78,6 +78,7 @@ class AprobarCambios extends Component
     {
         $this->showTimelineTicket = !$this->showTimelineTicket;
     }
+    
     public function verTicket()
     {
         $this->ticket = Ticket::with(['categoria', 'subcategoria'])->find($this->ticket_id);
@@ -118,7 +119,7 @@ class AprobarCambios extends Component
                 'ticket_id' => $this->ticket_id,
                 'user_id' => Auth::id(),
                 'accion' => 'Aprobación funcional',
-                'detalle' => $this->estado_aprobacion === 'aprobado_funcional' ? 'Aprobado  por el líder funcional '.Auth::user()->name : 'Rechazado por el líder funcional '.Auth::user()->name,
+                'detalle' => $this->estado_aprobacion === 'aprobado_funcional' ? 'Aprobado  por el líder funcional ' . Auth::user()->name : 'Rechazado por el líder funcional ' . Auth::user()->name,
             ]);
 
             if ($this->estado_aprobacion === 'aprobado_funcional') {
@@ -141,8 +142,8 @@ class AprobarCambios extends Component
                 Comentario::create([
                     'ticket_id' => $this->ticket->id,
                     'user_id' => 16,
-                    'comentario' => 'Debido a que el líder funcional no aprobó la solicitud de cambios se rechaza el ticket con una calificación de 4/5⭐',
-                    'calificacion' => 4,
+                    'comentario' => 'Debido a que el líder funcional no aprobó la solicitud de cambios se rechaza el ticket con una calificación de 5/5⭐',
+                    'calificacion' => 5,
                 ]);
 
                 $this->ticket->usuario->notify(new RechazoFlujoCambio($this->ticket));
@@ -155,12 +156,13 @@ class AprobarCambios extends Component
             $this->emit('showToast', ['type' => 'error', 'message' => 'No se pudo actualizar la aprobación.']);
         }
         $this->verTicket();
+        $this->updateFlow();
     }
 
     public function aprobarTiCambio()
     {
         if ($this->estado_aprobacion === 'rechazado_ti' && empty($this->comentariosRechazo)) {
-            $this->emit('showToast', ['type' => 'error', 'message' => 'El comentario es obligatorio para rechazar el acceso.']);
+            $this->emit('showToast', ['type' => 'error', 'message' => 'El comentario es obligatorio para rechazar el flujo.']);
             return;
         }
 
@@ -175,7 +177,7 @@ class AprobarCambios extends Component
                 'ticket_id' => $this->ticket_id,
                 'user_id' => Auth::id(),
                 'accion' => 'Aprobación TI',
-                'detalle' => $this->estado_aprobacion === 'aprobado_ti' ? 'Aprobación TI realizada por '.Auth::user()->name : 'El aprobador TI '. Auth::user()->name. ' No aprobó, motivo: ' . $this->comentariosRechazo,
+                'detalle' => $this->estado_aprobacion === 'aprobado_ti' ? 'Aprobación TI realizada por ' . Auth::user()->name : 'El aprobador TI ' . Auth::user()->name . ' No aprobó, motivo: ' . $this->comentariosRechazo,
             ]);
 
             if ($this->estado_aprobacion === 'aprobado_ti') {
@@ -198,6 +200,17 @@ class AprobarCambios extends Component
                 $this->ticket->usuario->notify(new CambioEstado($this->ticket));
                 $this->ticket->asignado->notify(new FinFlujoCambio($this->ticket));
             } else {
+                Comentario::create([
+                    'ticket_id'  => $this->ticket->id,
+                    'user_id'    => Auth::id(),
+                    'comentario' => 'El aprobador TI. No aprobó, motivo: ' . $this->comentariosRechazo,
+                    'tipo'       => 0,
+                ]);
+
+                $this->ticket->cambio->update([
+                    'estado' => 'pendiente',
+                ]);
+
                 $this->ticket->cambio->aprobadorFuncionalCambio->notify(new NotificacionRechazoCambio($this->ticket));
             }
             $this->emit('actualizarNotificaciones');
@@ -209,6 +222,7 @@ class AprobarCambios extends Component
         }
 
         $this->verTicket();
+        $this->updateFlow();
     }
 
     public function addComment()
@@ -280,13 +294,14 @@ class AprobarCambios extends Component
             'ticket_id' => $this->ticket->id,
             'user_id' => Auth::id(),
             'accion' => 'set aprobado',
-            'detalle' => Auth::user()->name. ' Aprobó el paso a producción',
+            'detalle' => Auth::user()->name . ' Aprobó el paso a producción',
         ]);
 
         $this->ticket->asignado->notify(new AprobarProductivo($this->ticket));
         $this->emit('showToast', ['type' => 'success', 'message' => 'Se aprobó el set de pruebas']);
         $this->emit('actualizarNotificaciones');
         $this->verTicket();
+        $this->updateFlow();
     }
 
     public function rechazarSet($id)
@@ -305,7 +320,7 @@ class AprobarCambios extends Component
             'ticket_id' => $this->ticket->id,
             'user_id' => Auth::id(),
             'accion' => 'set ',
-            'detalle' => Auth::user()->name. ' No aprobó el paso a producción',
+            'detalle' => Auth::user()->name . ' No aprobó el paso a producción',
         ]);
 
         Historial::create([
@@ -317,6 +332,7 @@ class AprobarCambios extends Component
 
         $this->ticket->asignado->notify(new NoAprobarProductivo($this->ticket));
         $this->verTicket();
+        $this->updateFlow();
     }
 
     public function loadFlow()
@@ -324,6 +340,10 @@ class AprobarCambios extends Component
         // Refrescar el modelo del ticket para obtener los datos más recientes
         $this->ticket = $this->ticket->fresh();
 
+        $initialState = [
+            'estado' => 'ASIGNADO',
+            'visitado' => true
+        ];
         // Definir las transiciones generales
         $transitions = [
             1 => ['RECATEGORIZAR', 'REASIGNAR', 'ASIGNAR IMPACTO'],
@@ -336,13 +356,28 @@ class AprobarCambios extends Component
             8 => ['EN PRUEBAS DE USUARIO', 'PRUEBAS AMBIENTE PRODUCTIVO'],
             9 => ['EN ATENCIÓN'],
             10 => ['EN ESPERA DE APROBACIÓN PASO A PRODUCTIVO (Líder TI)'],
-            11 => [' 1. EN ESPERAS DE EVIDENCIAS SET DE PRUEBAS', '2. ADJUNTAR DOCUMENTACIÓN TÉCNICA', '3. PEDIR APROBACIÓN TRANSPORTE A PRODUCTIVO'],
+            // 11 => [' 1. EN ESPERAS DE EVIDENCIAS SET DE PRUEBAS', '2. ADJUNTAR DOCUMENTACIÓN TÉCNICA', '3. PEDIR APROBACIÓN TRANSPORTE A PRODUCTIVO'],
+            11 => function ($ticket) {
+                // Verificar primero si existe el cambio
+                if (!$ticket->cambio) {
+                    return ['1. EN ESPERAS DE EVIDENCIAS SET DE PRUEBAS'];
+                }
+
+                // Lógica condicional mejorada
+                if ($ticket->cambio->evidencia == false) {
+                    return ['1. EN ESPERAS DE EVIDENCIAS SET DE PRUEBAS'];
+                } elseif ($ticket->cambio->doc_tecnico == false) {
+                    return ['2. ADJUNTAR DOCUMENTACIÓN TÉCNICA'];
+                } else {
+                    return ['3. PEDIR APROBACIÓN TRANSPORTE A PRODUCTIVO'];
+                }
+            },
             12 => ['EN ESPERAS DE EVIDENCIAS AMBIENTE PRODUCTIVO'],
-            13 => ['1. AGREGAR COLABORADOR', '2. ASIGNAR TAREA DE TRANSPORTE', '3. APLICAR TRANSPORTE (colaborador)'],
-            14 => ['1. AGREGAR COLABORADOR', '2. ASIGNAR TAREA DE TRANSPORTE', '3. APLICAR TRANSPORTE (colaborador)'],
+            13 => ['1. AGREGAR COLABORADOR', '2. ASIGNAR TAREA DE TRANSPORTE', '3. ESPERAR APROBACION POR LIDER TI'],
+            14 => ['1. APLICAR TRANSPORTE (colaborador)'],
             15 => ['CONFIGURAR ACCESOS'],
             16 => [' 1. EN ESPERAS DE EVIDENCIAS', '2. FINALIZAR TICKET'],
-            17 => ['FINALIZAR TICKET'],
+            17 => ['MARCAR COMO SOLUCIÓN'],
             18 => ['VALIDAR FALLAS EN PRODUCCIÓN', 'CONFIGURAR NUEVAMENTE EL SET DE PRUEBAS'],
         ];
 
@@ -352,7 +387,7 @@ class AprobarCambios extends Component
             'rechazo_funcional' => ['RECHAZADO'],
             'aprobado_funcional' => ['POR APROBAR LÍDER TI'],
             'rechazo_ti' => ['ESPERA DE APROBACIÓN FUNCIONAL'],
-            'aprobado' => ['CONFIGURACIÓN DE SET DE PRUEBAS'], // Este es el paso intermedio
+            'aprobado' => ['ESCARLAR A CONSULTORIA', 'CONFIGURACIÓN DE SET DE PRUEBAS'], // Este es el paso intermedio
         ];
 
         // Definir las transiciones específicas para aprobaciones
@@ -372,6 +407,8 @@ class AprobarCambios extends Component
             ->where('ticket_id', $this->ticket->id)
             ->orderBy('created_at', 'asc')
             ->get();
+
+        $visitedStates = [$initialState];
 
         $visitedStates = [];
         foreach ($ticketEstados as $estado) {
@@ -412,13 +449,13 @@ class AprobarCambios extends Component
             $nextStates = $transitions[$this->ticket->estado_id] ?? [];
         }
 
-        // Construir la estructura de datos para el frontend
         $this->flowData = [
             'currentState' => $currentState,
-            'nextStates' => $nextStates,
-            'flowStates' => $visitedStates,
+            'nextStates' => is_callable($nextStates) ? $nextStates($this->ticket) : $nextStates,
+            'flowStates' => $visitedStates
         ];
     }
+
 
     public function updateFlow()
     {

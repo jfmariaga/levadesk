@@ -623,6 +623,16 @@
                                                                         </option>
                                                                     </select>
                                                                 @endif
+                                                                @if ($ticket->estado_id == 11 && $ticket->cambio->evidencia == false)
+                                                                    <select wire:model="commentType"
+                                                                        id="tipoComentario"
+                                                                        class="form-control form-control-sm">
+                                                                        <option value="9">Si funciona
+                                                                        </option>
+                                                                        <option value="10">No funciona
+                                                                        </option>
+                                                                    </select>
+                                                                @endif
                                                                 <button wire:click="addComment"
                                                                     class="btn btn-outline-info btn-sm">Responder
                                                                 </button>
@@ -664,7 +674,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-3">
+                <div class="col-lg-3" style="position: sticky; top: 30px; align-self: flex-start;">
                     <div class="card">
                         <div class="card-header col-md-12">
                             <div class="d-flex  align-items-center" style="background-color: #eeeeee">
@@ -697,6 +707,17 @@
                             @endif
                         </div>
                     </div>
+                    <div class="card mt-3" style="max-height: 400px; overflow-y: auto;">
+                        <div class="card-header">
+                            <h5>Flujo del Ticket</h5>
+                        </div>
+                        <div class="card-body">
+                            {{-- <p><strong>Estado Actual:</strong> {{ $flowData['currentState'] }}</p> --}}
+                            <div id="flow-diagram" style="position: relative; background: #f9f9f9; padding: 10px;">
+                                <!-- El flujo se renderizará aquí -->
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -709,7 +730,199 @@
     @push('js')
         <script>
             document.addEventListener('livewire:load', function() {
+                 // Renderizar flujo inicial
+                 const flowData = @json($flowData);
+                renderFlowDiagram(flowData);
 
+                // Volver a renderizar el flujo después de una actualización de Livewire
+                Livewire.hook('message.processed', (message, component) => {
+                    const updatedFlowData = @json($flowData);
+                    renderFlowDiagram(updatedFlowData);
+                });
+
+                Livewire.on('updateFlowDiagram', function(updatedFlowData) {
+                    setTimeout(() => {
+                        renderFlowDiagram(updatedFlowData);
+                    }, 50);
+                });
+
+                function renderFlowDiagram(flowData) {
+                    console.log('Datos recibidos en frontend:', flowData);
+                    const container = document.getElementById('flow-diagram');
+                    if (!container) return;
+                    container.innerHTML = '';
+
+                    // Estilos base
+                    container.style.fontFamily = 'Arial, sans-serif';
+                    container.style.padding = '15px';
+                    container.style.color = '#333';
+
+                    // Título
+                    const titleElement = document.createElement('h5');
+                    titleElement.innerText = '';
+                    titleElement.style.margin = '0 0 25px 0';
+                    titleElement.style.fontSize = '16px';
+                    container.appendChild(titleElement);
+
+                    // Contenedor de la línea de tiempo
+                    const timeline = document.createElement('div');
+                    timeline.style.position = 'relative';
+                    timeline.style.paddingLeft = '30px';
+                    container.appendChild(timeline);
+
+                    // Línea vertical gris principal
+                    const mainLine = document.createElement('div');
+                    mainLine.style.position = 'absolute';
+                    mainLine.style.left = '10px';
+                    mainLine.style.top = '0';
+                    mainLine.style.width = '2px';
+                    mainLine.style.backgroundColor = '#E0E0E0';
+                    timeline.appendChild(mainLine);
+
+                    // Variables para control de posición
+                    let lastItemHeight = 0;
+                    let totalHeight = 0;
+
+                    // Mostrar estados visitados
+                    if (flowData.flowStates && flowData.flowStates.length > 0) {
+                        flowData.flowStates.forEach((state) => {
+                            const item = document.createElement('div');
+                            item.style.position = 'relative';
+                            item.style.marginBottom = '25px';
+                            item.style.display = 'flex';
+                            item.style.alignItems = 'center';
+                            item.style.minHeight = '24px';
+
+                            // Punto indicador
+                            const dot = document.createElement('div');
+                            dot.style.width = '14px';
+                            dot.style.height = '14px';
+                            dot.style.borderRadius = '50%';
+                            dot.style.position = 'absolute';
+                            dot.style.left = '-26px';
+                            dot.style.backgroundColor = state.estado === flowData.currentState ? '#2196F3' :
+                                '#9E9E9E';
+                            dot.style.border = '2px solid white';
+                            dot.style.boxShadow = '0 0 0 2px ' + (state.estado === flowData.currentState ?
+                                '#2196F3' : '#9E9E9E');
+                            dot.style.zIndex = '2';
+                            item.appendChild(dot);
+
+                            // Texto del estado
+                            const stateText = document.createElement('span');
+                            stateText.innerText = state.estado;
+                            stateText.style.color = state.estado === flowData.currentState ? '#2196F3' :
+                                '#616161';
+                            stateText.style.fontWeight = state.estado === flowData.currentState ? 'bold' :
+                                'normal';
+                            stateText.style.fontSize = '14px';
+                            stateText.style.lineHeight = '1.4';
+                            item.appendChild(stateText);
+
+                            timeline.appendChild(item);
+
+                            // Actualizar altura de la línea principal
+                            lastItemHeight = item.offsetHeight + 25;
+                            totalHeight += lastItemHeight;
+                            mainLine.style.height = totalHeight + 'px';
+                        });
+                    }
+
+                    // Mostrar siguientes pasos (en verde)
+                    if (flowData.nextStates) {
+                        // Línea verde para acciones
+                        const greenLine = document.createElement('div');
+                        greenLine.style.position = 'absolute';
+                        greenLine.style.left = '10px';
+                        greenLine.style.top = totalHeight + 'px';
+                        greenLine.style.width = '2px';
+                        greenLine.style.backgroundColor = '#4CAF50';
+                        greenLine.style.zIndex = '1';
+                        timeline.appendChild(greenLine);
+
+                        let greenSectionHeight = 0;
+
+                        // Verificar si nextStates es un objeto (caso especial estado 11)
+                        if (typeof flowData.nextStates === 'object' && !Array.isArray(flowData.nextStates)) {
+                            // Procesar el objeto de acciones condicionales
+                            Object.entries(flowData.nextStates).forEach(([action, isActive]) => {
+                                const item = document.createElement('div');
+                                item.style.position = 'relative';
+                                item.style.marginBottom = '25px';
+                                item.style.display = 'flex';
+                                item.style.alignItems = 'center';
+                                item.style.minHeight = '24px';
+
+                                // Punto verde (activo) o gris (inactivo)
+                                const dot = document.createElement('div');
+                                dot.style.width = '14px';
+                                dot.style.height = '14px';
+                                dot.style.borderRadius = '50%';
+                                dot.style.position = 'absolute';
+                                dot.style.left = '-26px';
+                                dot.style.backgroundColor = isActive ? '#4CAF50' : '#9E9E9E';
+                                dot.style.border = '2px solid white';
+                                dot.style.boxShadow = `0 0 0 2px ${isActive ? '#4CAF50' : '#9E9E9E'}`;
+                                dot.style.zIndex = '2';
+                                item.appendChild(dot);
+
+                                // Texto de la acción (verde si está activa, gris si no)
+                                const actionText = document.createElement('span');
+                                actionText.innerText = action.replace(/^\d+\.\s*/, '');
+                                actionText.style.color = isActive ? '#4CAF50' : '#9E9E9E';
+                                actionText.style.fontSize = '14px';
+                                actionText.style.lineHeight = '1.4';
+                                actionText.style.fontWeight = isActive ? 'bold' : 'normal';
+                                item.appendChild(actionText);
+
+                                timeline.appendChild(item);
+
+                                // Actualizar altura de la línea verde
+                                const itemHeight = item.offsetHeight + 25;
+                                greenSectionHeight += itemHeight;
+                                greenLine.style.height = greenSectionHeight + 'px';
+                            });
+                        } else if (Array.isArray(flowData.nextStates)) {
+                            // Procesamiento normal para arrays
+                            flowData.nextStates.forEach((action) => {
+                                const item = document.createElement('div');
+                                item.style.position = 'relative';
+                                item.style.marginBottom = '25px';
+                                item.style.display = 'flex';
+                                item.style.alignItems = 'center';
+                                item.style.minHeight = '24px';
+
+                                // Punto verde
+                                const dot = document.createElement('div');
+                                dot.style.width = '14px';
+                                dot.style.height = '14px';
+                                dot.style.borderRadius = '50%';
+                                dot.style.position = 'absolute';
+                                dot.style.left = '-26px';
+                                dot.style.backgroundColor = '#4CAF50';
+                                dot.style.border = '2px solid white';
+                                dot.style.boxShadow = '0 0 0 2px #4CAF50';
+                                dot.style.zIndex = '2';
+                                item.appendChild(dot);
+
+                                // Texto de la acción
+                                const actionText = document.createElement('span');
+                                actionText.innerText = action.replace(/^\d+\.\s*/, '');
+                                actionText.style.color = '#4CAF50';
+                                actionText.style.fontSize = '14px';
+                                actionText.style.lineHeight = '1.4';
+                                item.appendChild(actionText);
+
+                                timeline.appendChild(item);
+
+                                // Actualizar altura de la línea verde
+                                const itemHeight = item.offsetHeight + 25;
+                                greenSectionHeight += itemHeight;
+                                greenLine.style.height = greenSectionHeight + 'px';
+                            });
+                        }
+                    }
+                }
                 Livewire.on('mostrarSistemaCalificacion', (comentarioId) => {
                     let currentRating = 0;
 
@@ -828,6 +1041,10 @@
                     toastRight(data.type, data.message);
                 });
 
+                Livewire.on('faltaEvidencia', () => {
+                    toastRight('warning','Es necesario adjuntar evidencia');
+                });
+
                 Livewire.on('confirmarReapertura', i => {
                     alertClickCallback('¿Estás seguro?',
                         `El ticket será reabierto.`,
@@ -838,6 +1055,9 @@
                         });
                 });
             });
+
+            
+               
         </script>
     @endpush
 </div>

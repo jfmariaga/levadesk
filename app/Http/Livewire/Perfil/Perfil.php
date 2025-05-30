@@ -44,7 +44,7 @@ class Perfil extends Component
                 'email',
                 'max:255',
                 function ($attribute, $value, $fail) {
-                    $allowedDomains = ['panalsas.com', 'levapan.com', 'levapan.com.do', 'levapan.com.ec', 'levacolsas.com'];
+                    $allowedDomains = ['panalsas.com', 'levapan.com', 'levapan.com.do', 'levapan.com.ec', 'levacolsas.com', 'levapan.com.pe'];
                     $emailDomain = substr(strrchr($value, "@"), 1);
                     if (!in_array($emailDomain, $allowedDomains)) {
                         $fail('Debes de ingresar un correo corporativo');

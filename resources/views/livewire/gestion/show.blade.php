@@ -277,7 +277,7 @@
         <div class="container-fluid">
             <div class="row">
                 <a href="{{ route('gestion') }}" class="btn btn-sm btn-outline-secondary ml-3 mb-2 float-right"><i
-                    class="fas fa-angle-double-left"></i> Volver</a>
+                        class="fas fa-angle-double-left"></i> Volver</a>
             </div>
             <div class="row">
                 <div class="col-lg-9">
@@ -361,7 +361,11 @@
                             <div class="mb-1 d-flex flex-column flex-md-row align-items-center p-2"
                                 style="background-color: #eeeeee">
                                 <div class="col-12 col-md-4 mt-2 text-center text-md-left">
-                                    <p><strong>{{ $ticket->estado->nombre }}</strong></p>
+                                    @if ($ticket->cambio && $ticket->cambio->estado == 'aprobado' && $ticket->estado_id == 3)
+                                        <p><strong>CAMBIO EN ATENCIÓN</strong></p>
+                                    @else
+                                        <p><strong>{{ $ticket->estado->nombre }}</strong></p>
+                                    @endif
                                 </div>
                                 <div class="col-12 col-md-8">
                                     <p class="text-center text-md-right mt-2">
@@ -565,7 +569,16 @@
                                             <div class="card mb-3">
                                                 <div class="card-body">
                                                     <p><strong>Nueva tarea</strong></p>
-
+                                                    @if ($ticket->cambio)
+                                                        <div class="mb-2"
+                                                            style="display: flex; align-items: center; gap: 10px;">
+                                                            <p class="mb-0">¿Incluye transporte?</p>
+                                                            <label class="switch mb-0">
+                                                                <input type="checkbox" wire:model="transporte">
+                                                                <span class="slider round"></span>
+                                                            </label>
+                                                        </div>
+                                                    @endif
                                                     <!-- Título -->
                                                     <div class="form-group">
                                                         <input type="text" class="form-control" wire:model="titulo"
@@ -585,8 +598,8 @@
                                                     <div class="form-row">
                                                         <div class="col-md-6">
                                                             <p><strong>Fecha límite para esta tarea:</strong></p>
-                                                            <input type="datetime-local" wire:model="fecha_cumplimiento"
-                                                                class="form-control">
+                                                            <input type="datetime-local"
+                                                                wire:model="fecha_cumplimiento" class="form-control">
                                                             @error('fecha_cumplimiento')
                                                                 <span class="text-danger">{{ $message }}</span>
                                                             @enderror
@@ -603,11 +616,22 @@
                                                             </select>
                                                         </div>
                                                     </div>
+                                                    @if ($tarea_id)
+                                                        <button wire:click="actualizarTarea"
+                                                            class="btn btn-outline-info btn-sm float-right mt-3">
+                                                            Actulizar
+                                                        </button>
+                                                        <button wire:click="resetFormularioTarea"
+                                                            class="btn btn-outline-secondary btn-sm float-right mt-3 mr-2">
+                                                            Cancelar
+                                                        </button>
+                                                    @else
+                                                        <button wire:click="crearTarea"
+                                                            class="btn btn-outline-info btn-sm float-right mt-3">
+                                                            Guardar
+                                                        </button>
+                                                    @endif
 
-                                                    <button wire:click="crearTarea"
-                                                        class="btn btn-outline-info btn-sm float-right mt-3">
-                                                        Guardar
-                                                    </button>
                                                 </div>
                                             </div>
                                         </div>
@@ -622,8 +646,20 @@
                                                         @foreach ($ticket->tareas as $index => $tarea)
                                                             <li class="list-group-item">
                                                                 <div>
+                                                                    <strong>
+                                                                        <h4>{{ $tarea->transporte ? 'Esta tarea incluye transporte' : '' }}
+                                                                        </h4>
+                                                                    </strong>
+                                                                    @if ($tarea->editar && Auth::id() == $ticket->asignado_a)
+                                                                        <button
+                                                                            wire:click="editarTarea({{ $tarea->id }})"
+                                                                            class="btn btn-outline-warning btn-sm">
+                                                                            Editar
+                                                                        </button>
+                                                                    @endif
+                                                                    <hr>
                                                                     <strong>{{ $tarea->titulo }}</strong>
-                                                                    <p>{{ $tarea->descripcion }}</p>
+                                                                    <p><i>{{ $tarea->descripcion }}</i></p>
                                                                     <span>Fecha de
                                                                         Creación:{{ \Carbon\Carbon::parse($tarea->created_at)->format('d-m-Y H:i:s') }}</span><br>
                                                                     <span>Última
@@ -647,7 +683,7 @@
                                                                                 <button
                                                                                     class="btn btn-outline-secondary btn-sm me-2"
                                                                                     disabled>
-                                                                                    En espera de confirmación
+                                                                                    En espera de aprobación
                                                                                 </button>
                                                                             @else
                                                                                 <button
@@ -658,7 +694,7 @@
                                                                             @endif
                                                                         @endif
 
-                                                                        @if ($ticket->cambio && $loop->index > 0 && $tarea->estado == 'pendiente' && $tarea->aprobador_id == auth()->id())
+                                                                        {{-- @if ($ticket->cambio && $tarea->estado == 'pendiente' && $tarea->aprobador_id == auth()->id())
                                                                             @if ($tarea->autorizado == 0 && $tarea->solicitud_confirmacion == 1)
                                                                                 <button
                                                                                     wire:click="autorizarTarea({{ $tarea->id }})"
@@ -671,7 +707,45 @@
                                                                                     Rechazar
                                                                                 </button>
                                                                             @endif
+                                                                        @endif --}}
+
+                                                                        @if ($ticket->cambio && $tarea->estado == 'pendiente' && $tarea->aprobador_id == auth()->id())
+                                                                            @if ($tarea->autorizado == 0 && $tarea->solicitud_confirmacion == 1)
+                                                                                <div x-data="{ accion: '' }"
+                                                                                    class="d-flex align-items-center gap-2">
+                                                                                    <select x-model="accion"
+                                                                                        class="form-select form-select-sm w-auto form-control">
+                                                                                        <option value="">--
+                                                                                            Seleccionar acción --
+                                                                                        </option>
+                                                                                        <option value="autorizar">
+                                                                                            Autorizar</option>
+                                                                                        <option value="rechazar">
+                                                                                            Rechazar por falla técnica o
+                                                                                            documentación</option>
+                                                                                        <option value="editar">Editar
+                                                                                            Tarea</option>
+                                                                                    </select>
+                                                                                    <br>
+                                                                                    <button
+                                                                                        class="btn btn-sm btn-primary ml-1"
+                                                                                        @click="
+                                                                                        if (accion === 'autorizar') {
+                                                                                            $wire.autorizarTarea({{ $tarea->id }})
+                                                                                        } else if (accion === 'rechazar') {
+                                                                                            $wire.rechazarTarea({{ $tarea->id }})
+                                                                                        } else if (accion === 'editar') {
+                                                                                            $wire.modificarTarea({{ $tarea->id }})
+                                                                                        }
+                                                                                         "
+                                                                                        :disabled="accion === ''">
+                                                                                        Guardar
+                                                                                    </button>
+                                                                                </div>
+                                                                            @endif
                                                                         @endif
+
+
 
                                                                         {{-- Mostrar mensaje si la tarea fue rechazada --}}
                                                                         @if ($tarea->estado == 'Rechazada')
@@ -760,7 +834,6 @@
                                         @endif
                                     @endforeach
                                 </div>
-
                             </div>
                         </div>
                         <div class="card-body bg-light">
@@ -814,17 +887,16 @@
                                                             <span class="slider round"></span>
                                                         </label>
                                                     </div>
-
                                                 @endif
                                                 @if ($ticket->estado_id == 1)
-                                                <p class="ml-2">Asignar impacto</p>
-                                                <div class="float-right">
-                                                    <label class="switch"
-                                                        style="margin-left:10px; margin-top: 5px">
-                                                        <input type="checkbox" wire:model="impacto">
-                                                        <span class="slider round"></span>
-                                                    </label>
-                                                </div>
+                                                    <p class="ml-2">Asignar impacto</p>
+                                                    <div class="float-right">
+                                                        <label class="switch"
+                                                            style="margin-left:10px; margin-top: 5px">
+                                                            <input type="checkbox" wire:model="impacto">
+                                                            <span class="slider round"></span>
+                                                        </label>
+                                                    </div>
                                                 @endif
                                                 @if ($ticket->estado_id != 1)
                                                     @if ($ticket->tipoSolicitud->id == 4)
@@ -838,14 +910,22 @@
                                                         </div>
                                                     @endif
                                                     @if ($ticket->estado_id != 4 && $ticket->estado_id != 5 && $ticket->estado_id != 6)
-                                                        <p class="ml-2">¿Escalar a tercero?</p>
-                                                        <div class="float-right">
-                                                            <label class="switch"
-                                                                style="margin-left:10px; margin-top: 5px">
-                                                                <input type="checkbox" wire:model="escalar">
-                                                                <span class="slider round"></span>
-                                                            </label>
-                                                        </div>
+                                                        @if (
+                                                            $ticket->estado_id != 8 &&
+                                                                $ticket->estado_id != 11 &&
+                                                                $ticket->estado_id != 14 &&
+                                                                $ticket->estado_id != 12 &&
+                                                                $ticket->estado_id != 17 &&
+                                                                $ticket->estado_id != 10)
+                                                            <p class="ml-2">¿Escalar a tercero?</p>
+                                                            <div class="float-right">
+                                                                <label class="switch"
+                                                                    style="margin-left:10px; margin-top: 5px">
+                                                                    <input type="checkbox" wire:model="escalar">
+                                                                    <span class="slider round"></span>
+                                                                </label>
+                                                            </div>
+                                                        @endif
                                                         <p class="ml-2">¿Requiere cambio?</p>
                                                         <div class="float-right">
                                                             <label class="switch"
@@ -1372,12 +1452,8 @@
                                                                     <option value="1">Privado</option>
                                                                     @if (Auth::id() == $ticket->asignado_a)
                                                                         @if (
-                                                                            $ticket->estado_id != 9 &&
-                                                                                $ticket->estado_id != 10 &&
-                                                                                $ticket->estado_id != 15 &&
-                                                                                $ticket->estado_id != 11 &&
-                                                                                $ticket->estado_id != 14 &&
-                                                                                $ticket->estado_id != 18)
+                                                                            !in_array($ticket->estado_id, [8, 9, 10, 11, 12, 14, 15, 18]) &&
+                                                                                (($ticket->estado_id == 3 && !$ticket->cambio) || ($ticket->estado_id == 17 && $ticket->cambio)))
                                                                             @if (!$ticket->solucion())
                                                                                 <option value="2">Solución
                                                                                 </option>
@@ -1387,7 +1463,9 @@
                                                                             $ticket->cambio &&
                                                                                 $ticket->cambio->estado == 'aprobado' &&
                                                                                 $ticket->cambio->check_aprobado_ti == false &&
-                                                                                $ticket->estado_id != 11)
+                                                                                $ticket->estado_id != 11 &&
+                                                                                $ticket->estado_id != 10 &&
+                                                                                $ticket->estado_id != 9)
                                                                             @if (!$ticket->solucion())
                                                                                 <option value="5">Set de pruebas
                                                                                 </option>
@@ -1413,10 +1491,11 @@
                                                                             </option>
                                                                         @endif
                                                                     @endif
+                                                                    {{-- Esto de va a trabajar ahora por las tareas
                                                                     @if ($ticket->estado_id == 11)
                                                                         <option value="8">Pedir aprobación del set
                                                                         </option>
-                                                                    @endif
+                                                                    @endif --}}
                                                                 </select>
                                                                 <button wire:click="addComment"
                                                                     class="btn btn-outline-info btn-sm">Responder
@@ -1479,7 +1558,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-3">
+                <div class="col-lg-3" style="position: sticky; top: 20px; align-self: flex-start;">
                     <div class="card">
                         <div class="card-header col-md-12">
                             <div class="d-flex  align-items-center" style="background-color: #eeeeee">
@@ -1606,70 +1685,182 @@
                 });
 
                 function renderFlowDiagram(flowData) {
+                    console.log('Datos recibidos en frontend:', flowData);
                     const container = document.getElementById('flow-diagram');
-                    if (!container) {
-                        console.error('El contenedor "flow-diagram" no existe en el DOM.');
-                        return;
+                    if (!container) return;
+                    container.innerHTML = '';
+
+                    // Estilos base
+                    container.style.fontFamily = 'Arial, sans-serif';
+                    container.style.padding = '15px';
+                    container.style.color = '#333';
+
+                    // Título
+                    const titleElement = document.createElement('h5');
+                    titleElement.innerText = '';
+                    titleElement.style.margin = '0 0 25px 0';
+                    titleElement.style.fontSize = '16px';
+                    container.appendChild(titleElement);
+
+                    // Contenedor de la línea de tiempo
+                    const timeline = document.createElement('div');
+                    timeline.style.position = 'relative';
+                    timeline.style.paddingLeft = '30px';
+                    container.appendChild(timeline);
+
+                    // Línea vertical gris principal
+                    const mainLine = document.createElement('div');
+                    mainLine.style.position = 'absolute';
+                    mainLine.style.left = '10px';
+                    mainLine.style.top = '0';
+                    mainLine.style.width = '2px';
+                    mainLine.style.backgroundColor = '#E0E0E0';
+                    timeline.appendChild(mainLine);
+
+                    // Variables para control de posición
+                    let lastItemHeight = 0;
+                    let totalHeight = 0;
+
+                    // Mostrar estados visitados
+                    if (flowData.flowStates && flowData.flowStates.length > 0) {
+                        flowData.flowStates.forEach((state) => {
+                            const item = document.createElement('div');
+                            item.style.position = 'relative';
+                            item.style.marginBottom = '25px';
+                            item.style.display = 'flex';
+                            item.style.alignItems = 'center';
+                            item.style.minHeight = '24px';
+
+                            // Punto indicador
+                            const dot = document.createElement('div');
+                            dot.style.width = '14px';
+                            dot.style.height = '14px';
+                            dot.style.borderRadius = '50%';
+                            dot.style.position = 'absolute';
+                            dot.style.left = '-26px';
+                            dot.style.backgroundColor = state.estado === flowData.currentState ? '#2196F3' :
+                                '#9E9E9E';
+                            dot.style.border = '2px solid white';
+                            dot.style.boxShadow = '0 0 0 2px ' + (state.estado === flowData.currentState ?
+                                '#2196F3' : '#9E9E9E');
+                            dot.style.zIndex = '2';
+                            item.appendChild(dot);
+
+                            // Texto del estado
+                            const stateText = document.createElement('span');
+                            stateText.innerText = state.estado;
+                            stateText.style.color = state.estado === flowData.currentState ? '#2196F3' :
+                                '#616161';
+                            stateText.style.fontWeight = state.estado === flowData.currentState ? 'bold' :
+                                'normal';
+                            stateText.style.fontSize = '14px';
+                            stateText.style.lineHeight = '1.4';
+                            item.appendChild(stateText);
+
+                            timeline.appendChild(item);
+
+                            // Actualizar altura de la línea principal
+                            lastItemHeight = item.offsetHeight + 25;
+                            totalHeight += lastItemHeight;
+                            mainLine.style.height = totalHeight + 'px';
+                        });
                     }
-                    container.innerHTML = ''; // Limpiar contenido previo
 
-                    let yPosition = 20; // Posición inicial vertical
-                    const stepHeight = 60; // Espacio entre cada estado
+                    // Mostrar siguientes pasos (en verde)
+                    if (flowData.nextStates) {
+                        // Línea verde para acciones
+                        const greenLine = document.createElement('div');
+                        greenLine.style.position = 'absolute';
+                        greenLine.style.left = '10px';
+                        greenLine.style.top = totalHeight + 'px';
+                        greenLine.style.width = '2px';
+                        greenLine.style.backgroundColor = '#4CAF50';
+                        greenLine.style.zIndex = '1';
+                        timeline.appendChild(greenLine);
 
-                    // // Mostrar los estados visitados
-                    // flowData.flowStates.forEach(state => {
-                    //     const stateElement = document.createElement('div');
-                    //     stateElement.innerText = state.estado; // Muestra solo el nombre del estado
-                    //     stateElement.style.padding = '5px';
-                    //     stateElement.style.marginBottom = '10px';
-                    //     stateElement.style.background = '#d9f7be'; // Verde para estados visitados
-                    //     stateElement.style.border = '1px solid #b7eb8f';
-                    //     stateElement.style.borderRadius = '4px';
-                    //     stateElement.style.fontSize = '12px'; // Reducir tamaño de fuente
-                    //     stateElement.style.textAlign = 'center';
-                    //     stateElement.style.width = '100%'; // Ancho completo del contenedor
-                    //     container.appendChild(stateElement);
+                        let greenSectionHeight = 0;
 
-                    //     yPosition += stepHeight; // Incrementar posición vertical
-                    // });
+                        // Verificar si nextStates es un objeto (caso especial estado 11)
+                        if (typeof flowData.nextStates === 'object' && !Array.isArray(flowData.nextStates)) {
+                            // Procesar el objeto de acciones condicionales
+                            Object.entries(flowData.nextStates).forEach(([action, isActive]) => {
+                                const item = document.createElement('div');
+                                item.style.position = 'relative';
+                                item.style.marginBottom = '25px';
+                                item.style.display = 'flex';
+                                item.style.alignItems = 'center';
+                                item.style.minHeight = '24px';
 
-                    // Mostrar el estado actual
-                    const currentStateElement = document.createElement('div');
-                    currentStateElement.innerText = `Estado Actual: ${flowData.currentState}`;
-                    currentStateElement.style.padding = '5px';
-                    currentStateElement.style.marginBottom = '10px';
-                    currentStateElement.style.background = '#ffa07a'; // Naranja para el estado actual
-                    currentStateElement.style.border = '1px solid #ff6347';
-                    currentStateElement.style.borderRadius = '4px';
-                    currentStateElement.style.fontSize = '12px';
-                    currentStateElement.style.textAlign = 'center';
-                    currentStateElement.style.width = '100%';
-                    container.appendChild(currentStateElement);
+                                // Punto verde (activo) o gris (inactivo)
+                                const dot = document.createElement('div');
+                                dot.style.width = '14px';
+                                dot.style.height = '14px';
+                                dot.style.borderRadius = '50%';
+                                dot.style.position = 'absolute';
+                                dot.style.left = '-26px';
+                                dot.style.backgroundColor = isActive ? '#4CAF50' : '#9E9E9E';
+                                dot.style.border = '2px solid white';
+                                dot.style.boxShadow = `0 0 0 2px ${isActive ? '#4CAF50' : '#9E9E9E'}`;
+                                dot.style.zIndex = '2';
+                                item.appendChild(dot);
 
-                    // Mostrar las posibles acciones
-                    const possibleActionsTitle = document.createElement('div');
-                    possibleActionsTitle.innerText = 'Posibles Acciones:';
-                    possibleActionsTitle.style.fontWeight = 'bold';
-                    possibleActionsTitle.style.marginBottom = '5px';
-                    possibleActionsTitle.style.fontSize = '14px';
-                    container.appendChild(possibleActionsTitle);
+                                // Texto de la acción (verde si está activa, gris si no)
+                                const actionText = document.createElement('span');
+                                actionText.innerText = action.replace(/^\d+\.\s*/, '');
+                                actionText.style.color = isActive ? '#4CAF50' : '#9E9E9E';
+                                actionText.style.fontSize = '14px';
+                                actionText.style.lineHeight = '1.4';
+                                actionText.style.fontWeight = isActive ? 'bold' : 'normal';
+                                item.appendChild(actionText);
 
-                    flowData.nextStates.forEach(action => {
-                        const actionElement = document.createElement('div');
-                        actionElement.innerText = action; // Muestra el nombre de la acción
-                        actionElement.style.padding = '5px';
-                        actionElement.style.marginBottom = '5px';
-                        actionElement.style.background = '#f9f9f9'; // Gris claro para las acciones
-                        actionElement.style.border = '1px solid #ddd';
-                        actionElement.style.borderRadius = '4px';
-                        actionElement.style.fontSize = '12px';
-                        actionElement.style.textAlign = 'center';
-                        actionElement.style.width = '100%';
-                        container.appendChild(actionElement);
-                    });
+                                timeline.appendChild(item);
+
+                                // Actualizar altura de la línea verde
+                                const itemHeight = item.offsetHeight + 25;
+                                greenSectionHeight += itemHeight;
+                                greenLine.style.height = greenSectionHeight + 'px';
+                            });
+                        } else if (Array.isArray(flowData.nextStates)) {
+                            // Procesamiento normal para arrays
+                            flowData.nextStates.forEach((action) => {
+                                const item = document.createElement('div');
+                                item.style.position = 'relative';
+                                item.style.marginBottom = '25px';
+                                item.style.display = 'flex';
+                                item.style.alignItems = 'center';
+                                item.style.minHeight = '24px';
+
+                                // Punto verde
+                                const dot = document.createElement('div');
+                                dot.style.width = '14px';
+                                dot.style.height = '14px';
+                                dot.style.borderRadius = '50%';
+                                dot.style.position = 'absolute';
+                                dot.style.left = '-26px';
+                                dot.style.backgroundColor = '#4CAF50';
+                                dot.style.border = '2px solid white';
+                                dot.style.boxShadow = '0 0 0 2px #4CAF50';
+                                dot.style.zIndex = '2';
+                                item.appendChild(dot);
+
+                                // Texto de la acción
+                                const actionText = document.createElement('span');
+                                actionText.innerText = action.replace(/^\d+\.\s*/, '');
+                                actionText.style.color = '#4CAF50';
+                                actionText.style.fontSize = '14px';
+                                actionText.style.lineHeight = '1.4';
+                                item.appendChild(actionText);
+
+                                timeline.appendChild(item);
+
+                                // Actualizar altura de la línea verde
+                                const itemHeight = item.offsetHeight + 25;
+                                greenSectionHeight += itemHeight;
+                                greenLine.style.height = greenSectionHeight + 'px';
+                            });
+                        }
+                    }
                 }
-
-
 
                 //--------------------------------------------------------------------------
 
@@ -1725,9 +1916,18 @@
                     toastRight('success', 'Recordatorio eliminado!');
                 });
 
+                Livewire.on('tareaEditada', () => {
+                    toastRight('success', 'Se editó la tarea!');
+                });
+
                 Livewire.on('tareaNoAutorizada', () => {
                     toastRight('warning',
-                        'Solo se pueden asignar tareas cuando el ticket este en estado SET APROBADO!');
+                        'Solo se pueden asignar tareas cuando el ticket este en estado: EN PRUEBAS DE USUARIO!'
+                    );
+                });
+
+                Livewire.on('faltaDocumentoTecnico', () => {
+                    toastRight('warning', 'Es necesario adjuntar el documento técnico');
                 });
 
                 Livewire.on('tareaCreada', () => {
