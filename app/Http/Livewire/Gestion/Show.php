@@ -142,7 +142,7 @@ class Show extends Component
             4 => [],
             5 => ['EN ESPERA', 'RECHAZADO', 'SET APROBADO'],
             6 => ['REABIERTO', 'FINALIZADO'],
-            7 => ['REQUIERE CAMBIO', 'ESCALADO A CONSULTORÍA', 'SOLUCIÓN', 'GESTIÓN DE ACCESO'],
+            7 => ['REQUIERE CAMBIO', 'ESCALADO A CONSULTORÍA', 'SOLUCIÓN'],
             8 => ['EN PRUEBAS DE USUARIO', 'PRUEBAS AMBIENTE PRODUCTIVO'],
             9 => ['EN ATENCIÓN'],
             10 => function ($ticket) {
@@ -351,7 +351,7 @@ class Show extends Component
             $this->ticket->update([
                 'estado_id' => 10 // Estoy revisando esto 
             ]);
-
+            $this->loadTicket();
             $this->pedirConfirmacion($tarea->id);
         }
 
@@ -407,7 +407,7 @@ class Show extends Component
 
         if ($aprobador) {
             // Notificar al administrador
-            $aprobador->notify(new AutorizarTarea($this->ticket, $tarea, $logueado));
+            $aprobador->notify(new AutorizarTarea($tarea,$this->ticket, $logueado));
 
             // Guardar en base de datos que la confirmación ha sido solicitada
             $tarea->update([
@@ -420,7 +420,7 @@ class Show extends Component
         }
 
         Historial::create([
-            'ticket_id' => $this->ticket_id,
+            'ticket_id' => $this->ticket->id,
             'user_id' => Auth::id(),
             'accion' => 'autorizacion de tarea',
             'detalle' => $logueado . " Pidió la autorización de la tarea: " . $tarea->titulo,
@@ -477,6 +477,7 @@ class Show extends Component
         ]);
 
         $tarea->update([
+            // 'autorizado' => false, se debe de cambiar a true?????????????????
             'autorizado' => false,
             'estado' => 'Rechazada',
         ]);
@@ -518,7 +519,7 @@ class Show extends Component
 
         if ($agente) {
             // Notificar al administrador
-            $agente->notify(new EditarTarea($this->ticket, $tarea, $logueado));
+            $agente->notify(new EditarTarea( $tarea, $this->ticket, $logueado));
 
             // Guardar en base de datos que la confirmación ha sido solicitada
             $tarea->update([
@@ -588,7 +589,7 @@ class Show extends Component
         $logueado = Auth::user()->name;
         if ($aprobador) {
             // Notificar al administrador
-            $aprobador->notify(new AutorizarTarea($this->ticket, $tarea, $logueado));
+            $aprobador->notify(new AutorizarTarea($tarea, $this->ticket, $logueado));
         }
 
         Historial::create([

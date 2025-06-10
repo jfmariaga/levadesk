@@ -15,6 +15,7 @@ class SupervisorTickets extends Component
     public $estados, $SelectedEstado;
     public $asignados, $SelectedAsignado;
     public $tickets;
+    public $asignacionesSupervisor;
 
     protected $listeners = ['cargarDatosSupervisor'];
     protected $queryString = ['fecha_desde', 'fecha_hasta', 'SelectedAsignado', 'SelectedEstado'];
@@ -42,6 +43,7 @@ class SupervisorTickets extends Component
         $this->asignados = User::whereIn('id', $asignadosIds)->get(); // Obtener los usuarios asignados
     }
 
+
     // public function cargarDatosSupervisor()
     // {
     //     $user = Auth::user();
@@ -56,15 +58,34 @@ class SupervisorTickets extends Component
     //     if ($asignacionesSupervisor->isEmpty()) {
     //         $this->tickets = collect(); // Colección vacía
     //     } else {
-    //         $sociedadIds = $asignacionesSupervisor->pluck('sociedad_id');
-    //         $categoriaIds = $asignacionesSupervisor->pluck('categoria_id');
-    //         $subcategoriaIds = $asignacionesSupervisor->pluck('subcategoria_id');
+    //         $sociedadIds = $asignacionesSupervisor->pluck('sociedad_id')->unique();
+    //         $categoriaIds = $asignacionesSupervisor->pluck('categoria_id')->unique();
+    //         $subcategoriaIds = $asignacionesSupervisor->pluck('subcategoria_id')->unique();
 
-    //         $query = Ticket::with('urgencia', 'estado', 'colaboradores', 'asignado', 'usuario', 'categoria', 'subcategoria')
-    //             ->whereIn('sociedad_id', $sociedadIds)
-    //             ->whereIn('categoria_id', $categoriaIds)
-    //             ->whereIn('subcategoria_id', $subcategoriaIds);
+    //         // Construcción de la consulta
+    //         $query = Ticket::with([
+    //             'urgencia',
+    //             'estado',
+    //             'colaboradores',
+    //             'asignado',
+    //             'usuario',
+    //             'categoria',
+    //             'subcategoria'
+    //         ])
+    //             ->where(function ($q) use ($sociedadIds, $categoriaIds, $subcategoriaIds) {
+    //                 // Condición 1: Tickets que cumplan con sociedad, categoría y subcategoría
+    //                 $q->whereIn('sociedad_id', $sociedadIds)
+    //                     ->whereIn('categoria_id', $categoriaIds)
+    //                     ->whereIn('subcategoria_id', $subcategoriaIds);
+    //             })
+    //             ->orWhere(function ($q) use ($sociedadIds, $categoriaIds, $subcategoriaIds, $user) {
+    //                 // Condición 2: Tickets con aplicacion_id que cumplan sociedad, categoría y subcategoría,
+    //                 // y donde el usuario sea supervisor 1 o 2
+    //                 $q->whereNotNull('aplicacion_id')
+    //                     ->whereIn('sociedad_id', $sociedadIds);
+    //             });
 
+    //         // Aplicación de filtros opcionales
     //         if ($this->SelectedEstado) {
     //             $query->where('estado_id', $this->SelectedEstado);
     //         }
@@ -90,67 +111,71 @@ class SupervisorTickets extends Component
         $user = Auth::user();
 
         // Obtener las asignaciones del supervisor
-        $asignacionesSupervisor = DB::table('sociedad_subcategoria_grupo')
+        $this->asignacionesSupervisor = DB::table('sociedad_subcategoria_grupo')
             ->where('supervisor_id', $user->id)
             ->orWhere('supervisor_id_2', $user->id)
             ->select('sociedad_id', 'categoria_id', 'subcategoria_id')
             ->get();
 
-        if ($asignacionesSupervisor->isEmpty()) {
-            $this->tickets = collect(); // Colección vacía
-        } else {
-            $sociedadIds = $asignacionesSupervisor->pluck('sociedad_id')->unique();
-            $categoriaIds = $asignacionesSupervisor->pluck('categoria_id')->unique();
-            $subcategoriaIds = $asignacionesSupervisor->pluck('subcategoria_id')->unique();
+        if ($this->asignacionesSupervisor->isEmpty()) {
+            $this->tickets = collect();
+            $this->emit('cargarSupervisorTabla', json_encode($this->tickets));
+            return;
+        }
 
-            // Construcción de la consulta
-            $query = Ticket::with([
-                'urgencia',
-                'estado',
-                'colaboradores',
-                'asignado',
-                'usuario',
-                'categoria',
-                'subcategoria'
-            ])
-                ->where(function ($q) use ($sociedadIds, $categoriaIds, $subcategoriaIds) {
+        $sociedadIds = $this->asignacionesSupervisor->pluck('sociedad_id')->unique();
+        $categoriaIds = $this->asignacionesSupervisor->pluck('categoria_id')->unique();
+        $subcategoriaIds = $this->asignacionesSupervisor->pluck('subcategoria_id')->unique();
+
+        // Construcción de la consulta base
+        $query = Ticket::with([
+            'urgencia',
+            'estado',
+            'colaboradores',
+            'asignado',
+            'usuario',
+            'categoria',
+            'subcategoria'
+        ])
+            ->where(function ($q) use ($sociedadIds, $categoriaIds, $subcategoriaIds, $user) {
+                // Grupo principal de condiciones OR
+                $q->where(function ($q2) use ($sociedadIds, $categoriaIds, $subcategoriaIds) {
                     // Condición 1: Tickets que cumplan con sociedad, categoría y subcategoría
-                    $q->whereIn('sociedad_id', $sociedadIds)
+                    $q2->whereIn('sociedad_id', $sociedadIds)
                         ->whereIn('categoria_id', $categoriaIds)
                         ->whereIn('subcategoria_id', $subcategoriaIds);
                 })
-                ->orWhere(function ($q) use ($sociedadIds, $categoriaIds, $subcategoriaIds, $user) {
-                    // Condición 2: Tickets con aplicacion_id que cumplan sociedad, categoría y subcategoría,
-                    // y donde el usuario sea supervisor 1 o 2
-                    $q->whereNotNull('aplicacion_id')
-                        ->whereIn('sociedad_id', $sociedadIds);
-                });
+                    ->orWhere(function ($q2) use ($sociedadIds, $user) {
+                        // Condición 2: Tickets con aplicacion_id que cumplan sociedad
+                        $q2->whereNotNull('aplicacion_id')
+                            ->whereIn('sociedad_id', $sociedadIds);
+                    });
+            });
 
-            // Aplicación de filtros opcionales
-            if ($this->SelectedEstado) {
-                $query->where('estado_id', $this->SelectedEstado);
-            }
-
-            if ($this->SelectedAsignado) {
-                $query->where('asignado_a', $this->SelectedAsignado);
-            }
-
-            if ($this->fecha_desde && $this->fecha_hasta) {
-                $fecha_desde = date('Y-m-d', strtotime($this->fecha_desde));
-                $fecha_hasta = date('Y-m-d 23:59:59', strtotime($this->fecha_hasta));
-                $query->whereBetween('created_at', [$fecha_desde, $fecha_hasta]);
-            }
-
-            $this->tickets = $query->get();
+        // Aplicación de filtros adicionales (AND con el grupo principal)
+        if ($this->SelectedEstado) {
+            $query->where('estado_id', $this->SelectedEstado);
         }
 
+        if ($this->SelectedAsignado) {
+            $query->where('asignado_a', $this->SelectedAsignado);
+        }
+
+        // Filtro de fechas (se aplica a todas las condiciones)
+        if ($this->fecha_desde && $this->fecha_hasta) {
+            $fecha_desde = date('Y-m-d', strtotime($this->fecha_desde));
+            $fecha_hasta = date('Y-m-d 23:59:59', strtotime($this->fecha_hasta));
+            $query->whereBetween('created_at', [$fecha_desde, $fecha_hasta]);
+        }
+
+        $this->tickets = $query->get();
         $this->emit('cargarSupervisorTabla', json_encode($this->tickets));
     }
 
 
     public function iniciarFechas()
     {
-        $this->fecha_desde = date('2024-11-01');
+        $this->fecha_desde = date('Y-m-1');
         $this->fecha_hasta = date('Y-m-d');
     }
 

@@ -11,10 +11,10 @@ class AutorizarTarea extends Notification implements ShouldQueue
 {
     use Queueable;
     public $tarea;
-    public $logueado;
     public $ticket;
+    public $logueado;
 
-    public function __construct($tarea, $ticket,$logueado)
+    public function __construct($tarea, $ticket, $logueado)
     {
         $this->tarea = $tarea;
         $this->ticket = $ticket;
@@ -30,7 +30,7 @@ class AutorizarTarea extends Notification implements ShouldQueue
     {
         return (new MailMessage)
             ->subject('Aprobación requerida para un nuevo transporte. Ticket '. $this->ticket->nomenclatura)
-            ->line('El agente TI ' . $this->logueado . ' Necesita confirma esta tarea.')
+            ->line('El agente TI ' . $this->logueado . ' Necesita confirmar esta tarea. Ticket '. $this->ticket->nomenclatura)
             ->line('Descripción :  ' . $this->tarea->titulo)
             ->line('Por favor ingresa a LevaDesk y en tus notificaciones encontraras las aprobaciones pendientes')
             ->action('Ver aprobación', url('/home'));

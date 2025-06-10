@@ -66,7 +66,7 @@ class VerTicket extends Component
         $this->ticket = $this->ticket->fresh();
 
         $initialState = [
-            'estado' => 'ASIGNADO', 
+            'estado' => 'ASIGNADO',
             'visitado' => true
         ];
         // Definir las transiciones generales
@@ -77,10 +77,18 @@ class VerTicket extends Component
             4 => [],
             5 => ['EN ESPERA', 'RECHAZADO', 'SET APROBADO'],
             6 => ['REABIERTO', 'FINALIZADO'],
-            7 => ['REQUIERE CAMBIO', 'ESCALADO A CONSULTORÍA', 'SOLUCIÓN', 'GESTIÓN DE ACCESO'],
+            7 => ['REQUIERE CAMBIO', 'ESCALADO A CONSULTORÍA', 'SOLUCIÓN'],
             8 => ['EN PRUEBAS DE USUARIO', 'PRUEBAS AMBIENTE PRODUCTIVO'],
             9 => ['EN ATENCIÓN'],
-            10 => ['EN ESPERA DE APROBACIÓN PASO A PRODUCTIVO (Líder TI)'],
+            10 => function ($ticket) {
+                $tarea = $ticket->tareas()->latest()->first(); // 👈 la última tarea
+                // dd($tarea);
+                if ($tarea->editar == true) {
+                    return ['EDITAR TAREA'];
+                } else {
+                    return ['EN ESPERA DE APROBACIÓN PASO A PRODUCTIVO (Líder TI)'];
+                }
+            },            
             // 11 => [' 1. EN ESPERAS DE EVIDENCIAS SET DE PRUEBAS', '2. ADJUNTAR DOCUMENTACIÓN TÉCNICA', '3. PEDIR APROBACIÓN TRANSPORTE A PRODUCTIVO'],
             11 => function ($ticket) {
                 // Verificar primero si existe el cambio
@@ -133,7 +141,7 @@ class VerTicket extends Component
             ->orderBy('created_at', 'asc')
             ->get();
 
-            $visitedStates = [$initialState];    
+        $visitedStates = [$initialState];
 
         $visitedStates = [];
         foreach ($ticketEstados as $estado) {
@@ -218,6 +226,7 @@ class VerTicket extends Component
         $this->impacto = $this->ticket->impacto_id;
 
         $this->loadFlow();
+        $this->updateFlow();
 
     }
     
@@ -299,6 +308,8 @@ class VerTicket extends Component
         $this->emit('showToast', ['type' => 'success', 'message' => 'Ticket reabierto con éxito']);
 
         $this->verTicket();
+        $this->updateFlow();
+
     }
 
     public function addComment()
@@ -316,39 +327,6 @@ class VerTicket extends Component
             'comentario' => $this->newComment,
             'tipo' => 0,
         ]);
-
-        // if ($this->ticket->estado_id == 12) {
-        //     if ($this->commentType == 9) {
-        //         Historial::create([
-        //             'ticket_id' => $this->ticket->id,
-        //             'user_id' => auth()->id(),
-        //             'accion' => 'Aceptación',
-        //             'detalle' => 'El usuario indico que están funcionando los cambios en producción',
-        //         ]);
-
-        //         $this->ticket->update([
-        //             'estado_id' => 17,
-        //         ]);
-        //     } else {
-        //         Historial::create([
-        //             'ticket_id' => $this->ticket->id,
-        //             'user_id' => auth()->id(),
-        //             'accion' => 'No aceptación',
-        //             'detalle' => 'El usuario indico que NO están funcionando los cambios en producción.',
-        //         ]);
-
-        //         $this->ticket->update([
-        //             'estado_id' => 14,
-        //         ]);
-
-        //         $ultimaTarea = $this->ticket->tareas()->latest()->first();
-
-        //         if ($ultimaTarea && $ultimaTarea->user) {
-        //             $ultimaTarea->user->notify(new NoFuncionaProductivo($this->ticket));
-        //         }                
-
-        //     }
-        // }
 
         if ($this->ticket->estado_id == 12) {
             if ($this->commentType == 9) {
@@ -375,7 +353,7 @@ class VerTicket extends Component
                 ]);
 
                 $this->ticket->cambio->update([
-                    'check_aprobado_ti' => false,
+                    // 'check_aprobado_ti' => false,
                     'evidencia'         => false,
                     'doc_tecnico'       => false,
                 ]);
@@ -437,8 +415,8 @@ class VerTicket extends Component
         // Limpiar el estado después de agregar el comentario
         $this->newComment = '';
         $this->verTicket('comentarios'); // Refresca los datos del ticket
-        $this->updateFlow();
         $this->loadFlow();
+        $this->updateFlow();
         $this->emit('resetearEditor');
     }
 

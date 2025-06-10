@@ -11,8 +11,8 @@ class EditarTarea extends Notification implements ShouldQueue
 {
     use Queueable;
     public $tarea;
-    public $logueado;
     public $ticket;
+    public $logueado;
 
     public function __construct($tarea, $ticket,$logueado)
     {

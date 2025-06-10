@@ -30,8 +30,9 @@ class ResultadoTarea extends Notification implements ShouldQueue
     public function toMail($notifiable)
     {
         return (new MailMessage)
-            ->subject('respuesta de la tarea relacionada con el ticket '. $this->ticket->nomenclatura)
+            ->subject('Autorización de la tarea relacionada con el ticket '. $this->ticket->nomenclatura)
             ->line($this->resultado)
+            ->line('Ticket ' . $this->ticket->nomenclatura)
             ->action('Ver aprobación', url('/home'));
     }
 

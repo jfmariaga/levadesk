@@ -348,14 +348,22 @@ class AprobarCambios extends Component
         $transitions = [
             1 => ['RECATEGORIZAR', 'REASIGNAR', 'ASIGNAR IMPACTO'],
             2 => ['EN ATENCIÓN'],
-            3 => ['REQUIERE CAMBIO', 'ESCALADO A CONSULTORÍA', 'SOLUCIÓN', 'GESTIÓN DE ACCESO'],
+            3 => ['REQUIERE CAMBIO', 'ESCALADO A CONSULTORÍA', 'PENDIENTE POR VALIDACIÓN DE USUARIO'],
             4 => [],
             5 => ['EN ESPERA', 'RECHAZADO', 'SET APROBADO'],
             6 => ['REABIERTO', 'FINALIZADO'],
-            7 => ['REQUIERE CAMBIO', 'ESCALADO A CONSULTORÍA', 'SOLUCIÓN', 'GESTIÓN DE ACCESO'],
+            7 => ['REQUIERE CAMBIO', 'ESCALADO A CONSULTORÍA', 'SOLUCIÓN'],
             8 => ['EN PRUEBAS DE USUARIO', 'PRUEBAS AMBIENTE PRODUCTIVO'],
             9 => ['EN ATENCIÓN'],
-            10 => ['EN ESPERA DE APROBACIÓN PASO A PRODUCTIVO (Líder TI)'],
+            10 => function ($ticket) {
+                $tarea = $ticket->tareas()->latest()->first(); // 👈 la última tarea
+                // dd($tarea);
+                if ($tarea->editar == true) {
+                    return ['EDITAR TAREA'];
+                } else {
+                    return ['EN ESPERA DE APROBACIÓN PASO A PRODUCTIVO (Líder TI)'];
+                }
+            },            
             // 11 => [' 1. EN ESPERAS DE EVIDENCIAS SET DE PRUEBAS', '2. ADJUNTAR DOCUMENTACIÓN TÉCNICA', '3. PEDIR APROBACIÓN TRANSPORTE A PRODUCTIVO'],
             11 => function ($ticket) {
                 // Verificar primero si existe el cambio
@@ -449,6 +457,14 @@ class AprobarCambios extends Component
             $nextStates = $transitions[$this->ticket->estado_id] ?? [];
         }
 
+        // Construir la estructura de datos para el frontend
+        // $this->flowData = [
+        //     'currentState' => $currentState,
+        //     'nextStates' => $nextStates,
+        //     'flowStates' => $visitedStates,
+        // ];
+        // dd($this->flowData);
+        // Cambia esta parte al final del método:
         $this->flowData = [
             'currentState' => $currentState,
             'nextStates' => is_callable($nextStates) ? $nextStates($this->ticket) : $nextStates,

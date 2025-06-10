@@ -1453,7 +1453,8 @@
                                                                     @if (Auth::id() == $ticket->asignado_a)
                                                                         @if (
                                                                             !in_array($ticket->estado_id, [8, 9, 10, 11, 12, 14, 15, 18]) &&
-                                                                                (($ticket->estado_id == 3 && !$ticket->cambio) || ($ticket->estado_id == 17 && $ticket->cambio)))
+                                                                                (($ticket->estado_id == 3 && !$ticket->cambio) ||
+                                                                                    (($ticket->estado_id == 17 && $ticket->cambio) || $ticket->estado_id == 7)))
                                                                             @if (!$ticket->solucion())
                                                                                 <option value="2">Solución
                                                                                 </option>
@@ -1507,31 +1508,12 @@
                                             @endif
                                         </div>
                                         <div class="col-12 d-flex justify-content-center">
-                                            <div wire:loading wire:target="newFile" class="" role="alert">
+                                            <div wire:loading wire:target="newFiles" class="" role="alert">
                                                 <div class="spinner-border text-primary" role="status">
                                                     <span class="text-center"></span>
                                                 </div>
                                             </div>
                                         </div>
-                                        {{-- @if ($newFile)
-                                            <div class="d-flex align-items-center border-file p-2 rounded-file">
-                                                <div class="mr-2">
-                                                    <i class="fa fa-check-circle text-success-file"></i>
-                                                </div>
-                                                <div class="flex-grow-1-file">
-                                                    <span>{{ $newFile->getClientOriginalName() }}</span>
-                                                </div>
-                                                <div class="text-muted-file">
-                                                    Subida completa
-                                                </div>
-                                                <div class="ml-2">
-                                                    <button class="btn btn-link-file text-danger-file p-0"
-                                                        wire:click="removeFile">
-                                                        <i class="fa fa-times"></i>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        @endif --}}
 
                                         @if ($newFiles)
                                             @foreach ($newFiles as $file)
@@ -1623,11 +1605,11 @@
                             @endif
                         </div>
                     </div>
-                    <div class="card mt-3" style="max-height: 400px; overflow-y: auto;">
+                    <div class="card mt-3">
                         <div class="card-header">
                             <h5>Flujo del Ticket</h5>
                         </div>
-                        <div class="card-body">
+                        <div class="card-body" style="max-height: 400px; overflow-y: auto;">
                             {{-- <p><strong>Estado Actual:</strong> {{ $flowData['currentState'] }}</p> --}}
                             <div id="flow-diagram" style="position: relative; background: #f9f9f9; padding: 10px;">
                                 <!-- El flujo se renderizará aquí -->
@@ -1684,6 +1666,7 @@
                     }, 50);
                 });
 
+
                 function renderFlowDiagram(flowData) {
                     console.log('Datos recibidos en frontend:', flowData);
                     const container = document.getElementById('flow-diagram');
@@ -1695,7 +1678,7 @@
                     container.style.padding = '15px';
                     container.style.color = '#333';
 
-                    // Título
+                    // Título (vacío por ahora)
                     const titleElement = document.createElement('h5');
                     titleElement.innerText = '';
                     titleElement.style.margin = '0 0 25px 0';
@@ -1717,19 +1700,23 @@
                     mainLine.style.backgroundColor = '#E0E0E0';
                     timeline.appendChild(mainLine);
 
-                    // Variables para control de posición
+                    // Variables de control de altura
                     let lastItemHeight = 0;
                     let totalHeight = 0;
 
                     // Mostrar estados visitados
                     if (flowData.flowStates && flowData.flowStates.length > 0) {
-                        flowData.flowStates.forEach((state) => {
+                        const lastIndex = flowData.flowStates.length - 1;
+
+                        flowData.flowStates.forEach((state, index) => {
                             const item = document.createElement('div');
                             item.style.position = 'relative';
                             item.style.marginBottom = '25px';
                             item.style.display = 'flex';
                             item.style.alignItems = 'center';
                             item.style.minHeight = '24px';
+
+                            const isLast = index === lastIndex;
 
                             // Punto indicador
                             const dot = document.createElement('div');
@@ -1738,37 +1725,32 @@
                             dot.style.borderRadius = '50%';
                             dot.style.position = 'absolute';
                             dot.style.left = '-26px';
-                            dot.style.backgroundColor = state.estado === flowData.currentState ? '#2196F3' :
-                                '#9E9E9E';
+                            dot.style.backgroundColor = isLast ? '#2196F3' : '#9E9E9E';
                             dot.style.border = '2px solid white';
-                            dot.style.boxShadow = '0 0 0 2px ' + (state.estado === flowData.currentState ?
-                                '#2196F3' : '#9E9E9E');
+                            dot.style.boxShadow = '0 0 0 2px ' + (isLast ? '#2196F3' : '#9E9E9E');
                             dot.style.zIndex = '2';
                             item.appendChild(dot);
 
                             // Texto del estado
                             const stateText = document.createElement('span');
                             stateText.innerText = state.estado;
-                            stateText.style.color = state.estado === flowData.currentState ? '#2196F3' :
-                                '#616161';
-                            stateText.style.fontWeight = state.estado === flowData.currentState ? 'bold' :
-                                'normal';
+                            stateText.style.color = isLast ? '#2196F3' : '#616161';
+                            stateText.style.fontWeight = isLast ? 'bold' : 'normal';
                             stateText.style.fontSize = '14px';
                             stateText.style.lineHeight = '1.4';
                             item.appendChild(stateText);
 
                             timeline.appendChild(item);
 
-                            // Actualizar altura de la línea principal
+                            // Altura
                             lastItemHeight = item.offsetHeight + 25;
                             totalHeight += lastItemHeight;
                             mainLine.style.height = totalHeight + 'px';
                         });
                     }
 
-                    // Mostrar siguientes pasos (en verde)
+                    // Mostrar siguientes pasos (acciones posibles en verde)
                     if (flowData.nextStates) {
-                        // Línea verde para acciones
                         const greenLine = document.createElement('div');
                         greenLine.style.position = 'absolute';
                         greenLine.style.left = '10px';
@@ -1780,9 +1762,8 @@
 
                         let greenSectionHeight = 0;
 
-                        // Verificar si nextStates es un objeto (caso especial estado 11)
+                        // nextStates como objeto (caso especial)
                         if (typeof flowData.nextStates === 'object' && !Array.isArray(flowData.nextStates)) {
-                            // Procesar el objeto de acciones condicionales
                             Object.entries(flowData.nextStates).forEach(([action, isActive]) => {
                                 const item = document.createElement('div');
                                 item.style.position = 'relative';
@@ -1791,7 +1772,6 @@
                                 item.style.alignItems = 'center';
                                 item.style.minHeight = '24px';
 
-                                // Punto verde (activo) o gris (inactivo)
                                 const dot = document.createElement('div');
                                 dot.style.width = '14px';
                                 dot.style.height = '14px';
@@ -1804,7 +1784,6 @@
                                 dot.style.zIndex = '2';
                                 item.appendChild(dot);
 
-                                // Texto de la acción (verde si está activa, gris si no)
                                 const actionText = document.createElement('span');
                                 actionText.innerText = action.replace(/^\d+\.\s*/, '');
                                 actionText.style.color = isActive ? '#4CAF50' : '#9E9E9E';
@@ -1815,13 +1794,11 @@
 
                                 timeline.appendChild(item);
 
-                                // Actualizar altura de la línea verde
                                 const itemHeight = item.offsetHeight + 25;
                                 greenSectionHeight += itemHeight;
                                 greenLine.style.height = greenSectionHeight + 'px';
                             });
                         } else if (Array.isArray(flowData.nextStates)) {
-                            // Procesamiento normal para arrays
                             flowData.nextStates.forEach((action) => {
                                 const item = document.createElement('div');
                                 item.style.position = 'relative';
@@ -1830,7 +1807,6 @@
                                 item.style.alignItems = 'center';
                                 item.style.minHeight = '24px';
 
-                                // Punto verde
                                 const dot = document.createElement('div');
                                 dot.style.width = '14px';
                                 dot.style.height = '14px';
@@ -1843,7 +1819,6 @@
                                 dot.style.zIndex = '2';
                                 item.appendChild(dot);
 
-                                // Texto de la acción
                                 const actionText = document.createElement('span');
                                 actionText.innerText = action.replace(/^\d+\.\s*/, '');
                                 actionText.style.color = '#4CAF50';
@@ -1853,14 +1828,38 @@
 
                                 timeline.appendChild(item);
 
-                                // Actualizar altura de la línea verde
                                 const itemHeight = item.offsetHeight + 25;
                                 greenSectionHeight += itemHeight;
                                 greenLine.style.height = greenSectionHeight + 'px';
                             });
                         }
                     }
+
                 }
+
+                $(document).ready(function() {
+                    const $cardBody = $('#flow-diagram').closest('.card-body');
+
+                    // Función para mantener el scroll abajo
+                    function keepScrollDown() {
+                        $cardBody.scrollTop($cardBody[0].scrollHeight);
+                    }
+
+                    // Ejecutar al inicio
+                    keepScrollDown();
+
+                    // Opcional: Si el contenido cambia dinámicamente
+                    // Observar cambios en el contenido y ajustar el scroll
+                    const observer = new MutationObserver(function() {
+                        keepScrollDown();
+                    });
+
+                    observer.observe(document.getElementById('flow-diagram'), {
+                        childList: true,
+                        subtree: true
+                    });
+                });
+
 
                 //--------------------------------------------------------------------------
 

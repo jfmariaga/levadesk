@@ -55,7 +55,7 @@
             }
         }
     </style>
-    @if (count($tickets) > 0)
+    @if (!$asignacionesSupervisor->isEmpty())
         <div class="col-lg-12 col-md-12 mb-3">
             <div class="card" id="supervisor_tickets_section">
                 <div class="card-header">
