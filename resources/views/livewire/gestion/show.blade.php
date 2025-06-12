@@ -1072,10 +1072,55 @@
                                                     </p>
                                                     <hr>
                                                 @elseif ($ticket->aprobacion)
-                                                    @if (
-                                                        $ticket->aprobacion->estado === 'pendiente' ||
-                                                            $ticket->aprobacion->estado === 'aprobado_funcional' ||
-                                                            $ticket->aprobacion->estado === 'rechazado_ti')
+                                                    @if ($ticket->aprobacion->estado === 'pendiente')
+                                                    <h5>Flujo de Aprobación en Proceso</h5>
+                                                    <p>El flujo de aprobación fue lanzado el
+                                                        <strong>{{ $ticket->aprobacion->created_at->format('d/m/Y H:i') }}</strong>.
+                                                    </p>
+                                                    <p><strong>Líder funcional:</strong>
+                                                        {{ $ticket->aprobacion->aprobadorFuncional->name }}</p>
+                                                    <p><strong>Aprobador TI:</strong>
+                                                        {{ $ticket->aprobacion->aprobadorTi->name }}</p>
+                                                    <p>Para ver el estado del flujo, observa el timeline del ticket.
+                                                    </p>
+                                                    <hr>
+                                                        <h5>Editar líderes del flujo</h5>
+                                                        <div class="row">
+                                                            <div class="form-group col-5">
+                                                                <div wire:ignore>
+                                                                    <select class="select2" id="aprobadorFuncional"
+                                                                        wire:model="selectedFuncional">
+                                                                        <option value="">Líder funcional</option>
+                                                                        @foreach ($usuarios as $usuario)
+                                                                            <option value="{{ $usuario->id }}">
+                                                                                {{ $usuario->name }}
+                                                                            </option>
+                                                                        @endforeach
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+                                                            <div class="form-group col-4">
+                                                                <div wire:ignore>
+                                                                    <select class="select2" id="aprobadorTi"
+                                                                        wire:model="selectedTi">
+                                                                        <option value="">Aprobador TI</option>
+                                                                        @foreach ($aprobadores as $aprobador)
+                                                                            <option value="{{ $aprobador->id }}">
+                                                                                {{ $aprobador->name }}
+                                                                            </option>
+                                                                        @endforeach
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+                                                            <div class="form-group col-3">
+                                                                <button class="btn btn-outline-info btn-sm mt-1"
+                                                                    wire:click="actualizarAprobacion">
+                                                                    Guardar Cambios
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                        <hr>
+                                                    @elseif($ticket->aprobacion->estado === 'aprobado_funcional' || $ticket->aprobacion->estado === 'rechazado_ti')
                                                         <h5>Flujo de Aprobación en Proceso</h5>
                                                         <p>El flujo de aprobación fue lanzado el
                                                             <strong>{{ $ticket->aprobacion->created_at->format('d/m/Y H:i') }}</strong>.
@@ -1202,12 +1247,58 @@
                                                     <hr>
                                                 @endif
                                             @endif
+
                                             @if ($cambio)
                                                 @if ($ticket->cambio)
-                                                    @if (
-                                                        $ticket->cambio->estado === 'pendiente' ||
-                                                            $ticket->cambio->estado === 'aprobado_funcional' ||
-                                                            $ticket->cambio->estado === 'rechazado_ti')
+                                                    @if ($ticket->cambio->estado === 'pendiente')
+                                                        <h5>Flujo de cambio en Proceso</h5>
+                                                        <p>El flujo de cambio fue lanzado el
+                                                            <strong>{{ $ticket->cambio->created_at->format('d/m/Y H:i') }}</strong>.
+                                                        </p>
+                                                        <p><strong>Líder funcional:</strong>
+                                                            {{ $ticket->cambio->aprobadorFuncionalCambio->name }}</p>
+                                                        <p><strong>Aprobador TI:</strong>
+                                                            {{ $ticket->cambio->aprobadorTiCambio->name }}</p>
+                                                        <p>Para ver el estado del flujo, observa el timeline del ticket.
+                                                        </p>
+                                                        <hr>
+                                                        <h5>Editar líderes del flujo</h5>
+                                                        <div class="row">
+                                                            <div class="form-group col-5">
+                                                                <div wire:ignore>
+                                                                    <select class="select2" id="aprobadorFuncional"
+                                                                        wire:model="selectedFuncional">
+                                                                        <option value="">Líder funcional</option>
+                                                                        @foreach ($usuarios as $usuario)
+                                                                            <option value="{{ $usuario->id }}">
+                                                                                {{ $usuario->name }}
+                                                                            </option>
+                                                                        @endforeach
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+                                                            <div class="form-group col-4">
+                                                                <div wire:ignore>
+                                                                    <select class="select2" id="aprobadorTi"
+                                                                        wire:model="selectedTi">
+                                                                        <option value="">Aprobador TI</option>
+                                                                        @foreach ($aprobadores as $aprobador)
+                                                                            <option value="{{ $aprobador->id }}">
+                                                                                {{ $aprobador->name }}
+                                                                            </option>
+                                                                        @endforeach
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+                                                            <div class="form-group col-3">
+                                                                <button class="btn btn-outline-info btn-sm mt-1"
+                                                                    wire:click="actualizarCambio">
+                                                                    Guardar Cambios
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                        <hr>
+                                                    @elseif($ticket->cambio->estado === 'aprobado_funcional' || $ticket->cambio->estado === 'rechazado_ti')
                                                         <h5>Flujo de cambio en Proceso</h5>
                                                         <p>El flujo de cambio fue lanzado el
                                                             <strong>{{ $ticket->cambio->created_at->format('d/m/Y H:i') }}</strong>.
@@ -1454,7 +1545,7 @@
                                                                         @if (
                                                                             !in_array($ticket->estado_id, [8, 9, 10, 11, 12, 14, 15, 18]) &&
                                                                                 (($ticket->estado_id == 3 && !$ticket->cambio) ||
-                                                                                    (($ticket->estado_id == 17 && $ticket->cambio) || $ticket->estado_id == 7)))
+                                                                                    (($ticket->estado_id == 17 && $ticket->cambio) || $ticket->estado_id == 7 || $ticket->estado_id == 16)))
                                                                             @if (!$ticket->solucion())
                                                                                 <option value="2">Solución
                                                                                 </option>

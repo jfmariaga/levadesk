@@ -27,8 +27,7 @@ class GestionarAnsJob implements ShouldQueue
     public function handle()
     {
         Log::info('GestionarAnsJob iniciado');
-        // $tickets = Ticket::whereNotIn('estado_id', ['FINALIZADO', 'RECHAZADO'])->get();
-        $tickets = Ticket::whereNotIn('estado_id', [4, 5, 8, 9, 10, 11, 12, 13, 16])->get();
+        $tickets = Ticket::whereNotIn('estado_id', [4, 5, 8, 9, 10, 11, 13])->get();
 
         foreach ($tickets as $ticket) {
             $this->actualizarTiempoAns($ticket);

@@ -123,6 +123,19 @@ class Show extends Component
         $this->aprobadores = User::where('estado', 1)->where('id', '!=', Auth::id())->where('aprobador_ti', true)->get();
         $this->agentes = User::role(['Admin', 'Agente'])->where('id', '!=', Auth::id())->get();
         $this->identificarTipoAns();
+
+        if ($this->ticket->cambio) {
+            $this->selectedFuncional = $this->ticket->cambio->aprobador_funcional_id;
+            $this->selectedTi = $this->ticket->cambio->aprobador_ti_id;
+            // dd($this->selectedFuncional,$this->selectedTi);
+        }
+
+        if ($this->ticket->aprobacion) {
+            $this->selectedFuncional = $this->ticket->aprobacion->aprobador_funcional_id;
+            $this->selectedTi = $this->ticket->aprobacion->aprobador_ti_id;
+            // dd($this->selectedFuncional,$this->selectedTi);
+        }
+        
     }
 
     public function loadFlow()
@@ -153,7 +166,7 @@ class Show extends Component
                 } else {
                     return ['EN ESPERA DE APROBACIÓN PASO A PRODUCTIVO (Líder TI)'];
                 }
-            },            
+            },
             // 11 => [' 1. EN ESPERAS DE EVIDENCIAS SET DE PRUEBAS', '2. ADJUNTAR DOCUMENTACIÓN TÉCNICA', '3. PEDIR APROBACIÓN TRANSPORTE A PRODUCTIVO'],
             11 => function ($ticket) {
                 // Verificar primero si existe el cambio
@@ -407,7 +420,7 @@ class Show extends Component
 
         if ($aprobador) {
             // Notificar al administrador
-            $aprobador->notify(new AutorizarTarea($tarea,$this->ticket, $logueado));
+            $aprobador->notify(new AutorizarTarea($tarea, $this->ticket, $logueado));
 
             // Guardar en base de datos que la confirmación ha sido solicitada
             $tarea->update([
@@ -519,7 +532,7 @@ class Show extends Component
 
         if ($agente) {
             // Notificar al administrador
-            $agente->notify(new EditarTarea( $tarea, $this->ticket, $logueado));
+            $agente->notify(new EditarTarea($tarea, $this->ticket, $logueado));
 
             // Guardar en base de datos que la confirmación ha sido solicitada
             $tarea->update([
@@ -718,6 +731,42 @@ class Show extends Component
         $this->loadTicket();
     }
 
+    public function actualizarCambio()
+    {
+        // dd($this->selectedFuncional,$this->selectedTi);
+        $this->validate([
+            'selectedFuncional' => 'required|exists:users,id',
+            'selectedTi' => 'required|exists:users,id',
+        ]);
+
+        $this->ticket->cambio->update([
+            'aprobador_funcional_id' => $this->selectedFuncional,
+            'aprobador_ti_id' => $this->selectedTi,
+            'aprobador_final_ti_id' => $this->selectedTi,
+        ]);
+
+        $this->loadTicket(); // vuelve a cargar el ticket con la información actualizada
+        $this->ticket->cambio->aprobadorFuncionalCambio->notify(new NotificacionAprobacion($this->ticket->cambio, $this->ticket));
+        $this->emit('showToast', ['type' => 'success', 'message' => 'Líderes actualizados correctamente']);
+    }
+
+    public function actualizarAprobacion()
+    {
+        // dd($this->selectedFuncional,$this->selectedTi);
+        $this->validate([
+            'selectedFuncional' => 'required|exists:users,id',
+            'selectedTi' => 'required|exists:users,id',
+        ]);
+
+        $this->ticket->aprobacion->update([
+            'aprobador_funcional_id' => $this->selectedFuncional,
+            'aprobador_ti_id' => $this->selectedTi,
+        ]);
+        
+        $this->loadTicket(); // vuelve a cargar el ticket con la información actualizada
+        $this->ticket->aprobacion->aprobadorFuncional->notify(new NotificacionAprobacion($this->ticket->aprobacion, $this->ticket));
+        $this->emit('showToast', ['type' => 'success', 'message' => 'Líderes actualizados correctamente']);
+    }
 
     public function addFileCambio($cambio_id = null)
     {
