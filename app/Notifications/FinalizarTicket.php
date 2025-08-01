@@ -7,7 +7,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class AprobarSet extends Notification implements ShouldQueue
+class FinalizarTicket extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -26,10 +26,10 @@ class AprobarSet extends Notification implements ShouldQueue
     public function toMail($notifiable)
     {
         return (new MailMessage)
-            ->subject('Aprobación requerida, ticket '. $this->ticket->nomenclatura)
-            ->line('El Agente TI encargado del ticket ' . $this->ticket->nomenclatura . 'pidió aprobar del set de pruebas')
+            ->subject('Aprobación para finalizar ticket '. $this->ticket->nomenclatura)
+            ->line('El Agente TI encargado del ticket ' . $this->ticket->nomenclatura . 'pidió finalizarlo')
             ->line('Por favor, actúa con prontitud para cumplir con los tiempos establecidos.')
-            ->action('Ver Ticket', url('/cambio?ticket_id='  . $this->ticket->id));
+            ->action('Ver Ticket', url('/gestionar?ticket_id='  . $this->ticket->id));
     }
 
     public function toArray($notifiable)

@@ -551,7 +551,7 @@
                         </div>
                         <div class="card-body">
                             @if (
-                                $estado_aprobacion_old === 'pendiente' ||
+                                    $estado_aprobacion_old === 'pendiente' ||
                                     $estado_aprobacion_old === 'aprobado_funcional' ||
                                     $estado_aprobacion_old === 'rechazado_funcional' ||
                                     $estado_aprobacion_old === 'rechazado_ti' ||
@@ -580,6 +580,14 @@
                                             class="btn btn-outline-info btn-sm float-right">Confirmar</button>
                                     </div>
                                 @elseif($aprobador_ti_id === auth()->user()->id && $estado_aprobacion_old === 'aprobado_funcional')
+                                    <div class="form-group">
+                                        <label for="tipo_cambio">Tipo de Cambio</label>
+                                        <select wire:model="tipo_cambio" class="form-control">
+                                            <option value="">-- Seleccione --</option>
+                                            <option value="0">Simple</option>
+                                            <option value="1">Complejo</option>
+                                        </select>
+                                    </div>
                                     <div class="form-group">
                                         <label for="estado_aprobacion_ti">Aprobación TI:</label>
                                         <select wire:model="estado_aprobacion" class="form-control">

@@ -35,6 +35,7 @@ class Ticket extends Model
         'notificadoSolucion',
         'notificadoAceptacion',
         'tiempo_restante',
+        'finalizar',
     ];
 
     public function usuario()

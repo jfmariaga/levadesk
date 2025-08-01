@@ -353,7 +353,7 @@ class VerTicket extends Component
                 ]);
 
                 $this->ticket->cambio->update([
-                    // 'check_aprobado_ti' => false,
+                    'check_aprobado_ti' => false,
                     'evidencia'         => false,
                     'doc_tecnico'       => false,
                 ]);

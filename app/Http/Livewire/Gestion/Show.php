@@ -26,6 +26,7 @@ use App\Notifications\AutorizarTarea;
 use App\Notifications\CambioEstado;
 use App\Notifications\EditarTarea;
 use App\Notifications\EstadoTarea;
+use App\Notifications\FinalizarTicket;
 use App\Notifications\FlujoAcceso;
 use App\Notifications\NoAprobarProductivo;
 use App\Notifications\NotificacionAprobacion;
@@ -106,6 +107,12 @@ class Show extends Component
     public bool $transporte = false;
     public $aplicarTrans;
     public $tarea_id = null;
+    public $supervisores;
+    public $supervisor1_id;
+    public $supervisor2_id;
+    public $esSupervisor;
+    public $estado_aprobacion_supervisor;
+    public $comentario_rechazo_supervisor;
 
     protected $rules = [
         'categoria_id' => 'required',
@@ -119,6 +126,7 @@ class Show extends Component
     {
         $this->loadTicket();
         $this->loadFlow();
+        $this->obtenerSupervisoresDeTicket();
         $this->usuarios = User::where('estado', 1)->where('id', '!=', Auth::id())->get();
         $this->aprobadores = User::where('estado', 1)->where('id', '!=', Auth::id())->where('aprobador_ti', true)->get();
         $this->agentes = User::role(['Admin', 'Agente'])->where('id', '!=', Auth::id())->get();
@@ -135,7 +143,142 @@ class Show extends Component
             $this->selectedTi = $this->ticket->aprobacion->aprobador_ti_id;
             // dd($this->selectedFuncional,$this->selectedTi);
         }
-        
+    }
+
+    // public function obtenerSupervisoresDeTicket()
+    // {
+    //     $userId = Auth::id(); 
+    //     $asignacion = DB::table('sociedad_subcategoria_grupo')
+    //         ->where('sociedad_id', $this->ticket->sociedad_id)
+    //         ->where('categoria_id', $this->ticket->categoria_id)
+    //         ->where('subcategoria_id', $this->ticket->subcategoria_id)
+    //         ->first();
+
+    //     if (!$asignacion) {
+    //         $this->supervisores = collect();
+    //         $this->supervisor1_id = null;
+    //         $this->supervisor2_id = null;
+    //         return;
+    //     }
+
+    //     // Guardar los IDs
+    //     $this->supervisor1_id = $asignacion->supervisor_id;
+    //     $this->supervisor2_id = $asignacion->supervisor_id_2;
+
+    //     if ($userId == $this->supervisor1_id || $userId == $this->supervisor2_id) {
+    //         $this->esSupervisor = true;
+    //     } else {
+    //         $this->esSupervisor = false;
+    //     }
+    //     // Guardar los supervisores encontrados
+    //     $this->supervisores = User::whereIn('id', array_filter([
+    //         $asignacion->supervisor_id,
+    //         $asignacion->supervisor_id_2
+    //     ]))->get();
+    // }
+
+    public function obtenerSupervisoresDeTicket()
+    {
+        $userId = Auth::id();
+
+        $asignacion = DB::table('sociedad_subcategoria_grupo')
+            ->where('sociedad_id', $this->ticket->sociedad_id)
+            ->where('categoria_id', $this->ticket->categoria_id)
+            ->where('subcategoria_id', $this->ticket->subcategoria_id)
+            ->first();
+
+        if (!$asignacion) {
+            $this->supervisores = collect();
+            $this->supervisor1_id = null;
+            $this->supervisor2_id = null;
+            $this->esSupervisor = false;
+            return;
+        }
+
+        // Guardar los IDs, asegurándose que no sean nulos
+        $this->supervisor1_id = $asignacion->supervisor_id ?: null;
+        $this->supervisor2_id = $asignacion->supervisor_id_2 ?: null;
+
+        // Guardar los supervisores encontrados
+        $this->supervisores = User::whereIn('id', array_filter([
+            $this->supervisor1_id,
+            $this->supervisor2_id
+        ]))->get();
+
+        // Comprobar si el usuario logueado está en la lista de supervisores
+        $this->esSupervisor = $this->supervisores->contains('id', $userId);
+    }
+
+    public function aprobarFinalizarTicket()
+    {
+
+        if ($this->estado_aprobacion_supervisor === 'rechazado_supervisor' && empty($this->comentario_rechazo_supervisor)) {
+            $this->emit('showToast', ['type' => 'error', 'message' => 'El comentario es obligatorio.']);
+            return;
+        }
+
+        if ($this->estado_aprobacion_supervisor === 'aprobado_supervisor') {
+            $ansCumplido = $this->tiempoRestante > 0;
+
+            $comentario = Comentario::where('ticket_id', $this->ticket->id)
+                ->where('finalizar', true)
+                ->first();
+
+            $comentario->update([
+                'tipo' => 2
+            ]);
+
+            $this->ticket->update([
+                'estado_id' => 6,
+                'ans_vencido' => $ansCumplido ? 0 : 1,
+                'notificadoSolucion' => true,
+                'tiempo_inicio_aceptacion' => now(),
+                'tiempo_restante' => $this->ticket->ans->t_aceptacion_segundos,
+                'finalizar' => false
+            ]);
+
+            Historial::create([
+                'ticket_id' => $this->ticket->id,
+                'user_id' => Auth::id(),
+                'accion' => 'Cambio de estado',
+                'detalle' => 'El supervisor del ticket autorizó finalizarlo',
+            ]);
+
+            Historial::create([
+                'ticket_id' => $this->ticket->id,
+                'user_id' => Auth::id(),
+                'accion' => 'Cambio de estado',
+                'detalle' => 'El sistema cambió el estado del ticket a: Por aceptación y el ANS de solución ' . ($ansCumplido ? 'se cumplió' : 'no se cumplió'),
+            ]);
+
+            $this->ticket->usuario->notify(new NuevoComentarioSolucion($comentario));
+        } else {
+            // 1. Buscar el último estado anterior al actual en la tabla ticket_estados
+            $estadoAnterior = DB::table('ticket_estados')
+                ->where('ticket_id', $this->ticket->id)
+                ->orderByDesc('created_at')
+                ->skip(1) // saltamos el estado actual
+                ->first();
+
+            if ($estadoAnterior) {
+                // 2. Actualizar el ticket para que vuelva al estado anterior
+                $this->ticket->update([
+                    'estado_id' => $estadoAnterior->estado_id,
+                    'finalizar' => false
+                ]);
+
+                // 3. Guardar historial del rechazo
+                Historial::create([
+                    'ticket_id' => $this->ticket->id,
+                    'user_id' => Auth::id(),
+                    'accion' => 'Rechazo por supervisor',
+                    'detalle' => 'El supervisor rechazó finalizar el ticket. Comentario: ' . $this->comentario_rechazo_supervisor,
+                ]);
+
+                // 4. Emitir confirmación
+                $this->emit('showToast', ['type' => 'warning', 'message' => 'Ticket rechazado y devuelto al estado anterior.']);
+            }
+        }
     }
 
     public function loadFlow()
@@ -188,7 +331,13 @@ class Show extends Component
             14 => ['1. APLICAR TRANSPORTE (colaborador)'],
             15 => ['CONFIGURAR ACCESOS'],
             16 => [' 1. EN ESPERAS DE EVIDENCIAS', '2. FINALIZAR TICKET'],
-            17 => ['MARCAR COMO SOLUCIÓN'],
+            17 => function ($ticket) {
+                if ($ticket->finalizar == true) {
+                    return ['EN ESPERA DE APROBACIÓN (Supervisor)'];
+                } else {
+                    return ['MARCAR COMO SOLUCIÓN'];
+                }
+            },
             18 => ['VALIDAR FALLAS EN PRODUCCIÓN', 'CONFIGURAR NUEVAMENTE EL SET DE PRUEBAS'],
         ];
 
@@ -244,12 +393,29 @@ class Show extends Component
             }
         } elseif ($cambio) {
             if ($cambio->estado === 'aprobado') {
-                // Si el cambio está aprobado y el estado actual no es "EN ATENCIÓN", sigue el flujo del ticket
-                if ($this->ticket->estado_id !== 3) { // 2 corresponde a "EN ATENCIÓN"
-                    $nextStates = $transitions[$this->ticket->estado_id] ?? [];
+                if ($cambio->tipo_cambio == 0) {
+                    // 🎯 Lógica para cambios simples según estado
+                    switch ($this->ticket->estado_id) {
+                        case 6:
+                            $nextStates = ['REABIERTO', 'FINALIZADO'];
+                            break;
+                        case 4:
+                            $nextStates = [];
+                            break;
+                        case 9:
+                            $nextStates = ['EN ATENCIÓN'];
+                            break;
+                        default:
+                            $nextStates = ['ESCALAR A CONSULTORÍA', 'PENDIENTE POR VALIDACIÓN DE USUARIO'];
+                            break;
+                    }
                 } else {
-                    // Si el estado es "EN ATENCIÓN", sigue las transiciones del cambio
-                    $nextStates = $changeTransitions[$cambio->estado] ?? [];
+                    // 🎯 Lógica para cambios complejos
+                    if ($this->ticket->estado_id !== 3) {
+                        $nextStates = $transitions[$this->ticket->estado_id] ?? [];
+                    } else {
+                        $nextStates = $changeTransitions[$cambio->estado] ?? [];
+                    }
                 }
             } else {
                 // Si el cambio no está aprobado, sigue las transiciones del cambio
@@ -274,7 +440,6 @@ class Show extends Component
             'flowStates' => $visitedStates
         ];
     }
-
 
     public function updateFlow()
     {
@@ -331,14 +496,26 @@ class Show extends Component
         $estadoTarea = 'pendiente'; // Estado por defecto
         $autorizado = true; // Valor por defecto
         // Verificar si el ticket tiene un cambio asociado
+        // if ($this->ticket->cambio) {
+        //     if ($this->ticket->estado_id == 11) {
+        //         $autorizado = false; // Requiere autorización
+        //     } else {
+        //         $this->emit('tareaNoAutorizada');
+        //         return;
+        //     }
+        // }
+
         if ($this->ticket->cambio) {
-            if ($this->ticket->estado_id == 11) {
-                $autorizado = false; // Requiere autorización
+            if ($this->ticket->cambio->tipo_cambio == 0) {
+                $autorizado = true;
+            } elseif ($this->ticket->estado_id == 11) {
+                $autorizado = false;
             } else {
                 $this->emit('tareaNoAutorizada');
                 return;
             }
         }
+
         // Crear la tarea con el nuevo campo de autorización
         $tarea = Tarea::create([
             'titulo' => $this->titulo,
@@ -762,7 +939,7 @@ class Show extends Component
             'aprobador_funcional_id' => $this->selectedFuncional,
             'aprobador_ti_id' => $this->selectedTi,
         ]);
-        
+
         $this->loadTicket(); // vuelve a cargar el ticket con la información actualizada
         $this->ticket->aprobacion->aprobadorFuncional->notify(new NotificacionAprobacion($this->ticket->aprobacion, $this->ticket));
         $this->emit('showToast', ['type' => 'success', 'message' => 'Líderes actualizados correctamente']);
@@ -1118,7 +1295,6 @@ class Show extends Component
         $this->loadTicket();
     }
 
-
     public function actualizarImpacto()
     {
         $this->validate([
@@ -1209,7 +1385,7 @@ class Show extends Component
 
     public function addComment()
     {
-        if ($this->ticket->estado_id == 11  && $this->ticket->cambio->evidencia == true && $this->newFiles == null && $this->ticket->cambio->doc_tecnico == false) {
+        if ($this->ticket->estado_id == 11  && $this->ticket->cambio->evidencia == true && $this->newFiles == null && $this->ticket->cambio->doc_tecnico == false && $this->commentType != 8) {
             $this->emit('faltaDocumentoTecnico');
             return;
         }
@@ -1448,34 +1624,75 @@ class Show extends Component
         $this->loadTicket($this->ticket->id);
     }
 
+    // public function mandarParaAprobacion($id)
+    // {
+    //     $this->ticket->update([
+    //         'estado_id' => 17 // Estoy revisando esto 
+    //     ]);
+
+    //     Historial::create([
+    //         'ticket_id' => $this->ticket->id,
+    //         'user_id' => Auth::id(),
+    //         'accion' => 'Finalizar',
+    //         'detalle' => 'El agente TI pidió Finalizar el ticket',
+    //     ]);
+
+    //     $this->ticket->cambio->aprobadorTiCambio->notify(new AprobarSet($this->ticket));
+    //     $this->emit('showToast', ['type' => 'success', 'message' => 'El supervisor debe de autorizar esta acción']);
+    //     $this->updateFlow();
+    //     $this->loadTicket();
+    // }
+
     public function mandarParaAprobacion($id)
     {
         $comentario = Comentario::find($id);
+
         $comentario->update([
-            'check_comentario' => true
+            'finalizar' => true
         ]);
 
         $this->ticket->update([
-            'estado_id' => 10 // Estoy revisando esto 
+            'estado_id' => 17,
+            'finalizar' => true
         ]);
-
-        $this->ticket->cambio->update([
-            'check_aprobado' => true,
-        ]);
-
 
         Historial::create([
             'ticket_id' => $this->ticket->id,
             'user_id' => Auth::id(),
-            'accion' => 'set ',
-            'detalle' => 'Esperando la aprobación del set de pruebas',
+            'accion' => 'Finalizar',
+            'detalle' => 'El agente TI pidió Finalizar el ticket',
         ]);
 
-        $this->ticket->cambio->aprobadorTiCambio->notify(new AprobarSet($this->ticket));
-        $this->emit('showToast', ['type' => 'success', 'message' => 'Enviado para aprobación']);
+        // Llamar para llenar supervisores e IDs
+        $this->obtenerSupervisoresDeTicket();
+
+        $destinatario = null;
+
+        // Buscar supervisor 2 por ID
+        if ($this->supervisor2_id) {
+            $destinatario = $this->supervisores->firstWhere('id', $this->supervisor2_id);
+        }
+
+        // Si no, buscar supervisor 1
+        if (!$destinatario && $this->supervisor1_id) {
+            $destinatario = $this->supervisores->firstWhere('id', $this->supervisor1_id);
+        }
+
+        // Si tampoco, usar aprobador TI
+        if (!$destinatario && $this->ticket->cambio && $this->ticket->cambio->aprobadorTiCambio) {
+            $destinatario = $this->ticket->cambio->aprobadorTiCambio;
+        }
+
+        // Enviar notificación
+        if ($destinatario) {
+            $destinatario->notify(new FinalizarTicket($this->ticket));
+        }
+
+        $this->emit('showToast', ['type' => 'success', 'message' => 'El supervisor debe de autorizar esta acción']);
         $this->updateFlow();
         $this->loadTicket();
     }
+
 
     public function render()
     {

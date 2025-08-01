@@ -1,5 +1,61 @@
 <div>
     <style>
+        .custom-ticket-card {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .custom-ticket-card h5 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #0E69B2;
+            /* color corporativo */
+            margin-bottom: 6px;
+            border-bottom: 1px solid #e1e1e1;
+            padding-bottom: 4px;
+        }
+
+        .section {
+            margin-bottom: 15px;
+        }
+
+        .info-list {
+            list-style: none;
+            padding-left: 0;
+            margin: 0;
+        }
+
+        .info-list li {
+            padding: 4px 0;
+            border-bottom: 1px dotted #e0e0e0;
+        }
+
+        .info-list li:last-child {
+            border-bottom: none;
+        }
+
+        .required {
+            color: red;
+            font-weight: bold;
+        }
+
+        .tipo-cambio {
+            font-size: 12px;
+            margin-top: 5px;
+            display: inline-block;
+        }
+
+        .btn-outline-primary {
+            border-color: #0E69B2;
+            color: #0E69B2;
+        }
+
+        .btn-outline-primary:hover {
+            background-color: #0E69B2;
+            color: #fff;
+        }
+
         .card {
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
@@ -569,7 +625,7 @@
                                             <div class="card mb-3">
                                                 <div class="card-body">
                                                     <p><strong>Nueva tarea</strong></p>
-                                                    @if ($ticket->cambio)
+                                                    @if ($ticket->cambio->tipo_cambio == 1)
                                                         <div class="mb-2"
                                                             style="display: flex; align-items: center; gap: 10px;">
                                                             <p class="mb-0">¿Incluye transporte?</p>
@@ -1073,17 +1129,17 @@
                                                     <hr>
                                                 @elseif ($ticket->aprobacion)
                                                     @if ($ticket->aprobacion->estado === 'pendiente')
-                                                    <h5>Flujo de Aprobación en Proceso</h5>
-                                                    <p>El flujo de aprobación fue lanzado el
-                                                        <strong>{{ $ticket->aprobacion->created_at->format('d/m/Y H:i') }}</strong>.
-                                                    </p>
-                                                    <p><strong>Líder funcional:</strong>
-                                                        {{ $ticket->aprobacion->aprobadorFuncional->name }}</p>
-                                                    <p><strong>Aprobador TI:</strong>
-                                                        {{ $ticket->aprobacion->aprobadorTi->name }}</p>
-                                                    <p>Para ver el estado del flujo, observa el timeline del ticket.
-                                                    </p>
-                                                    <hr>
+                                                        <h5>Flujo de Aprobación en Proceso</h5>
+                                                        <p>El flujo de aprobación fue lanzado el
+                                                            <strong>{{ $ticket->aprobacion->created_at->format('d/m/Y H:i') }}</strong>.
+                                                        </p>
+                                                        <p><strong>Líder funcional:</strong>
+                                                            {{ $ticket->aprobacion->aprobadorFuncional->name }}</p>
+                                                        <p><strong>Aprobador TI:</strong>
+                                                            {{ $ticket->aprobacion->aprobadorTi->name }}</p>
+                                                        <p>Para ver el estado del flujo, observa el timeline del ticket.
+                                                        </p>
+                                                        <hr>
                                                         <h5>Editar líderes del flujo</h5>
                                                         <div class="row">
                                                             <div class="form-group col-5">
@@ -1542,22 +1598,33 @@
                                                                     <option value="0">Público</option>
                                                                     <option value="1">Privado</option>
                                                                     @if (Auth::id() == $ticket->asignado_a)
+                                                                        @php
+                                                                            $esCambioSimple =
+                                                                                $ticket->cambio &&
+                                                                                $ticket->cambio->tipo_cambio == 0;
+                                                                        @endphp
+
                                                                         @if (
                                                                             !in_array($ticket->estado_id, [8, 9, 10, 11, 12, 14, 15, 18]) &&
-                                                                                (($ticket->estado_id == 3 && !$ticket->cambio) ||
-                                                                                    (($ticket->estado_id == 17 && $ticket->cambio) || $ticket->estado_id == 7 || $ticket->estado_id == 16)))
+                                                                                $ticket->finalizar != true &&
+                                                                                (($ticket->estado_id == 3 && (!$ticket->cambio || $esCambioSimple)) ||
+                                                                                    ($ticket->estado_id == 17 && $ticket->cambio) ||
+                                                                                    in_array($ticket->estado_id, [7, 16])))
                                                                             @if (!$ticket->solucion())
                                                                                 <option value="2">Solución
                                                                                 </option>
                                                                             @endif
                                                                         @endif
+
                                                                         @if (
                                                                             $ticket->cambio &&
                                                                                 $ticket->cambio->estado == 'aprobado' &&
                                                                                 $ticket->cambio->check_aprobado_ti == false &&
+                                                                                $ticket->cambio->tipo_cambio == true &&
                                                                                 $ticket->estado_id != 11 &&
                                                                                 $ticket->estado_id != 10 &&
-                                                                                $ticket->estado_id != 9)
+                                                                                $ticket->estado_id != 9 &&
+                                                                                $ticket->finalizar != true)
                                                                             @if (!$ticket->solucion())
                                                                                 <option value="5">Set de pruebas
                                                                                 </option>
@@ -1583,11 +1650,14 @@
                                                                             </option>
                                                                         @endif
                                                                     @endif
-                                                                    {{-- Esto de va a trabajar ahora por las tareas
-                                                                    @if ($ticket->estado_id == 11)
-                                                                        <option value="8">Pedir aprobación del set
-                                                                        </option>
-                                                                    @endif --}}
+                                                                    @if (
+                                                                        $ticket->cambio &&
+                                                                            $ticket->cambio->tipo_cambio == true &&
+                                                                            $ticket->estado_id != 4 &&
+                                                                            $ticket->asignado_a == Auth::id() &&
+                                                                            $ticket->finalizar != true)
+                                                                        <option value="8">Finalizar</option>
+                                                                    @endif
                                                                 </select>
                                                                 <button wire:click="addComment"
                                                                     class="btn btn-outline-info btn-sm">Responder
@@ -1632,6 +1702,40 @@
                     </div>
                 </div>
                 <div class="col-lg-3" style="position: sticky; top: 20px; align-self: flex-start;">
+                    @if ($esSupervisor && $ticket->finalizar == 1)
+                        <div class="card">
+                            <div class="card-header col-md-12">
+                                <div class="d-flex align-items-center" style="background-color: #eeeeee">
+                                    <div class="col-md-12">
+                                        <h5>Finalizar Ticket</h5>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-group">
+                                    <label for="estado_aprobacion_funcional">Finalizar Ticket:</label>
+                                    <select wire:model="estado_aprobacion_supervisor" id="estado_aprobacion_funcional"
+                                        class="form-control">
+                                        <option value="">-- Seleccione --</option>
+                                        <option value="aprobado_supervisor">SI</option>
+                                        <option value="rechazado_supervisor">NO</option>
+                                    </select>
+                                </div>
+                                @if ($estado_aprobacion_supervisor === 'rechazado_supervisor')
+                                    <div class="form-group">
+                                        <label for="comentariosRechazo">Comentario (Obligatorio si
+                                            rechaza):</label>
+                                        <textarea wire:model="comentario_rechazo_supervisor"  rows="3" class="form-control"></textarea>
+                                    </div>
+                                @endif
+                                <div class="d-flex">
+                                    <button wire:click="aprobarFinalizarTicket"
+                                        class="btn btn-outline-info btn-sm float-right">Confirmar</button>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
                     <div class="card">
                         <div class="card-header col-md-12">
                             <div class="d-flex  align-items-center" style="background-color: #eeeeee">
@@ -1648,7 +1752,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="card-body">
+                        {{-- <div class="card-body">
                             @if ($participante)
                                 <div class="row">
                                     <div class="form-group col-12">
@@ -1675,17 +1779,28 @@
                             @endif
                             <p><strong>Usuario :</strong> {{ $ticket->usuario->name }}</p>
                             <p><strong>Agente TI :</strong> {{ $ticket->asignado->name }}</p>
+                            @if (count($supervisores) > 0)
+                                <h5>Supervisores:</h5>
+                                @foreach ($supervisores as $s)
+                                    <p>{{ $s->name }}</p>
+                                @endforeach
+                            @endif
                             @if ($ticket->Colaboradors)
                                 @foreach ($ticket->colaboradors as $colaborador)
                                     <p><strong>Colaborador :</strong> {{ $colaborador->user->name }}</p>
                                 @endforeach
                             @endif
                             @if ($ticket->cambio)
-                                <h5>Flujo de cambios</h5>
+                                <h5>Aprobadores:</h5>
                                 <p><strong>Líder funcional:</strong>
                                     {{ $ticket->cambio->aprobadorFuncionalCambio->name }}</p>
                                 <p><strong>Aprobador TI:</strong>
                                     {{ $ticket->cambio->aprobadorTiCambio->name }}</p>
+                                @if ($ticket->cambio->tipo_cambio !== null)
+                                    <p><span
+                                            class="badge badge-warning p-2">{{ $ticket->cambio->tipo_cambio ? 'Cambio Complejo' : 'Cambio Simple' }}</span>
+                                    </p>
+                                @endif
                             @endif
                             @if ($ticket->aprobacion)
                                 <h5>Flujo de accesos</h5>
@@ -1694,7 +1809,93 @@
                                 <p><strong>Aprobador TI:</strong>
                                     {{ $ticket->aprobacion->aprobadorTi->name }}</p>
                             @endif
+                        </div> --}}
+                        <div class="card-body custom-ticket-card">
+                            @if ($participante)
+                                <div class="section mb-3">
+                                    <h5>Agregar un colaborador <b class="required">*</b></h5>
+                                    <div wire:ignore>
+                                        <select class="select2 form-control" id="colaborador">
+                                            <option value="">Seleccionar...</option>
+                                            @foreach ($agentes as $agente)
+                                                <option value="{{ $agente->id }}">{{ $agente->name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    @error('selectedUser')
+                                        <span class="invalid-feedback d-block">{{ $message }}</span>
+                                    @enderror
+                                    <div class="text-right mt-2">
+                                        <button type="button" class="btn btn-outline-primary btn-sm"
+                                            wire:click="asignarColaborador">
+                                            Asignar
+                                        </button>
+                                    </div>
+
+                                </div>
+                                <hr>
+                            @endif
+
+                            <div class="section">
+                                {{-- <h5>Información del Ticket</h5> --}}
+                                <ul class="info-list">
+                                    <li><strong>Usuario:</strong> {{ $ticket->usuario->name }}</li>
+                                    <li><strong>Agente TI:</strong> {{ $ticket->asignado->name }}</li>
+                                </ul>
+                            </div>
+
+                            @if (count($supervisores) > 0)
+                                <div class="section">
+                                    <h5>Supervisores</h5>
+                                    <ul class="info-list">
+                                        @foreach ($supervisores as $s)
+                                            <li>{{ $s->name }}</li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            @endif
+
+                            @if ($ticket->Colaboradors && $ticket->Colaboradors->count())
+                                <div class="section">
+                                    <h5>Colaboradores</h5>
+                                    <ul class="info-list">
+                                        @foreach ($ticket->colaboradors as $colaborador)
+                                            <li>{{ $colaborador->user->name }}</li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            @endif
+
+                            @if ($ticket->cambio)
+                                <div class="section">
+                                    <h5>Aprobadores de Cambio</h5>
+                                    <ul class="info-list">
+                                        <li><strong>Líder funcional:</strong>
+                                            {{ $ticket->cambio->aprobadorFuncionalCambio->name }}</li>
+                                        <li><strong>Aprobador TI:</strong>
+                                            {{ $ticket->cambio->aprobadorTiCambio->name }}</li>
+                                    </ul>
+                                    @if ($ticket->cambio->tipo_cambio !== null)
+                                        <span class="badge badge-warning tipo-cambio">
+                                            {{ $ticket->cambio->tipo_cambio ? 'Cambio Complejo' : 'Cambio Simple' }}
+                                        </span>
+                                    @endif
+                                </div>
+                            @endif
+
+                            @if ($ticket->aprobacion)
+                                <div class="section">
+                                    <h5>Flujo de Accesos</h5>
+                                    <ul class="info-list">
+                                        <li><strong>Líder funcional:</strong>
+                                            {{ $ticket->aprobacion->aprobadorFuncional->name }}</li>
+                                        <li><strong>Aprobador TI:</strong>
+                                            {{ $ticket->aprobacion->aprobadorTi->name }}</li>
+                                    </ul>
+                                </div>
+                            @endif
                         </div>
+
                     </div>
                     <div class="card mt-3">
                         <div class="card-header">

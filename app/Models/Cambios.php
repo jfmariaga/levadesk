@@ -22,6 +22,7 @@ class Cambios extends Model
         'check_aprobado_ti',
         'evidencia',
         'doc_tecnico',
+        'tipo_cambio',
     ];
 
     public function ticket()

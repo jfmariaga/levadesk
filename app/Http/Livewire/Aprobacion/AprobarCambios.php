@@ -62,6 +62,7 @@ class AprobarCambios extends Component
     public $aprobador_funcional_id;
     public $aprobador_ti_id;
     public $flowData;
+    public $tipo_cambio = "";
 
 
     protected $queryString = ['ticket_id'];
@@ -71,7 +72,6 @@ class AprobarCambios extends Component
         $this->verTicket();
         $this->loadFlow();
         $this->usuarios = User::all();
-
     }
 
     public function toggleTimelineTicket()
@@ -166,6 +166,11 @@ class AprobarCambios extends Component
             return;
         }
 
+        if ($this->tipo_cambio === '' && $this->estado_aprobacion === 'aprobado_ti') {
+            $this->emit('showToast', ['type' => 'warning', 'message' => 'Selecciona el tipo de cambio.']);
+            return;
+        }
+
         // Guardar los cambios en la aprobación
         $aprobacionActualizada = $this->ticket->cambio->update([
             'estado' => $this->estado_aprobacion,
@@ -185,6 +190,7 @@ class AprobarCambios extends Component
 
                 $this->ticket->cambio->update([
                     'estado' => 'aprobado',
+                    'tipo_cambio' => $this->tipo_cambio
                 ]);
 
                 $this->ticket->update([
