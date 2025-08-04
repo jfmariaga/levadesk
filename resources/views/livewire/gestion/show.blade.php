@@ -1840,6 +1840,8 @@
                                 {{-- <h5>Información del Ticket</h5> --}}
                                 <ul class="info-list">
                                     <li><strong>Usuario:</strong> {{ $ticket->usuario->name }}</li>
+                                    <li><strong>Correo:</strong> {{ $ticket->usuario->email }}</li>
+                                    <li><strong>Sociedad:</strong> {{ $ticket->usuario->sociedad->nombre }}</li>
                                     <li><strong>Agente TI:</strong> {{ $ticket->asignado->name }}</li>
                                 </ul>
                             </div>
