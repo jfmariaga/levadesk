@@ -129,7 +129,7 @@ class Show extends Component
         $this->obtenerSupervisoresDeTicket();
         $this->usuarios = User::where('estado', 1)->where('id', '!=', Auth::id())->get();
         $this->aprobadores = User::where('estado', 1)->where('id', '!=', Auth::id())->where('aprobador_ti', true)->get();
-        $this->agentes = User::role(['Admin', 'Agente'])->where('id', '!=', Auth::id())->get();
+        $this->agentes = User::role(['Admin', 'Agente'])->where('id', '!=', Auth::id())->where('id', '!=', 16)->get();
         $this->identificarTipoAns();
 
         if ($this->ticket->cambio) {
@@ -145,37 +145,6 @@ class Show extends Component
         }
     }
 
-    // public function obtenerSupervisoresDeTicket()
-    // {
-    //     $userId = Auth::id(); 
-    //     $asignacion = DB::table('sociedad_subcategoria_grupo')
-    //         ->where('sociedad_id', $this->ticket->sociedad_id)
-    //         ->where('categoria_id', $this->ticket->categoria_id)
-    //         ->where('subcategoria_id', $this->ticket->subcategoria_id)
-    //         ->first();
-
-    //     if (!$asignacion) {
-    //         $this->supervisores = collect();
-    //         $this->supervisor1_id = null;
-    //         $this->supervisor2_id = null;
-    //         return;
-    //     }
-
-    //     // Guardar los IDs
-    //     $this->supervisor1_id = $asignacion->supervisor_id;
-    //     $this->supervisor2_id = $asignacion->supervisor_id_2;
-
-    //     if ($userId == $this->supervisor1_id || $userId == $this->supervisor2_id) {
-    //         $this->esSupervisor = true;
-    //     } else {
-    //         $this->esSupervisor = false;
-    //     }
-    //     // Guardar los supervisores encontrados
-    //     $this->supervisores = User::whereIn('id', array_filter([
-    //         $asignacion->supervisor_id,
-    //         $asignacion->supervisor_id_2
-    //     ]))->get();
-    // }
 
     public function obtenerSupervisoresDeTicket()
     {
@@ -252,6 +221,8 @@ class Show extends Component
             ]);
 
             $this->ticket->usuario->notify(new NuevoComentarioSolucion($comentario));
+
+            $this->emit('actualizarNotificaciones');
         } else {
             // 1. Buscar el último estado anterior al actual en la tabla ticket_estados
             $estadoAnterior = DB::table('ticket_estados')
@@ -1001,7 +972,7 @@ class Show extends Component
         $this->loadTicket();
         $this->asignar = false;
         if (!$usuario_logueado->hasRole('Admin')) {
-            $this->emit('redirectAfterDelay');
+            return redirect()->route('gestion');
         }
     }
 
@@ -1096,7 +1067,6 @@ class Show extends Component
     public function updatedTransporte($value)
     {
         //Aparentemente no hace nada, pero si se borra te tiras el modulo
-
     }
 
     // public function newAsignado(){
@@ -1190,6 +1160,7 @@ class Show extends Component
                         'categoria_id' => $this->categoria_id,
                         'subcategoria_id' => $this->subcategoria_id,
                         'tipo_solicitud_id' => $this->solicitud_id,
+                        'aplicacion_id' => $this->aplicacion_id,
                         'asignado_a' => $usuario->id,  // Asignar al nuevo usuario
                         'grupo_id' => $grupo->id,       // Actualizar el grupo
                     ]);
@@ -1203,8 +1174,7 @@ class Show extends Component
                     ]);
 
                     $this->emit('showToast', ['type' => 'success', 'message' => "Ticket reasignado a {$usuario->name} en el grupo de la aplicación seleccionada."]);
-                    $this->emit('redirectAfterDelay');
-                    return; // Terminamos aquí, ya que la lógica especial está resuelta.
+                    return redirect()->route('gestion');
                 } else {
                     $this->emit('showToast', ['type' => 'error', 'message' => 'No hay grupo asociado a la aplicación seleccionada']);
                     return;
@@ -1268,7 +1238,7 @@ class Show extends Component
                 'accion' => 'Recategorizado y Reasignado',
                 'detalle' => "Ticket recategorizado y reasignado de {$usuarioAsignado->name} a {$usuario->name} en el grupo {$grupo->nombre}.",
             ]);
-            $this->emit('redirectAfterDelay');
+            return redirect()->route('gestion');
         } else {
             // El grupo no cambió, solo actualizar la categoría y subcategoría
             $this->ticket->update([
@@ -1284,7 +1254,7 @@ class Show extends Component
                 'accion' => 'Recategorizado',
                 'detalle' => "Ticket recategorizado por el usuario {$usuarioAsignado->name}.",
             ]);
-            $this->emit('redirectAfterDelay');
+            return redirect()->route('gestion');
         }
 
         // Notificar al nuevo usuario
@@ -1623,25 +1593,6 @@ class Show extends Component
         $this->updateFlow();
         $this->loadTicket($this->ticket->id);
     }
-
-    // public function mandarParaAprobacion($id)
-    // {
-    //     $this->ticket->update([
-    //         'estado_id' => 17 // Estoy revisando esto 
-    //     ]);
-
-    //     Historial::create([
-    //         'ticket_id' => $this->ticket->id,
-    //         'user_id' => Auth::id(),
-    //         'accion' => 'Finalizar',
-    //         'detalle' => 'El agente TI pidió Finalizar el ticket',
-    //     ]);
-
-    //     $this->ticket->cambio->aprobadorTiCambio->notify(new AprobarSet($this->ticket));
-    //     $this->emit('showToast', ['type' => 'success', 'message' => 'El supervisor debe de autorizar esta acción']);
-    //     $this->updateFlow();
-    //     $this->loadTicket();
-    // }
 
     public function mandarParaAprobacion($id)
     {

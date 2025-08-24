@@ -33,8 +33,10 @@
                 </tbody>
             </table>
             <div class="margin_20 loading_p">
-                <div class="centrar_todo w_100px">
-                    <i class="la la-spinner spinner" style="font-size:30px;"></i>
+                <div class="d-flex justify-content-center">
+                    <div class="spinner-border" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
                 </div>
             </div>
         </div>

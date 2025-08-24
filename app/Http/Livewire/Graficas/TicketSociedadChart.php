@@ -38,6 +38,12 @@ class TicketSociedadChart extends Component
     public $chartDataCumplimientoANS;
     public $chartDataCumplimientoANSInicial;
     public $chartDataEstadoPorMes;
+    public $chartDataUsuariosPorSociedad;
+    public $totalUsuarios = 0;
+    public $metaUsuarios = 2000;
+    public $faltantesUsuarios = 0;
+    public $porcentajeMetaUsuarios = 0;
+
 
     public function mount()
     {
@@ -116,6 +122,7 @@ class TicketSociedadChart extends Component
         $this->tasaReapertura = $this->getTasaReapertura();
         $this->chartDataCumplimientoANS = $this->getChartDataCumplimientoANS();
         $this->chartDataCumplimientoANSInicial = $this->getChartDataCumplimientoANSInicial();
+        $this->chartDataUsuariosPorSociedad = $this->getChartDataUsuariosPorSociedad();
 
         // Disparar eventos para actualizar cada gráfico
         $this->dispatchBrowserEvent('chartDataUpdated', [
@@ -190,6 +197,25 @@ class TicketSociedadChart extends Component
             'chartElementId' => 'cumplimientoANSInicialChart',
             'chartType' => 'donut',
         ]);
+
+        // Disparar evento para "Usuarios por Sociedad"
+        $this->dispatchBrowserEvent('chartDataUpdated', [
+            'chartData' => $this->chartDataUsuariosPorSociedad,
+            'chartElementId' => 'usuariosSociedadChart',
+            'chartType' => 'bar',
+        ]);
+
+        $this->totalUsuarios = DB::table('users')->count(); // todos los registrados
+        $this->faltantesUsuarios = max(0, $this->metaUsuarios - $this->totalUsuarios);
+        $this->porcentajeMetaUsuarios = min(100, round(($this->totalUsuarios / $this->metaUsuarios) * 100, 2));
+
+        // Indicador media luna
+        $this->dispatchBrowserEvent('chartDataUpdated', [
+            'chartElementId' => 'metaUsuariosGauge',
+            'porcentaje'     => $this->porcentajeMetaUsuarios,
+            'faltantes'      => $this->faltantesUsuarios,
+            'meta'           => $this->metaUsuarios,
+        ]);
     }
 
     public function getTotalTickets()
@@ -222,165 +248,6 @@ class TicketSociedadChart extends Component
 
         return $query->count();
     }
-
-    // public function getChartDataCumplimientoANS()
-    // {
-    //     $queryCumplidos = DB::table('tickets')
-    //         ->join('a_n_s', 'tickets.ans_id', '=', 'a_n_s.id')
-    //         ->whereNotNull('tickets.tiempo_inicio_resolucion')
-    //         ->whereRaw('TIMESTAMPDIFF(SECOND, tickets.tiempo_inicio_resolucion, NOW()) <= a_n_s.t_resolucion_segundos')
-    //         ->whereNotNull('tickets.tiempo_inicio_aceptacion');
-
-    //     if ($this->sociedadSeleccionada) {
-    //         $queryCumplidos->where('tickets.sociedad_id', $this->sociedadSeleccionada);
-    //     }
-
-    //     if ($this->startDate && $this->endDate) {
-    //         $queryCumplidos->whereBetween('tickets.created_at', [$this->startDate, $this->endDate]);
-    //     }
-
-    //     if ($this->asignadoASeleccionado) {
-    //         $queryCumplidos->where('tickets.asignado_a', $this->asignadoASeleccionado);
-    //     }
-
-    //     if ($this->tipoSolicitudSeleccionado) {
-    //         $queryCumplidos->where('tickets.tipo_solicitud_id', $this->tipoSolicitudSeleccionado);
-    //     }
-
-    //     if ($this->categoriaSeleccionada) {
-    //         $queryCumplidos->where('tickets.categoria_id', $this->categoriaSeleccionada);
-    //     }
-
-    //     if ($this->prioridadSeleccionada) {
-    //         $queryCumplidos->where('tickets.prioridad_id', $this->prioridadSeleccionada);
-    //     }
-
-    //     $cumplidos = $queryCumplidos->count();
-    //     $queryNoCumplidos = DB::table('tickets')
-    //         ->join('a_n_s', 'tickets.ans_id', '=', 'a_n_s.id')
-    //         ->whereNotNull('tickets.tiempo_inicio_resolucion')
-    //         ->where(function ($query) {
-    //             $query->whereRaw('TIMESTAMPDIFF(SECOND, tickets.tiempo_inicio_resolucion, NOW()) > a_n_s.t_resolucion_segundos')
-    //                 ->orWhereNull('tickets.tiempo_inicio_aceptacion');
-    //         });
-
-    //     if ($this->sociedadSeleccionada) {
-    //         $queryNoCumplidos->where('tickets.sociedad_id', $this->sociedadSeleccionada);
-    //     }
-
-    //     if ($this->startDate && $this->endDate) {
-    //         $queryNoCumplidos->whereBetween('tickets.created_at', [$this->startDate, $this->endDate]);
-    //     }
-
-    //     if ($this->asignadoASeleccionado) {
-    //         $queryNoCumplidos->where('tickets.asignado_a', $this->asignadoASeleccionado);
-    //     }
-
-    //     if ($this->tipoSolicitudSeleccionado) {
-    //         $queryNoCumplidos->where('tickets.tipo_solicitud_id', $this->tipoSolicitudSeleccionado);
-    //     }
-
-    //     if ($this->categoriaSeleccionada) {
-    //         $queryNoCumplidos->where('tickets.categoria_id', $this->categoriaSeleccionada);
-    //     }
-
-    //     if ($this->prioridadSeleccionada) {
-    //         $queryNoCumplidos->where('tickets.prioridad_id', $this->prioridadSeleccionada);
-    //     }
-
-    //     $noCumplidos = $queryNoCumplidos->count();
-    //     dd($noCumplidos, $cumplidos);
-
-    //     return [
-    //         'labels' => ['Cumplidos', 'No Cumplidos'],
-    //         'datasets' => [
-    //             [
-    //                 'data' => [$cumplidos, $noCumplidos],
-    //             ]
-    //         ]
-    //     ];
-    // }
-
-    // public function getChartDataCumplimientoANS()
-    // {
-    //     $queryCumplidos = DB::table('tickets')
-    //         ->join('a_n_s', 'tickets.ans_id', '=', 'a_n_s.id')
-    //         ->whereNotNull('tickets.tiempo_inicio_resolucion')
-    //         ->whereNotNull('tickets.updated_at')
-    //         ->whereRaw('TIMESTAMPDIFF(SECOND, tickets.tiempo_inicio_resolucion, tickets.updated_at) <= a_n_s.t_resolucion_segundos')
-    //         ->whereNotNull('tickets.tiempo_inicio_aceptacion');
-
-    //     if ($this->sociedadSeleccionada) {
-    //         $queryCumplidos->where('tickets.sociedad_id', $this->sociedadSeleccionada);
-    //     }
-
-    //     if ($this->startDate && $this->endDate) {
-    //         $queryCumplidos->whereBetween('tickets.created_at', [$this->startDate, $this->endDate]);
-    //     }
-
-    //     if ($this->asignadoASeleccionado) {
-    //         $queryCumplidos->where('tickets.asignado_a', $this->asignadoASeleccionado);
-    //     }
-
-    //     if ($this->tipoSolicitudSeleccionado) {
-    //         $queryCumplidos->where('tickets.tipo_solicitud_id', $this->tipoSolicitudSeleccionado);
-    //     }
-
-    //     if ($this->categoriaSeleccionada) {
-    //         $queryCumplidos->where('tickets.categoria_id', $this->categoriaSeleccionada);
-    //     }
-
-    //     if ($this->prioridadSeleccionada) {
-    //         $queryCumplidos->where('tickets.prioridad_id', $this->prioridadSeleccionada);
-    //     }
-
-    //     $cumplidos = $queryCumplidos->count();
-
-    //     $queryNoCumplidos = DB::table('tickets')
-    //         ->join('a_n_s', 'tickets.ans_id', '=', 'a_n_s.id')
-    //         ->whereNotNull('tickets.tiempo_inicio_resolucion')
-    //         ->whereNotNull('tickets.updated_at')
-    //         ->where(function ($query) {
-    //             $query->whereRaw('TIMESTAMPDIFF(SECOND, tickets.tiempo_inicio_resolucion, tickets.updated_at) > a_n_s.t_resolucion_segundos')
-    //                 ->orWhereNull('tickets.tiempo_inicio_aceptacion');
-    //         });
-
-    //     if ($this->sociedadSeleccionada) {
-    //         $queryNoCumplidos->where('tickets.sociedad_id', $this->sociedadSeleccionada);
-    //     }
-
-    //     if ($this->startDate && $this->endDate) {
-    //         $queryNoCumplidos->whereBetween('tickets.created_at', [$this->startDate, $this->endDate]);
-    //     }
-
-    //     if ($this->asignadoASeleccionado) {
-    //         $queryNoCumplidos->where('tickets.asignado_a', $this->asignadoASeleccionado);
-    //     }
-
-    //     if ($this->tipoSolicitudSeleccionado) {
-    //         $queryNoCumplidos->where('tickets.tipo_solicitud_id', $this->tipoSolicitudSeleccionado);
-    //     }
-
-    //     if ($this->categoriaSeleccionada) {
-    //         $queryNoCumplidos->where('tickets.categoria_id', $this->categoriaSeleccionada);
-    //     }
-
-    //     if ($this->prioridadSeleccionada) {
-    //         $queryNoCumplidos->where('tickets.prioridad_id', $this->prioridadSeleccionada);
-    //     }
-
-    //     $noCumplidos = $queryNoCumplidos->count();
-
-    //     return [
-    //         'labels' => ['Cumplidos', 'No Cumplidos'],
-    //         'datasets' => [
-    //             [
-    //                 'data' => [$cumplidos, $noCumplidos],
-    //                 'backgroundColor' => ['#4e73df', '#1cc88a'],
-    //             ]
-    //         ]
-    //     ];
-    // }
 
     public function getChartDataCumplimientoANS()
     {
@@ -870,6 +737,45 @@ class TicketSociedadChart extends Component
         $promedioSatisfaccion = $query->avg('comentarios.calificacion');
         return round($promedioSatisfaccion, 2);
     }
+
+    public function getChartDataUsuariosPorSociedad()
+    {
+        $query = DB::table('users')
+            ->leftJoin('sociedades', 'users.sociedad_id', '=', 'sociedades.id')
+            ->select('sociedades.nombre as sociedad', DB::raw('COUNT(users.id) as total'))
+            ->groupBy('sociedades.nombre')
+            ->orderByDesc('total');
+
+        // Filtro opcional por sociedad seleccionada (si quieres permitirlo)
+        if ($this->sociedadSeleccionada) {
+            $query->where('users.sociedad_id', $this->sociedadSeleccionada);
+        }
+
+        // Filtro por rango de fechas (usuarios creados entre fechas, opcional)
+        if ($this->startDate && $this->endDate) {
+            $query->whereBetween('users.created_at', [$this->startDate, $this->endDate]);
+        }
+
+        $result = $query->get();
+
+        // Etiqueta "Sin sociedad" para los nulos
+        $labels = $result->map(function ($r) {
+            return $r->sociedad ?? 'Sin sociedad';
+        })->toArray();
+
+        $data = [
+            [
+                'name' => 'Usuarios',
+                'data' => $result->pluck('total')->toArray(),
+            ]
+        ];
+
+        // Total de usuarios (por si quieres usarlo en otra tarjeta)
+        $this->totalUsuarios = DB::table('users')->count();
+
+        return ['labels' => $labels, 'datasets' => $data];
+    }
+
 
     public function render()
     {

@@ -178,16 +178,6 @@
                 </select>
             </div>
 
-            {{-- <div class="col-md-3">
-                <label for="categoriaSelect">Categoría:</label>
-                <select wire:model="categoriaSeleccionada" id="categoriaSelect" class="form-control shadow-sm">
-                    <option value="">Todas las Categorías</option>
-                    @foreach ($categoriasDisponibles as $id => $nombre)
-                        <option value="{{ $id }}">{{ $nombre }}</option>
-                    @endforeach
-                </select>
-            </div> --}}
-
             <div class="col-md-3">
                 <label for="startDate">Fecha de Inicio:</label>
                 <input type="date" wire:model="startDate" id="startDate" class="form-control shadow-sm">
@@ -197,28 +187,6 @@
                 <label for="endDate">Fecha de Fin:</label>
                 <input type="date" wire:model="endDate" id="endDate" class="form-control shadow-sm">
             </div>
-
-            {{-- <div class="col-md-3">
-                <label for="tipoSolicitudSelect">Tipo de Solicitud:</label>
-                <select wire:model="tipoSolicitudSeleccionado" id="tipoSolicitudSelect" class="form-control shadow-sm">
-                    <option value="">Todos los Tipos</option>
-                    @foreach ($tiposSolicitudDisponibles as $id => $nombre)
-                        <option value="{{ $id }}">{{ $nombre }}</option>
-                    @endforeach
-                </select>
-            </div> --}}
-
-
-
-            {{-- <div class="col-md-3">
-                <label for="prioridadSelect">Prioridad:</label>
-                <select wire:model="prioridadSeleccionada" id="prioridadSelect" class="form-control shadow-sm">
-                    <option value="">Todas las Prioridades</option>
-                    @foreach ($prioridadesDisponibles as $id => $nombre)
-                        <option value="{{ $id }}">{{ $nombre }}</option>
-                    @endforeach
-                </select>
-            </div> --}}
         </div>
 
     </div>
@@ -251,6 +219,33 @@
             </div>
             <h5>Tasa de Reapertura</h5>
             <p>{{ $tasaReapertura }}%</p>
+        </div>
+    </div>
+    <div class="row mb-2">
+        <div class="col-6">
+            <div class="card kpi-card kpi-card--chart h-100">
+                <div class="card-header text-center">Usuarios por Sociedad</div>
+                <div id="usuariosSociedadChart" class="chart-320"></div>
+            </div>
+        </div>
+        <div class="col-3">
+            <div class="card">
+                <div class="card-body d-flex align-items-center justify-content-between">
+                    <div>
+                        <h5 class="mb-1">Usuarios registrados</h5>
+                        <div class="h2 font-weight-bold mb-0">{{ $totalUsuarios }}</div>
+                        @if ($totalUsuarios >= $metaUsuarios)
+                            <small class="text-success">Meta superada por
+                                {{ $totalUsuarios - $metaUsuarios }}</small>
+                        @else
+                            <small class="text-muted">Faltan {{ $faltantesUsuarios }} para la meta de 2.000 usuario registrados</small>
+                        @endif
+                    </div>
+                    <div class="text-primary" style="font-size:36px;">
+                        <i class="fas fa-users"></i>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -291,6 +286,15 @@
             <div class="card-header text-center">Volumen de Tickets</div>
             <div id="volumenTicketsChart" class="large-chart"></div>
         </div>
+
+        <!-- Fila ÚNICA: Usuarios por Sociedad + (Total + Meta) -->
+        <div class="row mb-3 align-items-stretch kpi-row">
+            <!-- Gráfico: Usuarios por Sociedad -->
+            <div class="col-lg-6 col-12 mb-3 mb-lg-0">
+
+            </div>
+        </div>
+
     </div>
     <div class="row">
         <div class="col-12">
@@ -344,7 +348,8 @@
                 function renderBarChart(chartData, chartElementId) {
                     if (!chartData || !chartData.datasets) return;
 
-                    let isHorizontal = chartElementId === 'ticketSociedadChart';
+                    // let isHorizontal = chartElementId === 'ticketSociedadChart';
+                    let isHorizontal = ['ticketSociedadChart', 'usuariosSociedadChart'].includes(chartElementId);
 
                     // Invertir el orden de las categorías y los datos
                     chartData.labels.reverse();
@@ -673,6 +678,67 @@
                     charts["ticketCategoriaChart"].render();
                 }
 
+                function renderMetaUsuariosGauge(porcentaje, faltantes, meta) {
+                    let options = {
+                        chart: {
+                            height: 350,
+                            type: 'radialBar',
+                            sparkline: {
+                                enabled: true
+                            }
+                        },
+                        series: [porcentaje],
+                        labels: ['Avance'],
+                        plotOptions: {
+                            radialBar: {
+                                startAngle: -90,
+                                endAngle: 90,
+                                track: {
+                                    background: '#e9ecef',
+                                    strokeWidth: '100%',
+                                    margin: 5
+                                },
+                                hollow: {
+                                    margin: 0,
+                                    size: '55%'
+                                },
+                                dataLabels: {
+                                    name: {
+                                        show: true,
+                                        fontSize: '12px',
+                                        offsetY: -3
+                                    },
+                                    value: {
+                                        show: true,
+                                        fontSize: '22px',
+                                        formatter: function(val) {
+                                            // Mostrar porcentaje sin decimales si es entero, si no con 1 decimal
+                                            const n = parseFloat(val);
+                                            return Number.isInteger(n) ? `${n}%` : `${n.toFixed(1)}%`;
+                                        }
+                                    },
+                                    total: {
+                                        show: true,
+                                        label: faltantes === 0 ? 'Meta alcanzada' : 'Faltan',
+                                        formatter: function() {
+                                            return faltantes === 0 ? meta.toString() : faltantes.toString();
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        colors: ['#1cc88a'] // verde
+                    };
+
+                    if (charts["metaUsuariosGauge"]) {
+                        charts["metaUsuariosGauge"].destroy();
+                    }
+
+                    charts["metaUsuariosGauge"] = new ApexCharts(document.querySelector("#metaUsuariosGauge"), options);
+                    charts["metaUsuariosGauge"].render();
+                }
+
+
                 // Escuchar el evento de actualización de datos para actualizar los gráficos
                 window.addEventListener('chartDataUpdated', event => {
                     const {
@@ -711,6 +777,8 @@
                         renderDonutChart(chartData.datasets[0].data, chartData.labels, chartElementId);
                     } else if (chartElementId === 'volumenTicketsChart') {
                         renderAreaChart(chartData, chartElementId);
+                    } else if (chartElementId === 'metaUsuariosGauge') {
+                        renderMetaUsuariosGauge(porcentaje, faltantes, meta);
                     } else {
                         renderBarChart(chartData, chartElementId);
                     }
@@ -731,6 +799,9 @@
                 renderDonutChart(@json($chartDataCumplimientoANS['datasets'][0]['data']), @json($chartDataCumplimientoANS['labels']), 'cumplimientoANSChart');
                 renderDonutChart(@json($chartDataCumplimientoANSInicial['datasets'][0]['data']), @json($chartDataCumplimientoANSInicial['labels']),
                     'cumplimientoANSInicialChart');
+                renderBarChart(@json($chartDataUsuariosPorSociedad), 'usuariosSociedadChart');
+                renderMetaUsuariosGauge(@json($porcentajeMetaUsuarios), @json($faltantesUsuarios),
+                    @json($metaUsuarios));
             });
         </script>
     @endpush

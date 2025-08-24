@@ -2,7 +2,7 @@
     <a class="nav-link" data-toggle="dropdown" href="#">
         <i class="fas fa-bell fa-lg"></i>
         <span class="badge badge-danger navbar-badge">
-            {{ count($aprobaciones) + count($cambios) + count($tareas) + count($tareasCount)}}
+            {{ count($aprobaciones) + count($cambios) + count($tareas) + count($tareasCount) + count($porFinalizar)}}
         </span>
     </a>
 
@@ -50,6 +50,16 @@
                     </a>
                 @endforeach
 
+            @endif
+             @if (count($porFinalizar) > 0)
+                <span class="dropdown-item dropdown-header">
+                    Tickets por finalizar:
+                </span>
+                @foreach ($porFinalizar as $t)
+                    <a href="{{ url('/gestionar?ticket_id=' . $t->id) }}" class="dropdown-item">
+                        Finalizar ticket # {{ $t->nomenclatura }}
+                    </a>
+                @endforeach
             @endif
         @else
             <span class="dropdown-item dropdown-header">

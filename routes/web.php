@@ -7,19 +7,19 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Artisan;
 
 // Rutas públicas
-Route::get('error', function(){
+Route::get('error', function () {
     abort('404');
 })->name('page_404');
 
-Route::get('error', function(){
+Route::get('error', function () {
     abort('403');
 })->name('page_403');
 
-Route::get('error', function(){
+Route::get('error', function () {
     abort('500');
 })->name('page_500');
 
-Route::get('error', function(){
+Route::get('error', function () {
     abort('419');
 })->name('page_419');
 
@@ -39,12 +39,6 @@ Route::get('/email/verify/{id}/{hash}', [VerificationController::class, 'verify'
 Route::post('/email/resend', [VerificationController::class, 'resend'])
     ->middleware(['auth', 'throttle:6,1'])->name('verification.resend');
 
-Route::get('storage-link', function () {
-    Artisan::call('cache:clear');
-    Artisan::call('config:cache');
-    Artisan::call('route:cache');
-    Artisan::call('storage:link');
-});
 
 Route::group(['middleware' => ['auth', 'verified']], function () {
 
@@ -91,4 +85,6 @@ Route::group(['middleware' => ['auth', 'verified']], function () {
     });
 
     Route::view('perfil', 'admin.perfil.perfil')->name('perfil');
+
+    Route::view('seleccionar-area', 'admin.areas.index')->name('seleccionar.area');
 });

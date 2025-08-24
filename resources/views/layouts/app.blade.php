@@ -1,8 +1,5 @@
 @extends('adminlte::page')
 
-{{-- Extend and customize the browser title --}}
-
-
 @section('title')
     {{ config('adminlte.title') }}
     @hasSection('subtitle')
@@ -20,14 +17,10 @@
     <script type="text/javascript" src="/assets/jquery.min.js?v={{ env('VERSION_STYLE') }}"></script>
     <script type="text/javascript" src="/assets/toastr/toastr.js?v={{ env('VERSION_STYLE') }}"></script>
     <link rel="manifest" href="{{ asset('favicons/manifest.json') }}">
-    <script src="{{ asset('js/charts-plugin-datalabels@2.js') }}"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pickadate.js/3.6.4/compressed/themes/default.css">
     <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/pickadate.js/3.6.4/compressed/themes/default.date.css">
     <link rel="stylesheet" href="{{ asset('css/custom.css') }}">
-    <style type="text/css">
-        {{-- You can add AdminLTE customizations here --}}
-    </style>
     <style>
         .modal-xl {
             max-width: 90%;
@@ -329,7 +322,6 @@
         }
     </style>
 @endpush
-<!-- Aquí incluimos el navbar personalizado -->
 @section('content_header')
     @hasSection('content_header_title')
         <h1 class="text-muted">
@@ -347,41 +339,20 @@
     @yield('modals')
 @stop
 
-{{-- Rename section content to content_body --}}
-
 @section('content')
     @include('layouts.navbar')
     @yield('content_body')
 @stop
 
-{{-- Create a common footer --}}
-
 @section('footer')
 
-    {{-- <div class="float-right">
-        Version: {{ config('app.version', '1.0.0') }}
-    </div>
-
-    <strong>
-        <a style="color: rgb(207, 86, 86)" href="{{ config('app.company_url', 'home') }}">
-            {{ config('app.company_name', 'Help Desk Levapan') }}
-        </a>
-    </strong> --}}
 @stop
 
-{{-- Add common Javascript/Jquery code --}}
-
 @push('js')
-    <script>
-        $(document).ready(function() {
-            // Add your common script logic here...
-        });
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="//cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
     <script src="//cdn.datatables.net/1.10.21/js/dataTables.bootstrap4.min.js"></script>
     <script src="/js/show_alerts.js" type="text/javascript"></script>
-    <script src="/js/jsuites.js" type="text/javascript"></script>
+    {{-- <script src="/js/jsuites.js" type="text/javascript"></script> --}}
     <script src="/js/sweetalert2.min.js" type="text/javascript"></script>
     {{-- <script src="/js/fancybox4.js" type="text/javascript"></script> --}}
     <script src="/js/basic.js" type="text/javascript"></script>
@@ -404,22 +375,96 @@
         src="https://cdn.datatables.net/buttons/1.5.2/js/buttons.html5.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bs-custom-file-input/dist/bs-custom-file-input.min.js"></script>
-
-    {{-- pickDate  --}}
-    {{-- <script src="https://cdnjs.cloudflare.com/ajax/libs/pickadate.js/3.6.4/picker.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pickadate.js/3.6.4/picker.date.js"></script> --}}
-
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pickadate.js/3.6.4/compressed/picker.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pickadate.js/3.6.4/compressed/picker.date.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pickadate.js/3.6.4/compressed/translations/es_ES.js"></script>
     <script src="https://cdn.ckeditor.com/ckeditor5/27.1.0/classic/ckeditor.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jsPlumb/2.15.5/js/jsplumb.min.js"></script>
 
+    <script>
+        (() => {
+            // === Config ===
+            const HOME_URL = "{{ route('home') }}"; // o '/home'
+            const GOODBYE_URL = "/home"; // crea una ruta liviana con un mensaje
+            const INACTIVITY_MS = 7 * 60 * 1000; // 7 minutos
 
-    {{-- <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script> --}}
+            // Claves para coordinar entre pestañas
+            const K_SHUTDOWN = 'levadesk_shutdown_at'; // marca de disparo (timestamp)
+            const K_SURVIVOR = 'levadesk_survivor_id'; // id de la pestaña sobreviviente
+
+            // Identificador único de esta pestaña
+            const TAB_ID = crypto.randomUUID ? crypto.randomUUID() :
+                String(Math.random()).slice(2) + String(Date.now());
+
+            let inactivityTimer;
+
+            function resetTimer() {
+                clearTimeout(inactivityTimer);
+                inactivityTimer = setTimeout(triggerShutdown, INACTIVITY_MS);
+            }
+
+            function triggerShutdown() {
+                // Señal global de “apagado”
+                try {
+                    localStorage.setItem(K_SHUTDOWN, String(Date.now()));
+                } catch (e) {}
+                handleShutdown(); // también actúa en esta pestaña
+            }
+
+            function electSurvivor() {
+                // Intenta elegir un sobreviviente de forma simple:
+                // Si no hay sobreviviente, me postulo yo. Si ya hay, lo respeto.
+                let current = localStorage.getItem(K_SURVIVOR);
+                if (!current) {
+                    try {
+                        localStorage.setItem(K_SURVIVOR, TAB_ID);
+                        current = TAB_ID;
+                    } catch (e) {}
+                }
+                return current || TAB_ID; // fallback
+            }
+
+            function tryHardCloseOrGoodbye() {
+                // Intenta distintas formas de cierre (la mayoría serán bloqueadas fuera de ventanas abiertas por script)
+                try {
+                    window.open('', '_self');
+                } catch (e) {}
+                window.close();
+
+                // Si no se cerró en ~100ms, mandamos a una página "muerta"
+                setTimeout(() => {
+                    // Reemplaza la entrada del historial para evitar back
+                    location.replace(GOODBYE_URL);
+                }, 100);
+            }
+
+            function handleShutdown() {
+                const survivor = electSurvivor();
+                if (survivor === TAB_ID) {
+                    // Yo soy el sobreviviente: me voy a HOME
+                    location.replace(HOME_URL);
+                } else {
+                    // No soy el sobreviviente: intento cerrarme; si no puedo, voy a página Goodbye
+                    tryHardCloseOrGoodbye();
+                }
+            }
+
+            // Reacciona cuando otra pestaña dispara el apagado
+            window.addEventListener('storage', (e) => {
+                if (e.key === K_SHUTDOWN && e.newValue) {
+                    handleShutdown();
+                }
+            });
+
+            // Reinicio de inactividad por interacción
+            window.addEventListener('load', resetTimer, {
+                once: true
+            });
+            ['mousemove', 'keydown', 'scroll', 'click', 'touchstart', 'visibilitychange']
+            .forEach(ev => document.addEventListener(ev, resetTimer, {
+                passive: true
+            }));
+        })();
+    </script>
 @endpush
-
-{{-- Add common CSS customizations --}}

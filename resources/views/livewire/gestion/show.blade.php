@@ -541,91 +541,13 @@
                                 @endif
                             </div>
                             <div class="form-row align-items-start mt-2 mb-1">
-                                {{-- @if ($tarea)
-                                    <!-- Tarjeta de creación de nueva tarea -->
-                                    @if ($ticket->estado_id != 4 && $ticket->estado_id != 5 && Auth::id() == $ticket->asignado_a)
-                                        <div class="col-md-4">
-                                            <div class="card">
-                                                <div class="card-body">
-                                                    <p><strong>Nueva tarea</strong></p>
-                                                    <input type="text" class="form-control" wire:model="titulo"
-                                                        placeholder="Título de la tarea" required>
-                                                    @error('titulo')
-                                                        <span class="text-danger">{{ $message }}</span>
-                                                    @enderror
-                                                    <br>
-                                                    <textarea wire:model="descripcion" class="form-control" placeholder="Descripción"></textarea>
-                                                    <br>
-                                                    <p><strong>Fecha límite para esta tarea:</strong></p>
-                                                    <input type="datetime-local" wire:model="fecha_cumplimiento"
-                                                        class="form-control">
-                                                    @error('fecha_cumplimiento')
-                                                        <span class="text-danger">{{ $message }}</span>
-                                                    @enderror
-                                                    <br>
-                                                    <select wire:model="asignado_a" class="form-control">
-                                                        <option value="">No asignado</option>
-                                                        @foreach ($ticket->colaboradores as $colaborador)
-                                                            <option value="{{ $colaborador->id }}">
-                                                                {{ $colaborador->name }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
-                                                    <button wire:click="crearTarea"
-                                                        class="btn btn-outline-info btn-sm float-right mt-1">
-                                                        Guardar
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    @endif
-
-                                    <!-- Tarjeta de visualización de tareas -->
-                                    <div class="col-md-8">
-                                        <div class="card" style="height: 300px; overflow-y: auto;">
-                                            <div class="card-body p-2">
-                                                @if ($ticket->tareas)
-                                                    <ul class="list-group">
-                                                        @foreach ($ticket->tareas as $tarea)
-                                                            <li class="list-group-item">
-                                                                <div>
-                                                                    <strong>{{ $tarea->titulo }}</strong> -
-                                                                    {{ $tarea->descripcion }}<br>
-                                                                    <span>{{ \Carbon\Carbon::parse($tarea->fecha_cumplimiento)->format('d-m-Y H:i:s') }}</span>
-                                                                    <span class="text-muted">-
-                                                                        {{ $tarea->estado }}</span><br>
-                                                                    @if ($tarea->user_id)
-                                                                        <span class="text-muted">Asignado a:
-                                                                            {{ $tarea->user->name }}</span>
-                                                                    @endif
-                                                                </div>
-                                                                <!-- Botones de interacción con los estados -->
-                                                                @if ($tarea->estado == 'pendiente' && $tarea->user_id == auth()->id())
-                                                                    <button
-                                                                        wire:click="marcarEnProgreso({{ $tarea->id }})"
-                                                                        class="btn btn-outline-warning btn-sm">Marcar
-                                                                        como en progreso</button>
-                                                                @elseif ($tarea->estado == 'en_progreso' && $tarea->user_id == auth()->id())
-                                                                    <button
-                                                                        wire:click="marcarCompletada({{ $tarea->id }})"
-                                                                        class="btn btn-outline-success btn-sm">Marcar
-                                                                        como completada</button>
-                                                                @endif
-                                                            </li>
-                                                        @endforeach
-                                                    </ul>
-                                                @endif
-                                            </div>
-                                        </div>
-                                    </div>
-                                @endif --}}
                                 @if ($tarea)
                                     @if ($ticket->estado_id != 4 && $ticket->estado_id != 5 && Auth::id() == $ticket->asignado_a)
                                         <div class="col-md-12">
                                             <div class="card mb-3">
                                                 <div class="card-body">
                                                     <p><strong>Nueva tarea</strong></p>
-                                                    @if ($ticket->cambio->tipo_cambio == 1)
+                                                    @if ($ticket->cambio && $ticket->cambio->tipo_cambio == 1)
                                                         <div class="mb-2"
                                                             style="display: flex; align-items: center; gap: 10px;">
                                                             <p class="mb-0">¿Incluye transporte?</p>
@@ -749,21 +671,6 @@
                                                                                 </button>
                                                                             @endif
                                                                         @endif
-
-                                                                        {{-- @if ($ticket->cambio && $tarea->estado == 'pendiente' && $tarea->aprobador_id == auth()->id())
-                                                                            @if ($tarea->autorizado == 0 && $tarea->solicitud_confirmacion == 1)
-                                                                                <button
-                                                                                    wire:click="autorizarTarea({{ $tarea->id }})"
-                                                                                    class="btn btn-outline-info btn-sm me-2">
-                                                                                    Autorizar
-                                                                                </button>
-                                                                                <button
-                                                                                    wire:click="rechazarTarea({{ $tarea->id }})"
-                                                                                    class="btn btn-outline-warning btn-sm me-2">
-                                                                                    Rechazar
-                                                                                </button>
-                                                                            @endif
-                                                                        @endif --}}
 
                                                                         @if ($ticket->cambio && $tarea->estado == 'pendiente' && $tarea->aprobador_id == auth()->id())
                                                                             @if ($tarea->autorizado == 0 && $tarea->solicitud_confirmacion == 1)
@@ -1274,16 +1181,16 @@
                                                     @enderror
                                                     <div class="d-flex">
                                                         <button wire:click="consultoria"
-                                                            class="float-right btn btn-sm btn-outline-info">Confirmar</button>
+                                                            class="btn btn-md mt-3 btn-outline-info">Confirmar</button>
                                                     </div>
                                                     <hr>
                                                 @elseif ($ticket->escalar == true && $ticket->estado_id == 9)
                                                     <p><strong>Activar ANS</strong></p>
-                                                    <p><i>Si cambias el estado, podras marcar respuestas como
+                                                    <p><i>Si activas el ANS, podras marcar respuestas como
                                                             solución</i></p>
                                                     <div class="d-flex col-12">
                                                         <button wire:click="consultoriaCambio"
-                                                            class="float-left btn btn-sm btn-outline-info">Activar
+                                                            class="float-left btn btn-md btn-outline-info">Activar
                                                             ANS</button>
                                                     </div>
                                                     <hr>
@@ -1298,7 +1205,7 @@
                                                     </div>
                                                     <div>
                                                         <button wire:click="consultoria"
-                                                            class=" btn btn-sm btn-outline-info">Confirmar</button>
+                                                            class=" btn btn-md mt-1 btn-outline-info">Confirmar</button>
                                                     </div>
                                                     <hr>
                                                 @endif
@@ -1472,6 +1379,14 @@
                                 </div>
                                 <hr>
                             </div>
+                            {{-- @if ($ticket->escalar == true && $ticket->estado_id == 9)
+                                <div class="d-flex col-12">
+                                    <button wire:click="consultoriaCambio"
+                                        class="btn btn-md btn-outline-info">Activar
+                                        ANS</button>
+                                </div>
+                                <hr>
+                            @endif --}}
                             <div class="row ">
                                 <div class="col-12 comentario">
                                     @if ($ticket->estado_id != 1)
@@ -1652,7 +1567,7 @@
                                                                     @endif
                                                                     @if (
                                                                         $ticket->cambio &&
-                                                                            $ticket->cambio->tipo_cambio == true &&
+                                                                            ($ticket->cambio->tipo_cambio == true || $ticket->cambio->tipo_cambio == null) &&
                                                                             $ticket->estado_id != 4 &&
                                                                             $ticket->asignado_a == Auth::id() &&
                                                                             $ticket->finalizar != true)
@@ -1702,7 +1617,7 @@
                     </div>
                 </div>
                 <div class="col-lg-3" style="position: sticky; top: 20px; align-self: flex-start;">
-                    @if ($esSupervisor && $ticket->finalizar == 1)
+                    @if ($ticket->finalizar == 1 && ($esSupervisor || auth()->user()->hasAnyRole('Admin')))
                         <div class="card">
                             <div class="card-header col-md-12">
                                 <div class="d-flex align-items-center" style="background-color: #eeeeee">
@@ -1725,7 +1640,7 @@
                                     <div class="form-group">
                                         <label for="comentariosRechazo">Comentario (Obligatorio si
                                             rechaza):</label>
-                                        <textarea wire:model="comentario_rechazo_supervisor"  rows="3" class="form-control"></textarea>
+                                        <textarea wire:model="comentario_rechazo_supervisor" rows="3" class="form-control"></textarea>
                                     </div>
                                 @endif
                                 <div class="d-flex">
@@ -1752,64 +1667,6 @@
                                 </div>
                             </div>
                         </div>
-                        {{-- <div class="card-body">
-                            @if ($participante)
-                                <div class="row">
-                                    <div class="form-group col-12">
-                                        <p><strong>Agregar un colaborador</strong><b style="color: red"> *</b></p>
-                                        <div wire:ignore>
-                                            <select class="select2" id="colaborador">
-                                                <option value="">Seleccionar...</option>
-                                                @foreach ($agentes as $agente)
-                                                    <option value="{{ $agente->id }}">{{ $agente->name }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                        @error('selectedUser')
-                                            <span class="invalid-feedback">{{ $message }}</span>
-                                        @enderror
-                                    </div>
-                                    <div class="col-12">
-                                        <input type="submit" class="btn btn-outline-info btn-sm float-right"
-                                            value="Asignar" wire:click="asignarColaborador">
-                                    </div>
-                                    <hr>
-                                </div>
-                            @endif
-                            <p><strong>Usuario :</strong> {{ $ticket->usuario->name }}</p>
-                            <p><strong>Agente TI :</strong> {{ $ticket->asignado->name }}</p>
-                            @if (count($supervisores) > 0)
-                                <h5>Supervisores:</h5>
-                                @foreach ($supervisores as $s)
-                                    <p>{{ $s->name }}</p>
-                                @endforeach
-                            @endif
-                            @if ($ticket->Colaboradors)
-                                @foreach ($ticket->colaboradors as $colaborador)
-                                    <p><strong>Colaborador :</strong> {{ $colaborador->user->name }}</p>
-                                @endforeach
-                            @endif
-                            @if ($ticket->cambio)
-                                <h5>Aprobadores:</h5>
-                                <p><strong>Líder funcional:</strong>
-                                    {{ $ticket->cambio->aprobadorFuncionalCambio->name }}</p>
-                                <p><strong>Aprobador TI:</strong>
-                                    {{ $ticket->cambio->aprobadorTiCambio->name }}</p>
-                                @if ($ticket->cambio->tipo_cambio !== null)
-                                    <p><span
-                                            class="badge badge-warning p-2">{{ $ticket->cambio->tipo_cambio ? 'Cambio Complejo' : 'Cambio Simple' }}</span>
-                                    </p>
-                                @endif
-                            @endif
-                            @if ($ticket->aprobacion)
-                                <h5>Flujo de accesos</h5>
-                                <p><strong>Líder funcional:</strong>
-                                    {{ $ticket->aprobacion->aprobadorFuncional->name }}</p>
-                                <p><strong>Aprobador TI:</strong>
-                                    {{ $ticket->aprobacion->aprobadorTi->name }}</p>
-                            @endif
-                        </div> --}}
                         <div class="card-body custom-ticket-card">
                             @if ($participante)
                                 <div class="section mb-3">
@@ -1837,12 +1694,21 @@
                             @endif
 
                             <div class="section">
-                                {{-- <h5>Información del Ticket</h5> --}}
+                                <h5>Información del usuario</h5>
                                 <ul class="info-list">
                                     <li><strong>Usuario:</strong> {{ $ticket->usuario->name }}</li>
                                     <li><strong>Correo:</strong> {{ $ticket->usuario->email }}</li>
                                     <li><strong>Sociedad:</strong> {{ $ticket->usuario->sociedad->nombre }}</li>
-                                    <li><strong>Agente TI:</strong> {{ $ticket->asignado->name }}</li>
+                                    <li><strong>Área:</strong>
+                                        {{ $ticket->usuario->area ? $ticket->usuario->area : 'El usuario no ha seleccionado el área' }}
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div class="section">
+                                <h5>Agente del ticket</h5>
+                                <ul class="info-list">
+                                    <li>{{ $ticket->asignado->name }}</li>
                                 </ul>
                             </div>
 
@@ -1962,7 +1828,6 @@
 
 
                 function renderFlowDiagram(flowData) {
-                    console.log('Datos recibidos en frontend:', flowData);
                     const container = document.getElementById('flow-diagram');
                     if (!container) return;
                     container.innerHTML = '';
@@ -2251,12 +2116,6 @@
 
                 Livewire.on('showToast', (data) => {
                     toastRight(data.type, data.message);
-                });
-
-                Livewire.on('redirectAfterDelay', function() {
-                    setTimeout(function() {
-                        window.location.href = '/gestion';
-                    }, 3000);
                 });
 
             });

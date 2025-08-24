@@ -7,8 +7,6 @@ use App\Models\Sociedad;
 use Livewire\Component;
 use App\Models\Ticket;
 use App\Models\User;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 
 class TicketsHome extends Component
 {
@@ -19,7 +17,7 @@ class TicketsHome extends Component
     public $totalHorasSoporte;
     public $fecha_desde, $fecha_hasta;
     public $item;
-    public $estados, $SelectedEstado;
+    public $estados, $SelectedEstado = [];
     public $usuarios, $selectedUsuario;
     public $agentes, $selectedAgente;
     public $sociedades, $selectedSociedad;
@@ -30,53 +28,111 @@ class TicketsHome extends Component
     public function mount()
     {
         $this->iniciarFechas();
-        $this->cargarDatos();
-        $this->estados = Estado::all();
-        $this->usuarios = User::all();
-        $this->agentes = User::role(['Agente', 'Admin'])->get();
-        $this->sociedades = Sociedad::all();
+        // No dispares cargarDatos() aquí para no duplicar al cargar la vista.
+        $this->estados    = Estado::select('id','nombre')->get();
+        $this->usuarios   = User::select('id','name')->get();
+        $this->agentes    = User::role(['Agente', 'Admin'])->select('id','name')->get();
+        $this->sociedades = Sociedad::select('id','nombre')->get();
     }
 
     public function filtrarPorIniciar()
     {
-        // Definir el estado de "Por Iniciar"
         $this->SelectedEstado = [1];
         $this->cargarDatos();
     }
 
     public function cargarDatos()
     {
-        $tickets = Ticket::with('urgencia', 'estado', 'colaboradores', 'asignado','categoria','subcategoria','usuario','tipoSolicitud','aplicacion', 'sociedad');
+        // Aviso al front: vamos a (re)llenar la tabla
+        $this->emit('ticketsStreamingStart');
+
+        // Query base
+        $q = Ticket::select(
+            'id',
+            'created_at',
+            'titulo',
+            'nomenclatura',
+            'estado_id',
+            'usuario_id',
+            'asignado_a',
+            'sociedad_id',
+            'categoria_id',
+            'subcategoria_id',
+            'tipo_solicitud_id',
+            'aplicacion_id',
+            'urgencia_id'
+        );
+
+        // Filtros
         if ($this->fecha_desde && $this->fecha_hasta) {
-            $fecha_desde = date('Y-m-d', strtotime($this->fecha_desde));
-            $fecha_hasta = date('Y-m-d 23:59:59', strtotime($this->fecha_hasta));
-            $tickets = $tickets->whereBetween('created_at', [$fecha_desde, $fecha_hasta]);
+            $desde = date('Y-m-d', strtotime($this->fecha_desde));
+            $hasta = date('Y-m-d 23:59:59', strtotime($this->fecha_hasta));
+            $q->whereBetween('created_at', [$desde, $hasta]);
         }
-
-        // Aplicar filtro de estado si SelectedEstado no está vacío
         if (is_array($this->SelectedEstado) && !empty($this->SelectedEstado)) {
-            $tickets->whereIn('estado_id', $this->SelectedEstado);
+            $q->whereIn('estado_id', $this->SelectedEstado);
+        }
+        if (!empty($this->selectedUsuario)) {
+            $q->where('usuario_id', $this->selectedUsuario);
+        }
+        if (!empty($this->selectedAgente)) {
+            $q->where('asignado_a', $this->selectedAgente);
+        }
+        if (!empty($this->selectedSociedad)) {
+            $q->where('sociedad_id', $this->selectedSociedad);
         }
 
-        if ($this->selectedUsuario) {
-            $tickets->where('usuario_id', $this->selectedUsuario);
-        }
+        // Orden estable para chunking
+        $q->orderBy('id');
 
-        if ($this->selectedAgente) {
-            $tickets->where('asignado_a', $this->selectedAgente);
-        }
+        // Tamaño de lote (ajústalo según tu servidor)
+        $batchSize = 1500;
 
-        if ($this->selectedSociedad) {
-            $tickets->where('sociedad_id', $this->selectedSociedad);
-        }
+        // Carga por lotes y emite al front cada bloque
+        $q->chunkById($batchSize, function ($ticketsChunk) {
+            // Eager load para el lote actual (evita N+1)
+            $ticketsChunk->load([
+                'urgencia:id,nombre',
+                'estado:id,nombre',
+                'asignado:id,name',
+                'categoria:id,nombre',
+                'subcategoria:id,nombre',
+                'usuario:id,name',
+                'tipoSolicitud:id,nombre',
+                'aplicacion:id,nombre',
+                'sociedad:id,nombre',
+            ]);
 
-        $tickets = $tickets->get();
-        $this->emit('cargarGestioTicketTabla', json_encode($tickets));
+            // Serializa plano y ligero
+            $payload = $ticketsChunk->map(function ($t) {
+                return [
+                    'id'             => $t->id,
+                    'created_at'     => optional($t->created_at)->format('Y-m-d'),
+                    'nomenclatura'   => $t->nomenclatura,
+                    'titulo'         => $t->titulo,
+                    'urgencia'       => $t->urgencia ? ['nombre' => $t->urgencia->nombre] : null,
+                    'estado'         => $t->estado ? ['nombre' => $t->estado->nombre] : null,
+                    'asignado'       => $t->asignado ? ['name' => $t->asignado->name] : ['name' => ''],
+                    'categoria'      => $t->categoria ? ['nombre' => $t->categoria->nombre] : ['nombre' => ''],
+                    'subcategoria'   => $t->subcategoria ? ['nombre' => $t->subcategoria->nombre] : ['nombre' => ''],
+                    'usuario'        => $t->usuario ? ['name' => $t->usuario->name] : ['name' => ''],
+                    'tipo_solicitud' => $t->tipoSolicitud ? ['nombre' => $t->tipoSolicitud->nombre] : null,
+                    'aplicacion'     => $t->aplicacion ? ['nombre' => $t->aplicacion->nombre] : null,
+                    'sociedad'       => $t->sociedad ? ['nombre' => $t->sociedad->nombre] : null,
+                ];
+            })->values()->toJson(JSON_UNESCAPED_UNICODE);
+
+            // Enviar el lote
+            $this->emit('ticketsStreamingAppend', $payload);
+        });
+
+        // Aviso final
+        $this->emit('ticketsStreamingEnd');
     }
 
     public function iniciarFechas()
     {
-        $this->fecha_desde = date('Y-m-1');
+        $this->fecha_desde = date('Y-m-01');
         $this->fecha_hasta = date('Y-m-d');
     }
 
