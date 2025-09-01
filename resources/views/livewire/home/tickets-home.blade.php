@@ -153,6 +153,7 @@
                                     <th>Subcategoría</th>
                                     <th>Aplicación</th>
                                     <th>Usuario</th>
+                                    <th>Área</th>
                                     <th>Estado</th>
                                     <th>Agente</th>
                                     <th>Acc</th>
@@ -289,6 +290,9 @@
                                 title: 'Usuario'
                             },
                             {
+                                title: 'Área'
+                            },
+                            {
                                 title: 'Estado'
                             },
                             {
@@ -323,7 +327,7 @@
                                 autoFilter: true,
                                 title: 'Estados',
                                 exportOptions: {
-                                    columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+                                    columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
                                 },
                             },
                             {
@@ -331,7 +335,7 @@
                                 autoFilter: true,
                                 title: 'Estados',
                                 exportOptions: {
-                                    columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+                                    columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
                                 },
                             }
                         ]
@@ -387,6 +391,7 @@
                         linkWrap((el.subcategoria && el.subcategoria.nombre) || ''),
                         linkWrap((el.aplicacion && el.aplicacion.nombre) || 'NO APLICA'),
                         linkWrap((el.usuario && el.usuario.name) || ''),
+                        linkWrap((el.usuario && el.usuario.area) || 'Sin seleccionar'),
                         linkWrap((el.estado && el.estado.nombre) || ''),
                         linkWrap((el.asignado && el.asignado.name) || ''),
                         // Última columna con el botón de ver

@@ -16,7 +16,7 @@ class Perfil extends Component
 {
     use WithFileUploads;
 
-    public $name, $email, $current_password, $password, $password_confirmation, $profile_photo;
+    public $name, $email, $current_password, $password, $password_confirmation, $profile_photo, $area;
     public $activeSection = 'profile'; // Variable para almacenar la sección activa
     public $nuevoAsignadoId; // Declarar la propiedad nuevoAsignadoId
     // public $en_vacaciones; // Propiedad para manejar el estado de vacaciones
@@ -24,6 +24,7 @@ class Perfil extends Component
     {
         $this->name = Auth::user()->name;
         $this->email = Auth::user()->email;
+        $this->area = Auth::user()->area;
         $this->activeSection = session('activeSection', 'profile'); // Carga la sección activa desde la sesión
         $this->nuevoAsignadoId = null; // Inicializar como null
         // $this->en_vacaciones = Auth::user()->en_vacaciones;
@@ -52,6 +53,7 @@ class Perfil extends Component
                 }
             ],
             'profile_photo' => 'nullable|image|mimes:jpg,jpeg,png|max:1024',
+            'area' => 'required|string|max:255',
         ]);
 
         $user = Auth::user();
@@ -64,6 +66,7 @@ class Perfil extends Component
         $user->update([
             'name' => $this->name,
             'email' => $this->email,
+            'area' => $this->area,
         ]);
 
         $this->emit('showToast', ['type' => 'success', 'message' => 'Perfil actualizado con éxito.']);

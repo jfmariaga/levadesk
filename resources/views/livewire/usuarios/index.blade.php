@@ -25,6 +25,7 @@
                         <th>Correo</th>
                         <th>Rol</th>
                         <th>Sociedad</th>
+                        <th>Área</th>
                         <th>Estado</th>
                         <th>Acciones</th>
                     </tr>
@@ -113,6 +114,7 @@
                             id,
                             name,
                             email,
+                            area,
                             estado,
                             roles,
                             sociedad
@@ -126,6 +128,7 @@
                             <td class="pointer">${email}</td>
                             <td class="pointer">${rolesString ? rolesString : 'Sin definir'}</td>
                             <td class="pointer">${sociedad ? sociedad.nombre : 'Sin definir'}</td>
+                            <td class="pointer">${area ? area : 'Sin definir'}</td>
                              <td class="pointer">${estado == 1 ?  '<span style="color: green;">✔</span>' : '<span style="color: red;">✘</span>'}</td>
                             <td>
                                 <div class="d-flex">

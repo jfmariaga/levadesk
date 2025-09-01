@@ -136,6 +136,7 @@
         <table class="table table-striped tabla_relaciones d-none" style="width:100%;">
             <thead>
                 <tr>
+                    <th>ID</th>
                     <th>Sociedad</th>
                     <th>Categoría</th>
                     <th>Subcategoría</th>
@@ -221,6 +222,7 @@
                         // Mostrar categoría junto con la solicitud
                         body.append(`
                             <tr id="tr_${id}">
+                                <td>${id}</td>
                                 <td>${sociedad}</td>
                                 <td>${solicitud} - ${categoria}</td> <!-- Pinta categoria-solicitud -->
                                 <td>${subcategoria } - ${categoria}</td>

@@ -36,6 +36,7 @@ class GestionarAnsJob implements ShouldQueue
         $ticketsInactivos = Ticket::whereIn('estado_id', [12, 16])->get();
         foreach ($ticketsInactivos as $ticket) {
             if ($this->diasHabilesDesde($ticket->updated_at, Carbon::now()) >= 5) {
+                Log::info("Ticket {$ticket->id} actualizado en {$ticket->updated_at}, días hábiles transcurridos: ");
                 $this->finalizarPorInactividad($ticket);
             }
         }
@@ -78,13 +79,12 @@ class GestionarAnsJob implements ShouldQueue
         $contador = 0;
         $cursor = $inicio->copy();
 
-        // Recorremos día a día sumando únicamente días hábiles
         while ($cursor->lessThanOrEqualTo($fin)) {
-            if (FuncionesHelper::esDiaHabil($cursor)) {
+            // Forzamos la validación por fecha, no por hora
+            if (FuncionesHelper::esDiaHabil($cursor->copy()->setHour(10))) {
                 $contador++;
             }
-            // siguiente día
-            $cursor->addDay()->startOfDay();
+            $cursor->addDay();
         }
 
         return $contador;
@@ -96,7 +96,7 @@ class GestionarAnsJob implements ShouldQueue
      */
     private function finalizarPorInactividad($ticket): void
     {
-        $estadoAnterior = $ticket->estado_id;
+        $estadoAnterior = $ticket->estado->nombre;
 
         // Cambiamos a "Finalizado" (4)
         $ticket->estado_id = 4;
@@ -107,17 +107,8 @@ class GestionarAnsJob implements ShouldQueue
             'ticket_id' => $ticket->id,
             'user_id'   => null, // sistema
             'accion'    => 'Finalización automática por inactividad',
-            'detalle'   => "El ticket fue finalizado automáticamente por inactividad. Estado previo: {$estadoAnterior}. Han transcurrido 5 o más días hábiles sin actualizaciones (updated_at).",
+            'detalle'   => "El ticket fue finalizado automáticamente por inactividad. Estado previo: {$estadoAnterior}. Han transcurrido 5 días hábiles sin respuesta del usuario.",
         ]);
-
-        // (Opcional) Notificar al asignado. Si tu notificación requiere Comentario, puedes pasar null o crear uno.
-        try {
-            if ($ticket->asignado) {
-                $ticket->asignado->notify(new Finalizado(null));
-            }
-        } catch (\Throwable $e) {
-            Log::warning("No se pudo notificar finalización automática del Ticket ID {$ticket->id}: {$e->getMessage()}");
-        }
     }
 
     private function cerrarTicketAutomaticamente($ticket)

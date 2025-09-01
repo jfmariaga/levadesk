@@ -63,7 +63,7 @@ class RegisterController extends Controller
         return Validator::make($data, [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users', function ($attribute, $value, $fail) {
-                $allowedDomains = ['panalsas.com', 'levapan.com','levapan.com.do','levapan.com.ec','levacolsas.com','levapan.com.pe'];
+                $allowedDomains = ['panalsas.com', 'levapan.com', 'levapan.com.do', 'levapan.com.ec', 'levacolsas.com', 'levapan.com.pe'];
                 $emailDomain = substr(strrchr($value, "@"), 1);
                 if (!in_array($emailDomain, $allowedDomains)) {
                     $fail('Debes de ingresar un correo corporativo');
@@ -71,6 +71,7 @@ class RegisterController extends Controller
             }],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'sociedad_id' => ['required', 'exists:sociedades,id'],  // Validación para sociedad
+            'area' => ['required', 'string', 'max:255'],  // Validación para sociedad
         ]);
     }
 
@@ -88,6 +89,7 @@ class RegisterController extends Controller
             'password' => Hash::make($data['password']),
             'estado' => true, // Por defecto, el estado es 'activo'
             'sociedad_id' => $data['sociedad_id'], // Asigna la sociedad
+            'area' => $data['area'],
         ]);
 
         // Asigna el rol por defecto de usuario

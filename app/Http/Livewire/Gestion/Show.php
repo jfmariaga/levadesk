@@ -623,6 +623,7 @@ class Show extends Component
         ]);
 
         $tarea->user->notify(new ResultadoTarea($tarea, $resultado, $this->ticket));
+        $this->emit('actualizarNotificaciones');
     }
 
     public function rechazarTarea($tareaId)
@@ -662,6 +663,7 @@ class Show extends Component
         $this->ticket->asignado->notify(new NoAprobarProductivo($this->ticket));
 
         $tarea->user->notify(new ResultadoTarea($tarea, $resultado, $this->ticket));
+        $this->emit('actualizarNotificaciones');
     }
 
     public function modificarTarea($tareaId)

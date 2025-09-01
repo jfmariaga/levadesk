@@ -31,6 +31,7 @@
                         <option value="Legal">Legal</option>
                         <option value="Logística">Logística</option>
                         <option value="Mantenimiento">Mantenimiento</option>
+                        <option value="Mejora continua y proyectos">Mejora continua y proyectos</option>
                         <option value="Mercadeo">Mercadeo</option>
                         <option value="Planeación de la Demanda">Planeación de la Demanda</option>
                         <option value="Planeación Financiera">Planeación Financiera</option>

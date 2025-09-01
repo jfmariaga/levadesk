@@ -37,6 +37,36 @@
         </div>
     </div>
 
+    <!-- Modal para mostrar relaciones -->
+    <div class="modal fade" id="modalRelaciones" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title" id="modalRelacionesTitulo"></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-bordered" id="tablaRelaciones">
+                        <thead>
+                            <tr>
+                                <th>Tipo</th>
+                                <th>Sociedad</th>
+                                <th>Detalle</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     @push('js')
         <script>
             document.addEventListener('livewire:load', function() {
@@ -47,26 +77,45 @@
                 cargarTabla(data);
             });
 
+
+            Livewire.on('showRelationModal', data => {
+                // Setear título
+                document.getElementById('modalRelacionesTitulo').innerHTML = data.titulo;
+
+                // Llenar tabla
+                let tbody = document.querySelector("#tablaRelaciones tbody");
+                tbody.innerHTML = "";
+                data.detalles.forEach(item => {
+                    tbody.innerHTML += `
+                <tr>
+                    <td>${item.tipo}</td>
+                    <td>${item.sociedad}</td>
+                    <td>${item.detalle}</td>
+                </tr>
+                    `;
+                });
+
+                // Mostrar modal
+                $('#modalRelaciones').modal('show');
+            });
+
             Livewire.on('showToast', (data) => {
                 toastRight(data.type, data.message);
             });
 
-
             function cargarTabla(data) {
-                $('.tabla_grupos').DataTable().destroy(); // destruimos la tabla
-                $('.tabla_grupos').addClass('d-none'); // ocultamos la tabla
-                $('.loading_p').removeClass('d-none'); // mostramos el loading
-                $('#content_tabla_grupos').html(''); // limpiar la tabla
+                $('.tabla_grupos').DataTable().destroy();
+                $('.tabla_grupos').addClass('d-none');
+                $('.loading_p').removeClass('d-none');
+                $('#content_tabla_grupos').html('');
                 llenarTabla(data).then(() => {
-                    $('.tabla_grupos').DataTable({ // volver a inicializar DataTables
+                    $('.tabla_grupos').DataTable({
                         language: {
                             "decimal": "",
                             "emptyTable": "No hay información",
                             "info": "Mostrando _START_ a _END_ de _TOTAL_ Entradas",
                             "infoEmpty": "Mostrando 0 a 0 de 0 Entradas",
                             "infoFiltered": "(Filtrado de _MAX_ total entradas)",
-                            "infoPostFix": "",
-                            "thousands": ",",
                             "lengthMenu": "Mostrar _MENU_ Entradas",
                             "loadingRecords": "Cargando...",
                             "processing": "Procesando...",
@@ -98,7 +147,7 @@
                             }
                         ]
                     });
-                    $('.tabla_grupos').removeClass('d-none'); // mostrar la tabla
+                    $('.tabla_grupos').removeClass('d-none');
                     $('.loading_p').addClass('d-none');
                 });
             }
@@ -115,22 +164,22 @@
                             descripcion,
                             usuarios
                         } = element;
-
                         body.append(`<tr id="tr_${id}">
-                            <td class="pointer">${nombre}</td>
-                            <td class="pointer">${descripcion ? descripcion :''}</td>
-                            <td class="pointer">${usuarios.map(usuario => usuario.name).join(', ')}</td>
-                            <td>
-                                <div class="d-flex">
-                                    <button  onclick="editar(${id})" class="btn btn-xs btn-default text-primary mx-1 shadow" title="Edit">
-                                         <i class="fa fa-lg fa-fw fa-pen"></i>
-                                     </button>
-                                         <button  onclick="confirmDelete(${id})" class="btn btn-xs btn-default text-danger mx-1 shadow" title="Edit">
-                                         <i class="fas fa-trash-alt"></i>
-                                     </button>
-                                </div>
-                            </td>
-                        </tr>`);
+            <td class="pointer">${nombre}</td>
+            <td class="pointer">${descripcion ? descripcion : ''}</td>
+            <td class="pointer">${usuarios.map(usuario => usuario.name).join(', ')}</td>
+            <td>
+                <div class="d-flex">
+                    <button onclick="editar(${id})" class="btn btn-xs btn-default text-primary mx-1 shadow" title="Edit">
+                        <i class="fa fa-lg fa-fw fa-pen"></i>
+                    </button>
+                    <button onclick="confirmDelete(${id})" class="btn btn-xs btn-default text-danger mx-1 shadow"
+                        title="Delete">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
+            </td>
+            </tr>`);
                     }
                     resolve(body);
                 });

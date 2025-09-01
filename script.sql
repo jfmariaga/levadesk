@@ -1,4 +1,4 @@
---necesario para potenciar la conssulta de la tabla dashboard 
+--necesario para potenciar la conssulta de la tabla dashboard ejecutado el 24/08/2025
 CREATE INDEX idx_tickets_created_at ON tickets (created_at);
 CREATE INDEX idx_tickets_estado_id ON tickets (estado_id);
 CREATE INDEX idx_tickets_usuario_id ON tickets (usuario_id);

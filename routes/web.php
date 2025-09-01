@@ -20,6 +20,10 @@ Route::get('error', function () {
 })->name('page_500');
 
 Route::get('error', function () {
+    abort('503');
+})->name('page_503');
+
+Route::get('error', function () {
     abort('419');
 })->name('page_419');
 

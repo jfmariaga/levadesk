@@ -29,10 +29,10 @@ class TicketsHome extends Component
     {
         $this->iniciarFechas();
         // No dispares cargarDatos() aquí para no duplicar al cargar la vista.
-        $this->estados    = Estado::select('id','nombre')->get();
-        $this->usuarios   = User::select('id','name')->get();
-        $this->agentes    = User::role(['Agente', 'Admin'])->select('id','name')->get();
-        $this->sociedades = Sociedad::select('id','nombre')->get();
+        $this->estados    = Estado::select('id', 'nombre')->get();
+        $this->usuarios   = User::select('id', 'name')->get();
+        $this->agentes    = User::role(['Agente', 'Admin'])->select('id', 'name')->get();
+        $this->sociedades = Sociedad::select('id', 'nombre')->get();
     }
 
     public function filtrarPorIniciar()
@@ -97,7 +97,7 @@ class TicketsHome extends Component
                 'asignado:id,name',
                 'categoria:id,nombre',
                 'subcategoria:id,nombre',
-                'usuario:id,name',
+                'usuario:id,name,area',
                 'tipoSolicitud:id,nombre',
                 'aplicacion:id,nombre',
                 'sociedad:id,nombre',
@@ -115,7 +115,10 @@ class TicketsHome extends Component
                     'asignado'       => $t->asignado ? ['name' => $t->asignado->name] : ['name' => ''],
                     'categoria'      => $t->categoria ? ['nombre' => $t->categoria->nombre] : ['nombre' => ''],
                     'subcategoria'   => $t->subcategoria ? ['nombre' => $t->subcategoria->nombre] : ['nombre' => ''],
-                    'usuario'        => $t->usuario ? ['name' => $t->usuario->name] : ['name' => ''],
+                    'usuario' => $t->usuario ? [
+                        'name' => $t->usuario->name,
+                        'area' => $t->usuario->area
+                    ] : ['name' => '', 'area' => 'Sin seleccionar'],
                     'tipo_solicitud' => $t->tipoSolicitud ? ['nombre' => $t->tipoSolicitud->nombre] : null,
                     'aplicacion'     => $t->aplicacion ? ['nombre' => $t->aplicacion->nombre] : null,
                     'sociedad'       => $t->sociedad ? ['nombre' => $t->sociedad->nombre] : null,

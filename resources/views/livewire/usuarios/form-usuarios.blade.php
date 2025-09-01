@@ -102,6 +102,102 @@
         </div>
     </div>
 
+    <!-- Modal Tickets Pendientes -->
+    <div class="modal fade" id="modalTicketsPendientes" tabindex="-1" role="dialog" aria-hidden="true"
+        wire:ignore.self>
+        <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title">Reasignar Tickets Pendientes</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>Este usuario tiene tickets pendientes. Debes reasignarlos antes de inactivarlo.</p>
+
+                    @if (count($ticketsComoUsuario) > 0)
+                        <h6>Tickets donde es Usuario</h6>
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Nomenclatura</th>
+                                    <th>Título</th>
+                                    <th>Estado</th>
+                                    <th>Agente actual</th>
+                                    <th>Reasignar Usuario</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($ticketsComoUsuario as $ticket)
+                                    <tr>
+                                        <td>{{ $ticket['nomenclatura'] }}</td>
+                                        <td>{{ $ticket['titulo'] ?? '-' }}</td>
+                                        <td>{{ $ticket['estado']['nombre'] ?? '-' }}</td>
+                                        <td>{{ $ticket['asignado']['name'] ?? '-' }}</td>
+                                        <td>
+                                            <select wire:model="reasignacionesUsuario.{{ $ticket['id'] }}"
+                                                class="form-control">
+                                                <option value="">-- Seleccionar --</option>
+                                                @foreach ($usuariosActivos as $u)
+                                                    <option value="{{ $u->id }}">{{ $u->name }}</option>
+                                                @endforeach
+                                            </select>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    @endif
+
+                    @if (count($ticketsComoAgente) > 0)
+                        <h6>Tickets donde es Agente</h6>
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Nomenclatura</th>
+                                    <th>Título</th>
+                                    <th>Estado</th>
+                                    <th>Agente actual</th>
+                                    <th>Reasignar Agente</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($ticketsComoAgente as $ticket)
+                                    <tr>
+                                        <td>{{ $ticket['nomenclatura'] }}</td>
+                                        <td>{{ $ticket['titulo'] ?? '-' }}</td>
+                                        <td>{{ $ticket['estado']['nombre'] ?? '-' }}</td>
+                                        <td>{{ $ticket['asignado']['name'] ?? '-' }}</td>
+                                        <td>
+                                            <select wire:model="reasignacionesAgente.{{ $ticket['id'] }}"
+                                                class="form-control">
+                                                <option value="">-- Seleccionar --</option>
+                                                @foreach ($usuariosActivos as $u)
+                                                    <option value="{{ $u->id }}">{{ $u->name }}</option>
+                                                @endforeach
+                                            </select>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    @endif
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" wire:click="confirmarReasignacion"
+                        @if (count($reasignacionesUsuario) < count($ticketsComoUsuario) ||
+                                count($reasignacionesAgente) < count($ticketsComoAgente)) disabled @endif>
+                        Reasignar e Inactivar
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
     <!-- Estilos adicionales -->
     <style>
         .modal-header {
@@ -172,6 +268,14 @@
                     $('#form_usuarios').modal('hide');
                     toastRight('success', 'Usuario editado con éxito!');
                     @this.resetear()
+                });
+
+                Livewire.on('showTicketsPendientes', () => {
+                    $('#modalTicketsPendientes').modal('show');
+                });
+
+                Livewire.on('closeTicketsPendientes', () => {
+                    $('#modalTicketsPendientes').modal('hide');
                 });
             });
         </script>
