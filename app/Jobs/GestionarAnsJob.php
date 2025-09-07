@@ -40,6 +40,68 @@ class GestionarAnsJob implements ShouldQueue
                 $this->finalizarPorInactividad($ticket);
             }
         }
+
+        // 3) Tickets con 29 días sin actividad → notificar al usuario
+        $ticketsAviso = Ticket::whereNotIn('estado_id', [4, 5])
+            ->whereDate('updated_at', '=', Carbon::now()->subDays(29)->toDateString())
+            ->get();
+
+        foreach ($ticketsAviso as $ticket) {
+            $this->avisarFinalizacionProxima($ticket);
+        }
+
+        // 4) Tickets con más de 1 mes sin actividad → finalizarlos
+        $ticketsMes = Ticket::whereNotIn('estado_id', [4, 5])
+            ->where('updated_at', '<=', Carbon::now()->subMonth())
+            ->get();
+
+        foreach ($ticketsMes as $ticket) {
+            $this->finalizarPorMesSinActividad($ticket);
+        }
+    }
+
+    private function avisarFinalizacionProxima($ticket)
+    {
+        try {
+            if ($ticket->usuario) {
+                $ticket->usuario->notify(
+                    new \App\Notifications\AvisoFinalizacionTicket($ticket)
+                );
+            }
+        } catch (\Throwable $e) {
+            Log::warning("No se pudo enviar aviso de finalización al Ticket {$ticket->id}: {$e->getMessage()}");
+        }
+    }
+
+
+    private function finalizarPorMesSinActividad($ticket)
+    {
+        $estadoAnterior = $ticket->estado->nombre;
+
+        // Cambiar estado a 5 (Finalizado)
+        $ticket->estado_id = 5;
+        $ticket->save();
+
+        // Crear comentario tipo 5 con calificación 5
+        $comentario = Comentario::create([
+            'ticket_id'              => $ticket->id,
+            'user_id'                => 16, // sistema
+            'comentario'             => '<p>Ticket finalizado automáticamente por inactividad mayor a 1 mes.</p>',
+            'tipo'                   => 2,
+            'calificacion'           => 5,
+            'comentario_calificacion' => 'El sistema finalizó este ticket por inactividad.',
+            'check_comentario'       => 0,
+        ]);
+
+        // Historial
+        Historial::create([
+            'ticket_id' => $ticket->id,
+            'user_id'   => 16, // sistema
+            'accion'    => 'Finalización automática por inactividad de 1 mes',
+            'detalle'   => "El ticket fue finalizado automáticamente tras más de 1 mes sin actividad. Estado previo: {$estadoAnterior}.",
+        ]);
+
+        Log::info("Ticket {$ticket->id} finalizado automáticamente por 1 mes de inactividad.");
     }
 
     private function actualizarTiempoAns($ticket)

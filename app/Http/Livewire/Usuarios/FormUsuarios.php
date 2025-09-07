@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\DB;
 
 class FormUsuarios extends Component
 {
-    public $name, $email, $rol = [], $sociedad_id, $estado, $aprobador_ti;
+    public $name, $email, $rol = [], $sociedad_id, $estado, $aprobador_ti, $area;
     public $usuario_old;
     public $sociedades = [];
     public $roles = [];
@@ -48,9 +48,11 @@ class FormUsuarios extends Component
         $this->sociedad_id  = $this->usuario_old->sociedad_id;
         $this->estado  = $this->usuario_old->estado;
         $this->aprobador_ti  = $this->usuario_old->aprobador_ti;
+        $this->area  = $this->usuario_old->area ?? '';
 
         $this->emit('selectSociedad', $this->sociedad_id);
         $this->emit('selectRol', $this->rol);
+        $this->emit('selectArea', $this->area);
     }
 
     public function actualizar()
@@ -62,14 +64,14 @@ class FormUsuarios extends Component
             if ($this->usuario_old->estado == 1 && $this->estado == 0) {
                 // Tickets como usuario
                 $this->ticketsComoUsuario = Ticket::where('usuario_id', $this->usuario_old->id)
-                    ->where('estado_id', '<>', 4)
+                    ->where('estado_id', '<>', [4, 5])
                     ->with('estado', 'asignado')
                     ->get()
                     ->toArray();
 
                 // Tickets como agente
                 $this->ticketsComoAgente = Ticket::where('asignado_a', $this->usuario_old->id)
-                    ->where('estado_id', '<>', 4)
+                     ->whereNotIn('estado_id', [4, 5])
                     ->with('estado', 'asignado')
                     ->get()
                     ->toArray();
@@ -87,10 +89,11 @@ class FormUsuarios extends Component
 
     public function guardarUsuario()
     {
-        $this->usuario_old->name = $this->name;
+        $this->usuario_old->name  = $this->name;
         $this->usuario_old->email = $this->email;
         $this->usuario_old->sociedad_id = $this->sociedad_id;
         $this->usuario_old->estado = $this->estado;
+        $this->usuario_old->area = $this->area ?? NULL;
         $this->usuario_old->aprobador_ti = $this->aprobador_ti ? $this->aprobador_ti : 0;
         $this->usuario_old->roles()->sync($this->rol);
         $this->usuario_old->update();
@@ -152,35 +155,6 @@ class FormUsuarios extends Component
                 }
             }
         }
-
-        // $debugData = []; // arreglo temporal para pruebas
-
-        // foreach ($this->reasignacionesAgente as $ticketId => $nuevoAgenteId) {
-        //     if ($nuevoAgenteId) {
-        //         $ticket = Ticket::find($ticketId);
-        //         $ticket->asignado_a = $nuevoAgenteId;
-        //         $ticket->save();
-
-        //         $nuevoAgente = User::find($nuevoAgenteId);
-
-        //         if ($nuevoAgente) {
-        //             $debugData[] = [
-        //                 'ticket_id'      => $ticket->id,
-        //                 'nomenclatura'   => $ticket->nomenclatura,
-        //                 'titulo'         => $ticket->titulo,
-        //                 'agente_id'      => $nuevoAgente->id,
-        //                 'agente_nombre'  => $nuevoAgente->name,
-        //                 'agente_email'   => $nuevoAgente->email,
-        //             ];
-
-        //             // comentar la notificación mientras pruebas
-        //             $nuevoAgente->notify(new TicketReasignadoNotification($ticket));
-        //         }
-        //     }
-        // }
-
-        // // Mostrar TODO el resumen al final
-        // dd($debugData);
 
         // después inactivar al usuario
         $this->estado = 0;

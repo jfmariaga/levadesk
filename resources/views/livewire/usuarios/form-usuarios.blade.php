@@ -87,6 +87,47 @@
                         @enderror
                     </div>
                 </div>
+                <div class="form-row">
+                    <div wire:ignore class="form-group col-md-12">
+                        <label for="email" class="form-label">Área</label>
+                        <select id="area" class="form-control select2">
+                            <option value="">Seleccionar...</option>
+                            <option value="Administración Planta">Administración Planta</option>
+                            <option value="Administrativa y Financiera">Administrativa y Financiera</option>
+                            <option value="Auditoría">Auditoría</option>
+                            <option value="Cadena de Abastecimiento">Cadena de Abastecimiento</option>
+                            <option value="Comercial Biolev">Comercial Biolev</option>
+                            <option value="Comercial Consumo">Comercial Consumo</option>
+                            <option value="Comercial Exportaciones">Comercial Exportaciones</option>
+                            <option value="Comercial Panadería">Comercial Panadería</option>
+                            <option value="Comercio Exterior">Comercio Exterior</option>
+                            <option value="Compras">Compras</option>
+                            <option value="Contabilidad e Impuestos">Contabilidad e Impuestos</option>
+                            <option value="Control Calidad">Control Calidad</option>
+                            <option value="Control Financiero">Control Financiero</option>
+                            <option value="Departamento Técnico">Departamento Técnico</option>
+                            <option value="Desarrollo de Negocios">Desarrollo de Negocios</option>
+                            <option value="Gente y Cultura">Gente y Cultura</option>
+                            <option value="Gestión Integral">Gestión Integral</option>
+                            <option value="Gestión Medioambiental">Gestión Medioambiental</option>
+                            <option value="Go To Market">Go To Market</option>
+                            <option value="Investigación y Desarrollo">Investigación y Desarrollo</option>
+                            <option value="Legal">Legal</option>
+                            <option value="Logística">Logística</option>
+                            <option value="Mantenimiento">Mantenimiento</option>
+                            <option value="Mejora continua y proyectos">Mejora continua y proyectos</option>
+                            <option value="Mercadeo">Mercadeo</option>
+                            <option value="Planeación de la Demanda">Planeación de la Demanda</option>
+                            <option value="Planeación Financiera">Planeación Financiera</option>
+                            <option value="Producción">Producción</option>
+                            <option value="Servicios Administrativos">Servicios Administrativos</option>
+                            <option value="Tecnología">Tecnología</option>
+                        </select>
+                        @error('area')
+                            <small class="text-danger">{{ $message }}</small>
+                        @enderror
+                    </div>
+                </div>
 
                 <!-- Botones de acción -->
                 <div class="modal-footer">
@@ -236,12 +277,17 @@
     @push('js')
         <script>
             document.addEventListener('livewire:load', function() {
-                // Inicializar Select2
+                $('.select2').select2();
+
                 $('#sociedad_id, #rol').select2();
 
                 // Sincronizar los valores con Livewire cuando cambien
                 $('#sociedad_id').on('change', function() {
                     @this.set('sociedad_id', $(this).val());
+                });
+
+                $('#area').on('change', function() {
+                    @this.set('area', $(this).val());
                 });
 
                 $('#rol').on('change', function() {
@@ -261,6 +307,10 @@
 
                 Livewire.on('selectRol', (ids = []) => {
                     $('#rol').val(ids).trigger('change');
+                });
+
+                Livewire.on('selectArea', (ids = []) => {
+                    $('#area').val(ids).trigger('change');
                 });
 
 
