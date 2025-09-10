@@ -42,8 +42,13 @@ class GestionarAnsJob implements ShouldQueue
         }
 
         // 3) Tickets con 29 días sin actividad → notificar al usuario
+        // $ticketsAviso = Ticket::whereNotIn('estado_id', [4, 5])
+        //     ->whereDate('updated_at', '=', Carbon::now()->subDays(29)->toDateString())
+        //     ->get();
+
         $ticketsAviso = Ticket::whereNotIn('estado_id', [4, 5])
             ->whereDate('updated_at', '=', Carbon::now()->subDays(29)->toDateString())
+            ->whereNull('aviso_enviado_at')
             ->get();
 
         foreach ($ticketsAviso as $ticket) {
@@ -67,6 +72,10 @@ class GestionarAnsJob implements ShouldQueue
                 $ticket->usuario->notify(
                     new \App\Notifications\AvisoFinalizacionTicket($ticket)
                 );
+
+                // Marca como avisado
+                $ticket->aviso_enviado_at = Carbon::now();
+                $ticket->save();
             }
         } catch (\Throwable $e) {
             Log::warning("No se pudo enviar aviso de finalización al Ticket {$ticket->id}: {$e->getMessage()}");
