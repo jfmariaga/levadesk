@@ -88,7 +88,7 @@ class GestionarAnsJob implements ShouldQueue
         $estadoAnterior = $ticket->estado->nombre;
 
         // Cambiar estado a 5 (Finalizado)
-        $ticket->estado_id = 5;
+        $ticket->estado_id = 4;
         $ticket->save();
 
         // Crear comentario tipo 5 con calificación 5
