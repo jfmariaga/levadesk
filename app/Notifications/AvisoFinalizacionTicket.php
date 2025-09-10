@@ -30,7 +30,7 @@ class AvisoFinalizacionTicket extends Notification implements ShouldQueue
             ->greeting('Hola ' . $this->ticket->usuario->name . ' 👋')
             ->line("Tu ticket #{$this->ticket->id} no ha tenido actividad en casi un mes.")
             ->line("Si no registras actividad en las próximas 24 horas, será finalizado automáticamente por el sistema.")
-            ->action('Ver ticket', url("/tickets/{$this->ticket->id}"))
+            ->action('Ver ticket', url('/verTicket?ticket_id='  .$this->ticket->id))
             ->line('Gracias por tu atención.');
     }
 }
