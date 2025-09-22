@@ -86,6 +86,7 @@ Route::group(['middleware' => ['auth', 'verified']], function () {
 
     Route::group(['middleware' => 'can:dashboard'], function () {
         Route::view('dashboard', 'admin.dashboard.dashboard')->name('dashboard');
+        Route::view('transportes', 'admin.transportes.transportes')->name('transportes');
     });
 
     Route::view('perfil', 'admin.perfil.perfil')->name('perfil');

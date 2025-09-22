@@ -342,7 +342,12 @@ return [
             'icon' => 'fas fa-chart-pie',
             'can' => 'dashboard',
         ],
-
+        [
+            'text' => 'Dashboard Tareas/OT',
+            'route' => 'transportes',
+            'icon' => 'fas fa-chart-pie',
+            'can' => 'dashboard',
+        ],
         [
             'text' => 'Sociedades',
             'route' => 'sociedad',

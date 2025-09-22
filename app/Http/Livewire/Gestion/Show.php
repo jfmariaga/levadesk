@@ -479,7 +479,7 @@ class Show extends Component
         if ($this->ticket->cambio) {
             if ($this->ticket->cambio->tipo_cambio == 0) {
                 $autorizado = true;
-            } elseif ($this->ticket->estado_id == 11) {
+            } elseif ($this->ticket->estado_id == 11 || $this->ticket->estado_id == 18) {
                 $autorizado = false;
             } else {
                 $this->emit('tareaNoAutorizada');
