@@ -83,7 +83,7 @@ class Index extends Component
             $query->whereBetween('created_at', [$fecha_desde, $fecha_hasta]);
         }
 
-        $tickets = $query->with('urgencia', 'estado', 'colaboradores', 'asignado','categoria','subcategoria','usuario','tipoSolicitud','aplicacion', 'sociedad')->get();
+        $tickets = $query->with('urgencia', 'estado', 'colaboradores', 'asignado', 'categoria', 'subcategoria', 'usuario', 'tipoSolicitud', 'aplicacion', 'sociedad')->get();
 
         $this->tickets = $tickets->map(function ($ticket) use ($userId) {
             if ($ticket->asignado_a == $userId) {

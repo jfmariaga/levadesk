@@ -31,7 +31,7 @@ class Index extends Component
 
         $this->totalTransportes       = (clone $base)->count();
         $this->transportesCompletadas = (clone $base)->where('estado', 'completado')->count();
-        $this->transportesPendientes  = (clone $base)->whereIn('estado', ['pendiente', 'en curso'])->count();
+        $this->transportesPendientes  = (clone $base)->whereIn('estado', ['pendiente', 'en_progreso','aprobada','editar'])->count();
         $this->transportesRechazados  = (clone $base)->where('estado', 'rechazada')->count();
     }
 
@@ -122,23 +122,27 @@ class Index extends Component
                 }
 
                 return [
-                    'id'           => $ticket->id ?? null,
-                    'created_at'   => optional($ticket->created_at)->format('Y-m-d'),
-                    'nomenclatura' => $ticket->nomenclatura ?? '',
-                    'urgencia'     => $ticket->urgencia?->nombre,
-                    'sociedad'     => $ticket->sociedad?->nombre,
-                    'pais'         => $pais,
-                    'tipo'         => $ticket->tipoSolicitud?->nombre,
-                    'categoria'    => $ticket->categoria?->nombre,
-                    'subcategoria' => $ticket->subcategoria?->nombre,
-                    'aplicacion'   => $ticket->aplicacion?->nombre,
-                    'usuario'      => $ticket->usuario?->name,
-                    'area'         => $ticket->usuario?->area,
-                    'estado'       => $ticket->estado?->nombre,
-                    'asignado'     => $ticket->asignado?->name,
-                    'tarea_titulo' => $tarea->titulo,
-                    'tarea_desc'   => $tarea->descripcion,
-                    'transportes'  => $transportes,
+                    'id'               => $ticket->id ?? null,
+                    'created_at'       => optional($ticket->created_at)->format('Y-m-d'),
+                    'nomenclatura'     => $ticket->nomenclatura ?? '',
+                    'urgencia'         => $ticket->urgencia?->nombre,
+                    'sociedad'         => $ticket->sociedad?->nombre,
+                    'pais'             => $pais,
+                    'tipo'             => $ticket->tipoSolicitud?->nombre,
+                    'categoria'        => $ticket->categoria?->nombre,
+                    'subcategoria'     => $ticket->subcategoria?->nombre,
+                    'aplicacion'       => $ticket->aplicacion?->nombre,
+                    'usuario'          => $ticket->usuario?->name,
+                    'area'             => $ticket->usuario?->area,
+                    'estado'           => $ticket->estado?->nombre,
+                    'asignado'         => $ticket->asignado?->name,
+                    'tarea_titulo'     => $tarea->titulo,
+                    'tarea_desc'       => $tarea->descripcion,
+                    'tarea_estado'     => $tarea->estado,
+                    'tarea_created_at' => optional($tarea->created_at)->format('Y-m-d H:i'),
+                    'tarea_updated_at' => optional($tarea->updated_at)->format('Y-m-d H:i'),
+                    'tarea_fecha_cumplimiento' => $tarea->fecha_cumplimiento,
+                    'transportes'      => $transportes,
                 ];
             })->values()->toJson(JSON_UNESCAPED_UNICODE);
 

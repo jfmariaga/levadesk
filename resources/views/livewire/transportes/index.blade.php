@@ -180,7 +180,8 @@
                                     <th>Prioridad</th>
                                     <th>Sociedad</th>
                                     <th>País</th>
-                                    <th>Estado</th>
+                                    <th>Estado del Ticket</th>
+                                    <th>Transportes</th>
                                     <th>Agente</th>
                                     <th>Acc</th>
                                 </tr>
@@ -240,14 +241,17 @@
                         { title: 'Prioridad', data: 'urgencia' },
                         { title: 'Sociedad', data: 'sociedad' },
                         { title: 'País', data: 'pais' },
-                        { title: 'Estado', data: 'estado' },
+                        { title: 'Estado del Ticket', data: 'estado' },
+                        { title: 'Transportes', data: 'transportes' },
                         { title: 'Agente', data: 'asignado' },
                         { title: 'Acc', data: 'acc', orderable: false, searchable: false },
 
                         // ocultas para exportar
                         { title: 'Título tarea', data: 'tarea_titulo', visible: false },
                         { title: 'Descripción', data: 'tarea_desc', visible: false },
-                        { title: 'Transportes', data: 'transportes', visible: false },
+                        { title: 'Estado de la tarea', data: 'tarea_estado', visible: false },
+                        { title: 'Fecha creación tarea', data: 'tarea_created_at', visible: false },
+                        { title: 'Última modificación', data: 'tarea_updated_at', visible: false },
                         { title: 'Tipo Solicitud', data: 'tipo', visible: false },
                         { title: 'Categoría', data: 'categoria', visible: false },
                         { title: 'Subcategoría', data: 'subcategoria', visible: false },
@@ -261,14 +265,14 @@
                             extend: 'excelHtml5',
                             title: 'Transportes',
                             exportOptions: {
-                                columns: ':visible:not(:last-child),:hidden' // ❌ excluye Acc
+                                columns: ':visible:not(:last-child),:hidden'
                             }
                         },
                         {
                             extend: 'pdfHtml5',
                             title: 'Transportes',
                             exportOptions: {
-                                columns: ':visible:not(:last-child),:hidden' // ❌ excluye Acc
+                                columns: ':visible:not(:last-child),:hidden'
                             }
                         }
                     ],
@@ -291,11 +295,17 @@
         });
 
         function format(row) {
+            console.log(row);
             return `
                 <div class="p-2">
                     <strong>Título de la tarea:</strong> ${row.tarea_titulo || ''}<br>
                     <strong>Descripción:</strong> ${row.tarea_desc || ''}<br>
                     <strong>Transportes:</strong> ${row.transportes || ''}<br>
+                    <strong>Fecha creación de tarea:</strong> ${row.tarea_created_at || ''}<br>
+                    <strong>Fecha limite de cumplimiento:</strong> ${row.tarea_fecha_cumplimiento || ''}<br>
+                    <strong>Última modificación:</strong> ${row.tarea_updated_at || ''}<br>
+                    <strong>Estado de la tarea:</strong> ${row.tarea_estado || ''}<br><br>
+                    <strong>Información adicional del ticket</strong><br>
                     <strong>Tipo Solicitud:</strong> ${row.tipo || ''}<br>
                     <strong>Categoría:</strong> ${row.categoria || ''}<br>
                     <strong>Subcategoría:</strong> ${row.subcategoria || ''}<br>
