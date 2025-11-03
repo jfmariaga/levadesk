@@ -156,6 +156,7 @@
                                     <th>Área</th>
                                     <th>Estado</th>
                                     <th>Agente</th>
+                                    <th>Estado ANS</th>
                                     <th>Acc</th>
                                 </tr>
                             </thead>
@@ -299,6 +300,9 @@
                                 title: 'Agente'
                             },
                             {
+                                title: 'Estado ANS'
+                            },
+                            {
                                 title: 'Acc'
                             }
                         ],
@@ -335,7 +339,7 @@
                                 autoFilter: true,
                                 title: 'Estados',
                                 exportOptions: {
-                                    columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+                                    columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,13]
                                 },
                             }
                         ]
@@ -371,14 +375,54 @@
             });
 
             // Mapeo de objetos a columnas DataTables
+            // function mapearFilas(rows) {
+            //     return rows.map(el => {
+            //         const id = el.id;
+            //         const href = `gestionar?ticket_id=${id}`;
+
+            //         // Función para envolver cada dato con un link
+            //         const linkWrap = (content) =>
+            //             `<a href="${href}" target="_blank" style="color: inherit; text-decoration: none;">${content}</a>`;
+
+            //         return [
+            //             linkWrap(el.created_at || ''),
+            //             linkWrap(el.nomenclatura || ''),
+            //             linkWrap(el.titulo || ''),
+            //             linkWrap((el.urgencia && el.urgencia.nombre) || ''),
+            //             linkWrap((el.sociedad && el.sociedad.nombre) || ''),
+            //             linkWrap((el.tipo_solicitud && el.tipo_solicitud.nombre) || ''),
+            //             linkWrap((el.categoria && el.categoria.nombre) || ''),
+            //             linkWrap((el.subcategoria && el.subcategoria.nombre) || ''),
+            //             linkWrap((el.aplicacion && el.aplicacion.nombre) || 'NO APLICA'),
+            //             linkWrap((el.usuario && el.usuario.name) || ''),
+            //             linkWrap((el.usuario && el.usuario.area) || 'Sin seleccionar'),
+            //             linkWrap((el.estado && el.estado.nombre) || ''),
+            //             linkWrap((el.asignado && el.asignado.name) || ''),
+            //             // Última columna con el botón de ver
+            //             `<a href="${href}" target="_blank" class="btn btn-xs btn-default text-primary mx-1 shadow" title="Ver">
+    //     <i class="far fa-eye"></i>
+    //  </a>`
+            //         ];
+            //     });
+            // }
+
             function mapearFilas(rows) {
                 return rows.map(el => {
                     const id = el.id;
                     const href = `gestionar?ticket_id=${id}`;
 
-                    // Función para envolver cada dato con un link
                     const linkWrap = (content) =>
                         `<a href="${href}" target="_blank" style="color: inherit; text-decoration: none;">${content}</a>`;
+
+                    // ✅ Determinar color según estado ANS
+                    let ansBadge = '';
+                    if (el.estado_ans === 'Cumplido') {
+                        ansBadge = '<span class="badge bg-success">Cumplido</span>';
+                    } else if (el.estado_ans === 'No cumplido') {
+                        ansBadge = '<span class="badge bg-danger">No cumplido</span>';
+                    } else {
+                        ansBadge = '<span class="badge bg-warning text-dark">En curso</span>';
+                    }
 
                     return [
                         linkWrap(el.created_at || ''),
@@ -394,13 +438,14 @@
                         linkWrap((el.usuario && el.usuario.area) || 'Sin seleccionar'),
                         linkWrap((el.estado && el.estado.nombre) || ''),
                         linkWrap((el.asignado && el.asignado.name) || ''),
-                        // Última columna con el botón de ver
+                        ansBadge, // ✅ Nueva columna visual de ANS
                         `<a href="${href}" target="_blank" class="btn btn-xs btn-default text-primary mx-1 shadow" title="Ver">
                 <i class="far fa-eye"></i>
              </a>`
                     ];
                 });
             }
+
 
 
             function exportTabla(tipo) {

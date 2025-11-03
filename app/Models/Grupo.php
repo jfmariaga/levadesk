@@ -25,7 +25,13 @@ class Grupo extends Model
     //     return $this->hasMany(Subcategoria::class);
     // }
 
-    public  function aplicaciones(){
+    public  function aplicaciones()
+    {
         return $this->hasMany(Aplicaciones::class);
+    }
+
+    public function sociedadesSubcategoriasGrupos()
+    {
+        return $this->hasMany(SociedadSubcategoriaGrupo::class, 'grupo_id');
     }
 }

@@ -250,6 +250,7 @@
                         { title: 'Título tarea', data: 'tarea_titulo', visible: false },
                         { title: 'Descripción', data: 'tarea_desc', visible: false },
                         { title: 'Estado de la tarea', data: 'tarea_estado', visible: false },
+                        { title: 'Responsable de la tarea', data: 'tarea_responsable', visible: false },
                         { title: 'Fecha creación tarea', data: 'tarea_created_at', visible: false },
                         { title: 'Última modificación', data: 'tarea_updated_at', visible: false },
                         { title: 'Tipo Solicitud', data: 'tipo', visible: false },
@@ -295,7 +296,7 @@
         });
 
         function format(row) {
-            console.log(row);
+            // console.log(row);
             return `
                 <div class="p-2">
                     <strong>Título de la tarea:</strong> ${row.tarea_titulo || ''}<br>
@@ -304,7 +305,8 @@
                     <strong>Fecha creación de tarea:</strong> ${row.tarea_created_at || ''}<br>
                     <strong>Fecha limite de cumplimiento:</strong> ${row.tarea_fecha_cumplimiento || ''}<br>
                     <strong>Última modificación:</strong> ${row.tarea_updated_at || ''}<br>
-                    <strong>Estado de la tarea:</strong> ${row.tarea_estado || ''}<br><br>
+                    <strong>Estado de la tarea:</strong> ${row.tarea_estado || ''}<br>
+                    <strong>Responsable de la tarea:</strong> ${row.tarea_responsable || 'Sin asignar'}<br><br>
                     <strong>Información adicional del ticket</strong><br>
                     <strong>Tipo Solicitud:</strong> ${row.tipo || ''}<br>
                     <strong>Categoría:</strong> ${row.categoria || ''}<br>

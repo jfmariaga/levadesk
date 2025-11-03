@@ -20,6 +20,7 @@ class Kernel extends ConsoleKernel
         $schedule->job(new CheckAnsVencimiento)->everyMinute();
         $schedule->job(new GestionarAnsJob)->everyMinute();
         $schedule->command('usuarios:notificar-sin-area')->weeklyOn(3, '9:00');
+        $schedule->command('tickets:sync-respuestas-graph')->everyMinute();
     }
 
     /**

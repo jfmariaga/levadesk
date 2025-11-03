@@ -320,6 +320,96 @@
             font-size: 0.9rem;
         }
 
+        /* Estilo general para alertas personalizadas */
+        .alert-custom {
+            border-left: 5px solid;
+            border-radius: 8px;
+            padding: 15px 20px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .alert-azul {
+            background-color: #E9F3FB;
+            border-color: #0E69B2;
+            color: #0E69B2;
+        }
+
+        .alert-amarillo {
+            background-color: #FFF8E1;
+            border-color: #FFC107;
+            color: #8C6D00;
+        }
+
+        .alert-gris {
+            background-color: #F8F9FA;
+            border-color: #6C757D;
+            color: #444;
+        }
+
+        .form-control {
+            border-radius: 6px;
+        }
+
+        .btn-primary {
+            background-color: #0E69B2;
+            border-color: #0E69B2;
+        }
+
+        .btn-primary:hover {
+            background-color: #094b7d;
+            border-color: #094b7d;
+        }
+
+        .btn-outline-primary:hover {
+            background-color: #0E69B2;
+            color: #fff;
+        }
+
+        .text-danger {
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .alert-custom {
+            border-left: 4px solid;
+            border-radius: 6px;
+            padding: 10px 16px;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .alert-amarillo {
+            background-color: #FFF8E1;
+            border-color: #FFC107;
+            color: #8C6D00;
+        }
+
+        .alert-azul {
+            background-color: #E9F3FB;
+            border-color: #0E69B2;
+            color: #0E69B2;
+        }
+
+        .alert-gris {
+            background-color: #F8F9FA;
+            border-color: #6C757D;
+            color: #444;
+        }
+
+        .btn-success {
+            background-color: #28a745 !important;
+            border-color: #28a745 !important;
+            font-weight: 600;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .btn-success:hover {
+            background-color: #218838 !important;
+            border-color: #218838 !important;
+            transform: scale(1.03);
+        }
+
         /* Ajustar tamaño para dispositivos móviles */
         @media (max-width: 768px) {
             .ans-badge {
@@ -1158,58 +1248,131 @@
                                                     <hr>
                                                 @endif
                                             @endif
+                                            {{-- 🔁 Bloque para activar ANS siempre visible si está detenido --}}
+                                            @if ($ticket->estado_id == 9 && $ticket->escalar == true && !$escalar)
+                                                <div
+                                                    class="alert alert-custom alert-amarillo shadow-sm d-flex justify-content-between align-items-center mt-2">
+                                                    <div>
+                                                        <h6 class="font-weight-bold text-warning mb-1">
+                                                            <i class="fas fa-play-circle mr-1"></i> Activar ANS
+                                                        </h6>
+                                                        <p class="mb-0">Si activas el ANS, podrás volver a marcar
+                                                            respuestas como solución.</p>
+                                                    </div>
+                                                    <button wire:click="consultoriaCambio"
+                                                        class="btn btn-success btn-sm">
+                                                        <i class="fas fa-play-circle mr-1"></i> Activar ANS
+                                                    </button>
+                                                </div>
+                                            @endif
 
                                             @if ($escalar)
+                                                {{-- Caso 1: Escalar por primera vez --}}
                                                 @if ($ticket->escalar == false)
-                                                    <p>Se cambiará el estado del ticket por: <strong>ANS
-                                                            DETENIDO</strong></p>
-                                                    <p>Si vas a detener el ANS por escalar a consultoría recuerda
-                                                        mantener informado al usuario sobre cualquier novedad
-                                                        (Nombre de la consultoría,# del caso y cambio de estados), lo
-                                                        puedes
-                                                        hacer mediante la caja de comentarios, si es necesario
-                                                        adjunta evidencias.
-                                                    </p>
-                                                    <p>Durante el tiempo que este el estado en: <strong>ANS
-                                                            DETENIDO</strong>. No podras marcar respuestas como
-                                                        sulución, hasta que cambies manualmente el estado a: <strong>EN
-                                                            ATENCIÓN</strong></p>
-                                                    <textarea wire:model="justificacion" class="form-control" placeholder="Escribe la justificación aquí..."></textarea>
-
-                                                    @error('justificacion')
-                                                        <span class="text-danger">{{ $message }}</span>
-                                                    @enderror
-                                                    <div class="d-flex">
-                                                        <button wire:click="consultoria"
-                                                            class="btn btn-md mt-3 btn-outline-info">Confirmar</button>
+                                                    <div class="alert alert-custom alert-azul shadow-sm">
+                                                        <h6 class="font-weight-bold mb-2 text-primary">
+                                                            <i class="fas fa-info-circle mr-1"></i> Escalamiento de
+                                                            Ticket
+                                                        </h6>
+                                                        <p>Se cambiará el estado del ticket por: <strong>ANS
+                                                                DETENIDO</strong>.</p>
+                                                        <p>Si vas a escalar este ticket a un tercero (consultoría o
+                                                            proveedor externo),
+                                                            selecciona el tercero correspondiente e indica una breve
+                                                            justificación del motivo.</p>
+                                                        <p>Durante el tiempo que el estado esté en <strong>ANS
+                                                                DETENIDO</strong>,
+                                                            no podrás marcar respuestas como solución hasta reactivar el
+                                                            ANS manualmente.</p>
                                                     </div>
-                                                    <hr>
-                                                @elseif ($ticket->escalar == true && $ticket->estado_id == 9)
-                                                    <p><strong>Activar ANS</strong></p>
-                                                    <p><i>Si activas el ANS, podras marcar respuestas como
-                                                            solución</i></p>
-                                                    <div class="d-flex col-12">
-                                                        <button wire:click="consultoriaCambio"
-                                                            class="float-left btn btn-md btn-outline-info">Activar
-                                                            ANS</button>
-                                                    </div>
-                                                    <hr>
-                                                @else
-                                                    <div class="justify-content-center align-items-center">
-                                                        <p><strong>¿Volver a detener el ANS?</strong></p>
-                                                        <textarea wire:model="justificacion" class="form-control" placeholder="Escribe la justificación aquí..."></textarea>
 
-                                                        @error('justificacion')
-                                                            <span class="text-danger">{{ $message }}</span>
+                                                    {{-- Selector de tercero --}}
+                                                    <div class="form-group">
+                                                        <label><strong>Selecciona el tercero:</strong></label>
+                                                        <select wire:model="tercero_id" class="form-control">
+                                                            <option value="">-- Selecciona un tercero --</option>
+                                                            @foreach ($terceros as $tercero)
+                                                                <option value="{{ $tercero->id }}">
+                                                                    {{ $tercero->nombre }}</option>
+                                                            @endforeach
+                                                        </select>
+                                                        @error('tercero_id')
+                                                            <span class="text-danger">El campo tercero es
+                                                                obligatorio.</span>
                                                         @enderror
                                                     </div>
-                                                    <div>
+
+                                                    {{-- Justificación --}}
+                                                    <div class="form-group mt-2">
+                                                        <label><strong>Justificación del escalamiento:</strong></label>
+                                                        <textarea wire:model.defer="justificacion" class="form-control" rows="3"
+                                                            placeholder="Describe brevemente por qué se escala a este tercero..."></textarea>
+                                                        @error('justificacion')
+                                                            <span class="text-danger">La justificación es
+                                                                obligatoria.</span>
+                                                        @enderror
+                                                    </div>
+
+                                                    {{-- Botón confirmar --}}
+                                                    <div class="text-right">
                                                         <button wire:click="consultoria"
-                                                            class=" btn btn-md mt-1 btn-outline-info">Confirmar</button>
+                                                            class="btn btn-md mt-3 btn-primary">
+                                                            <i class="fas fa-share-square"></i> Confirmar Escalamiento
+                                                        </button>
+                                                    </div>
+
+                                                    <hr>
+
+                                                    {{-- Caso 2: ANS detenido, opción para reanudar --}}
+                                                @elseif ($ticket->escalar == true && $ticket->estado_id == 9)
+                                                    <div class="alert alert-custom alert-amarillo shadow-sm">
+                                                        <h6 class="font-weight-bold text-warning">
+                                                            <i class="fas fa-play-circle mr-1"></i> Activar ANS
+                                                        </h6>
+                                                        <p>Si activas el ANS, podrás volver a marcar respuestas como
+                                                            solución.</p>
+                                                    </div>
+
+                                                    <div class="text-right">
+                                                        <button wire:click="consultoriaCambio"
+                                                            class="btn btn-md btn-success">
+                                                            <i class="fas fa-play-circle"></i> Activar ANS
+                                                        </button>
+                                                    </div>
+                                                    <hr>
+
+                                                    {{-- Caso 3: Ticket ya escalado y vuelve a detener el ANS --}}
+                                                @else
+                                                    <div class="alert alert-custom alert-gris shadow-sm">
+                                                        <h6 class="font-weight-bold text-secondary">
+                                                            <i class="fas fa-stopwatch mr-1"></i> Detener nuevamente el
+                                                            ANS
+                                                        </h6>
+                                                        <p>Si el tercero continúa trabajando en el caso, puedes volver a
+                                                            detener el ANS y dejar una nueva justificación.</p>
+                                                    </div>
+
+                                                    <div class="form-group">
+                                                        <label><strong>Justificación:</strong></label>
+                                                        <textarea wire:model.defer="justificacion" class="form-control" rows="3"
+                                                            placeholder="Explica brevemente el motivo..."></textarea>
+                                                        @error('justificacion')
+                                                            <span class="text-danger">La justificación es
+                                                                obligatoria.</span>
+                                                        @enderror
+                                                    </div>
+
+                                                    <div class="text-right">
+                                                        <button wire:click="consultoria"
+                                                            class="btn btn-md btn-outline-primary mt-2">
+                                                            <i class="fas fa-stopwatch"></i> Confirmar Detención de ANS
+                                                        </button>
                                                     </div>
                                                     <hr>
                                                 @endif
                                             @endif
+
+
 
                                             @if ($cambio)
                                                 @if ($ticket->cambio)
@@ -1379,14 +1542,6 @@
                                 </div>
                                 <hr>
                             </div>
-                            {{-- @if ($ticket->escalar == true && $ticket->estado_id == 9)
-                                <div class="d-flex col-12">
-                                    <button wire:click="consultoriaCambio"
-                                        class="btn btn-md btn-outline-info">Activar
-                                        ANS</button>
-                                </div>
-                                <hr>
-                            @endif --}}
                             <div class="row ">
                                 <div class="col-12 comentario">
                                     @if ($ticket->estado_id != 1)
@@ -1394,10 +1549,18 @@
                                             @foreach ($ticket->comentarios as $comentario)
                                                 <div class="card">
                                                     <div class="direct-chat-infos clearfix mt-1">
-                                                        <span
-                                                            class="direct-chat-name float-left ml-2">{{ $comentario->user->name ?? 'Anónimo' }}</span>
-                                                        <span
-                                                            class="direct-chat-timestamp float-left ml-2">{{ $comentario->created_at->format('d M Y h:i a') }}</span>
+                                                        <span class="direct-chat-name float-left ml-1">
+                                                            {{-- Mostrar nombre u origen --}}
+                                                            @if ($comentario->tipo == 10)
+                                                                <i class="fas fa-user-tie text-primary"></i>
+                                                                <strong>{{ $comentario->origen ?? 'Tercero' }}</strong>
+                                                            @else
+                                                                {{ $comentario->user->name ?? 'Anónimo' }}
+                                                            @endif
+                                                        </span>
+                                                        <span class="direct-chat-timestamp float-left ml-2 text-muted">
+                                                            {{ $comentario->created_at->format('d M Y h:i a') }}
+                                                        </span>
                                                         @if ($comentario->tipo == 2)
                                                             <span
                                                                 class="badge color-verde-claro mr-2 float-right">Solución
@@ -1498,9 +1661,6 @@
                                                                     <label for="file" class="custom-file-upload">
                                                                         <i class="fa fa-paperclip"></i>
                                                                     </label>
-                                                                    {{-- <input type="file" id="file"
-                                                                        name="file" multiple class="d-none"
-                                                                        wire:model="newFile"> --}}
                                                                     <input type="file" id="file"
                                                                         name="files[]" multiple class="d-none"
                                                                         wire:model="newFiles">
@@ -1711,6 +1871,18 @@
                                     <li>{{ $ticket->asignado->name }}</li>
                                 </ul>
                             </div>
+
+                            @if ($ticket->escalar && $ticket->tercero)
+                                <div class="section">
+                                    <h5>Tercero Asignado</h5>
+                                    <ul class="info-list">
+                                        <li><strong>Nombre:</strong> {{ $ticket->tercero->nombre }}</li>
+                                        @if (!empty($ticket->tercero->descripcion))
+                                            <li><strong>Descripción:</strong> {{ $ticket->tercero->descripcion }}</li>
+                                        @endif
+                                    </ul>
+                                </div>
+                            @endif
 
                             @if (count($supervisores) > 0)
                                 <div class="section">

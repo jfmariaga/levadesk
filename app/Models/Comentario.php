@@ -20,6 +20,7 @@ class Comentario extends Model
         'comentario_calificacion',
         'check_comentario',
         'finalizar',
+        'origen',
     ];
 
     public function ticket()

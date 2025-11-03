@@ -9,18 +9,23 @@ use App\Models\Categoria;
 use App\Models\Subcategoria;
 use App\Models\ANS;
 use App\Models\Aplicaciones;
+use App\Models\BackupFlujo;
 use App\Models\Estado;
+use App\Models\FlujoTercero;
 use App\Models\Grupo;
 use App\Models\Historial;
+use App\Models\SociedadSubcategoriaGrupo;
 use App\Models\TicketEstado;
 use App\Models\Urgencia;
 use App\Models\User;
 use App\Notifications\TicketAsignado;
 use App\Notifications\TicketCreado;
+use App\Notifications\TicketSapFiNotification;
 use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
 use Livewire\WithFileUploads;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Notification;
 
 
 class FormTickets extends Component
@@ -172,16 +177,15 @@ class FormTickets extends Component
             $subcategoriaNombre = Subcategoria::find($this->subcategoria_id)->nombre;
             if (in_array($subcategoriaNombre, ['SOPORTE DE APLICACIONES', 'DESARROLLO Y PERSONALIZACIONES', 'INSTALACION Y ACTUALIZACION', 'SOLICITUD DE CAPACITACION'])) {
                 $this->aplicaciones = Aplicaciones::where('sociedad_id', $this->sociedad_id)
-                ->where('estado', 0)
-                ->orderByRaw("
+                    ->where('estado', 0)
+                    ->orderByRaw("
                     CASE
                         WHEN nombre = 'ESTRATEGIAS DE LIBERACIÓN SAP' THEN 0
                         WHEN nombre = 'OTRA' THEN 2
                         ELSE 1
                     END, nombre ASC
                 ")
-                ->get();
-
+                    ->get();
             }
         }
     }
@@ -201,7 +205,7 @@ class FormTickets extends Component
                             ELSE 1
                         END, nombre ASC
                     ")
-                                ->get();
+                ->get();
         } else {
             $this->aplicacion_id = null;
         }
@@ -244,40 +248,81 @@ class FormTickets extends Component
         // Definir el usuario que será asignado al ticket
         $usuario = null;
         $grupo = null;
+        $asignadoPorVacaciones = false;
 
-        // Si la subcategoría es SOPORTE DE APLICACIONES, asignar según la aplicación seleccionada
-        if (in_array($subcategoria->nombre, ['SOPORTE DE APLICACIONES', 'DESARROLLO Y PERSONALIZACIONES', 'INSTALACION Y ACTUALIZACION', 'SOLICITUD DE CAPACITACION'])) {
+        if (in_array($subcategoria->nombre, [
+            'SOPORTE DE APLICACIONES',
+            'DESARROLLO Y PERSONALIZACIONES',
+            'INSTALACION Y ACTUALIZACION',
+            'SOLICITUD DE CAPACITACION'
+        ])) {
             // Obtener la aplicación seleccionada
             $aplicacion = Aplicaciones::find($this->aplicacion_id);
+            // dd($aplicacion);
 
-            // Verificar que la aplicación existe y tiene un grupo asociado
-            if ($aplicacion && $aplicacion->grupo_id) {
-                // Cargar el grupo relacionado con la aplicación
-                $grupo = $aplicacion->grupo;
+            // Ojo activar cuando sea el caso de escalado automatico
+            // $flujoTercero = FlujoTercero::where('aplicacion_id', $this->aplicacion_id)
+            //     ->where('activo', true)
+            //     ->first();
 
-                // Verificar que el grupo existe
-                if ($grupo) {
-                    // Obtener el usuario con menos tickets en el grupo relacionado con la aplicación
-                    $usuario = $grupo->usuarios()->withCount('ticketsAsignados')->orderBy('tickets_asignados_count', 'asc')->first();
-                } else {
-                    $this->emit('showToast', ['type' => 'warning', 'message' => "No hay grupo asignado a la aplicación seleccionada."]);
+            $flujoTercero = false;
+
+            if ($flujoTercero) {
+                // Caso de aplicación que se maneja como tercero
+                $usuario = $flujoTercero->usuario ?? User::where('id', 16)->first();
+                $grupo   = $flujoTercero->aplicacion->grupo;
+
+                if (!$usuario) {
+                    $this->emit('showToast', [
+                        'type' => 'warning',
+                        'message' => "El usuario configurado para este tercero no existe."
+                    ]);
                     return;
                 }
             } else {
-                $this->emit('showToast', ['type' => 'warning', 'message' => "No hay grupo o usuarios asignados a la aplicación seleccionada."]);
-                return;
+                // ✅ Flujo normal de asignación de aplicaciones internas
+                if ($aplicacion && $aplicacion->grupo_id) {
+                    $grupo = $aplicacion->grupo;
+
+                    if ($grupo) {
+                        $usuario = $grupo->usuarios()
+                            ->withCount('ticketsAsignados')
+                            ->orderBy('tickets_asignados_count', 'asc')
+                            ->first();
+                    } else {
+                        $this->emit('showToast', [
+                            'type' => 'warning',
+                            'message' => "No hay grupo asignado a la aplicación seleccionada."
+                        ]);
+                        return;
+                    }
+                } else {
+                    $this->emit('showToast', [
+                        'type' => 'warning',
+                        'message' => "No hay grupo o usuarios asignados a la aplicación seleccionada."
+                    ]);
+                    return;
+                }
             }
         } else {
-            // Obtener el grupo relacionado con la subcategoría, categoría y sociedad seleccionadas
+            // Flujo para otras subcategorías (no soporte de aplicaciones)
             $grupo = $subcategoria->gruposPorSociedad($this->sociedad_id, $this->categoria_id)->first();
+
             if (!$grupo) {
-                $this->emit('showToast', ['type' => 'warning', 'message' => "No hay grupo asignado para esta combinación de sociedad, categoría y subcategoría."]);
+                $this->emit('showToast', [
+                    'type' => 'warning',
+                    'message' => "No hay grupo asignado para esta combinación de sociedad, categoría y subcategoría."
+                ]);
                 return;
             }
 
-            // Obtener el usuario del grupo con menos tickets asignados
-            $usuario = $grupo->usuarios()->withCount('ticketsAsignados')->orderBy('tickets_asignados_count', 'asc')->first();
+            // Obtener el usuario con menos tickets asignados en ese grupo
+            $usuario = $grupo->usuarios()
+                ->withCount('ticketsAsignados')
+                ->orderBy('tickets_asignados_count', 'asc')
+                ->first();
         }
+
 
         if (!$usuario) {
             $this->emit('showToast', ['type' => 'warning', 'message' => "No hay usuarios disponibles en el grupo."]);
@@ -285,15 +330,56 @@ class FormTickets extends Component
         }
 
         // Lógica de vacaciones
+        // 🔄 Nueva lógica de vacaciones contextual (por flujo o aplicación)
         if ($usuario->en_vacaciones) {
-            $backupAgente = $usuario->backups()->first(); // Obtener el primer agente de respaldo
+            $usuarioOriginal = $usuario;
+            $backupAgente = null;
+
+            // 1️⃣ Buscar respaldo por aplicación (prioridad alta)
+            if (!empty($this->aplicacion_id)) {
+                $backupFlujo = BackupFlujo::where('aplicacion_id', $this->aplicacion_id)
+                    ->where('agente_id', $usuario->id)
+                    ->first();
+
+                if ($backupFlujo && $backupFlujo->backup) {
+                    $backupAgente = $backupFlujo->backup;
+                }
+            }
+
+            // 2️⃣ Si no hay aplicación o no se encontró backup, buscar por flujo real (sociedad-subcategoría-grupo)
+            if (!$backupAgente) {
+                $flujo = SociedadSubcategoriaGrupo::where('sociedad_id', $this->sociedad_id)
+                    ->where('subcategoria_id', $this->subcategoria_id)
+                    ->where('grupo_id', $grupo->id ?? null)
+                    ->first();
+
+                // dd($flujo->id);
+
+                if ($flujo) {
+                    $backupFlujo = BackupFlujo::where('flujo_id', $flujo->id)
+                        ->where('agente_id', $usuario->id)
+                        ->first();
+
+                    if ($backupFlujo && $backupFlujo->backup) {
+                        $backupAgente = $backupFlujo->backup;
+                    }
+                }
+            }
+
+
+            // 3️⃣ Resultado final
             if ($backupAgente) {
                 $usuario = $backupAgente;
+                $asignadoPorVacaciones = true;
             } else {
-                $this->emit('showToast', ['type' => 'warning', 'message' => "El usuario está de vacaciones y no tiene un agente de respaldo asignado."]);
+                $this->emit('showToast', [
+                    'type' => 'warning',
+                    'message' => "El usuario {$usuario->name} está de vacaciones y no tiene un backup configurado en este flujo o aplicación."
+                ]);
                 return;
             }
         }
+
 
         // Obtenemos el ANS inicial asociado al tipo de solicitud
         $ansInicial = ANS::where('solicitud_id', $this->tipo_solicitud_id)
@@ -312,6 +398,8 @@ class FormTickets extends Component
             'estado_id' => $this->estado_id,
             'creador_id' => Auth::id(),
             'asignado_a' => $usuario->id,
+            'agente_original_id' => $usuarioOriginal->id ?? null,
+            'asignado_por_vacaciones' => $asignadoPorVacaciones ?? false,
             'usuario_id' => Auth::id(),
             'grupo_id' => $grupo->id,
             'urgencia_id' => $this->urgencia,
@@ -345,7 +433,23 @@ class FormTickets extends Component
             }
         }
 
-        // Enviar notificaciones
+        // if ($flujoTercero) {
+        //     $notificacion = new TicketSapFiNotification($ticket);
+
+        //     // Usuario creador
+        //     // Notification::route('mail', $ticket->usuario->email)->notify($notificacion);
+        //     $ticket->usuario->notify(new TicketCreado($ticket));
+
+        //     // Destinatarios configurados
+        //     foreach ($flujoTercero->destinatarios ?? [] as $correo) {
+        //         Notification::route('mail', $correo)->notify($notificacion);
+        //     }
+        // } else {
+        //     // Notificaciones normales
+        //     $ticket->usuario->notify(new TicketCreado($ticket));
+        //     $usuario->notify(new TicketAsignado($ticket));
+        // }
+
         $ticket->usuario->notify(new TicketCreado($ticket));
         $usuario->notify(new TicketAsignado($ticket));
 
@@ -357,12 +461,24 @@ class FormTickets extends Component
             'detalle' => 'Nuevo ticket',
         ]);
 
-        Historial::create([
-            'ticket_id' => $ticket->id,
-            'user_id' => Auth::id(),
-            'accion' => 'Asignado',
-            'detalle' => 'Ticket asignado por el sistema a ' . $usuario->name,
-        ]);
+        if ($asignadoPorVacaciones) {
+            Historial::create([
+                'ticket_id' => $ticket->id,
+                'user_id' => $usuario->id, // el agente real, no el backup
+                'accion' => 'Asignado por vacaciones',
+                'detalle' => "El ticket fue asignado temporalmente a {$usuario->name} (backup de {$usuarioOriginal->name})..",
+            ]);
+        } else {
+            Historial::create([
+                'ticket_id' => $ticket->id,
+                'user_id' => Auth::id(),
+                'accion' => 'Asignado',
+                'detalle' => 'Ticket asignado por el sistema a ' . $usuario->name,
+            ]);
+        }
+
+
+
 
         TicketEstado::create([
             'ticket_id' => $ticket->id,

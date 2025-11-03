@@ -214,8 +214,8 @@
                                             <select wire:model="reasignacionesAgente.{{ $ticket['id'] }}"
                                                 class="form-control">
                                                 <option value="">-- Seleccionar --</option>
-                                                @foreach ($usuariosActivos as $u)
-                                                    <option value="{{ $u->id }}">{{ $u->name }}</option>
+                                                @foreach ($agentesActivos as $a)
+                                                    <option value="{{ $a->id }}">{{ $a->name }}</option>
                                                 @endforeach
                                             </select>
                                         </td>

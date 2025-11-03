@@ -139,6 +139,7 @@ class Index extends Component
                     'tarea_titulo'     => $tarea->titulo,
                     'tarea_desc'       => $tarea->descripcion,
                     'tarea_estado'     => $tarea->estado,
+                    'tarea_responsable'=> $tarea->user?->name,
                     'tarea_created_at' => optional($tarea->created_at)->format('Y-m-d H:i'),
                     'tarea_updated_at' => optional($tarea->updated_at)->format('Y-m-d H:i'),
                     'tarea_fecha_cumplimiento' => $tarea->fecha_cumplimiento,

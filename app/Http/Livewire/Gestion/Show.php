@@ -11,11 +11,13 @@ use App\Models\Categoria;
 use App\Models\Colaborador;
 use App\Models\Comentario;
 use App\Models\Estado;
+use App\Models\FlujoTercero;
 use App\Models\Subcategoria;
 use App\Models\Historial;
 use App\Models\Impacto;
 use App\Models\Recordatorio;
 use App\Models\Tarea;
+use App\Models\Tercero;
 use App\Models\TicketEstado;
 use App\Models\TicketHistorial;
 use App\Models\TipoSolicitud;
@@ -35,6 +37,7 @@ use App\Notifications\NuevoColaborador;
 use App\Notifications\NuevoComentario;
 use App\Notifications\NuevoComentarioPrivado;
 use App\Notifications\NuevoComentarioSolucion;
+use App\Notifications\NuevoComentarioTercero;
 use App\Notifications\NuevoComentarioUsuario;
 use App\Notifications\PruebasAccesos;
 use App\Notifications\PruebasProductivo;
@@ -113,6 +116,8 @@ class Show extends Component
     public $esSupervisor;
     public $estado_aprobacion_supervisor;
     public $comentario_rechazo_supervisor;
+    public $tercero_id;
+    public $terceros;
 
     protected $rules = [
         'categoria_id' => 'required',
@@ -130,6 +135,7 @@ class Show extends Component
         $this->usuarios = User::where('estado', 1)->where('id', '!=', Auth::id())->get();
         $this->aprobadores = User::where('estado', 1)->where('id', '!=', Auth::id())->where('aprobador_ti', true)->get();
         $this->agentes = User::role(['Admin', 'Agente'])->where('id', '!=', Auth::id())->where('id', '!=', 16)->get();
+        $this->terceros = Tercero::where('activo', 1)->select('id', 'nombre')->orderBy('nombre')->get();
         $this->identificarTipoAns();
 
         if ($this->ticket->cambio) {
@@ -397,14 +403,6 @@ class Show extends Component
             $nextStates = $transitions[$this->ticket->estado_id] ?? [];
         }
 
-        // Construir la estructura de datos para el frontend
-        // $this->flowData = [
-        //     'currentState' => $currentState,
-        //     'nextStates' => $nextStates,
-        //     'flowStates' => $visitedStates,
-        // ];
-        // dd($this->flowData);
-        // Cambia esta parte al final del método:
         $this->flowData = [
             'currentState' => $currentState,
             'nextStates' => is_callable($nextStates) ? $nextStates($this->ticket) : $nextStates,
@@ -951,6 +949,14 @@ class Show extends Component
             'selectedNewAgente' => 'required|exists:users,id',
         ]);
 
+        if ($usuario->en_vacaciones) {
+            $this->emit('showToast', [
+                'type' => 'error',
+                'message' => "El agente {$usuario->name} está de vacaciones y no puede recibir tickets."
+            ]);
+            return;
+        }
+
         $this->ticket->update([
             'asignado_a' => $usuario->id,
             'tiempo_restante' => 3600,
@@ -1028,7 +1034,7 @@ class Show extends Component
 
     public function loadTicket()
     {
-        $this->ticket = Ticket::with(['categoria', 'subcategoria'])->find($this->ticket_id);
+        $this->ticket = Ticket::with(['categoria', 'subcategoria', 'tercero'])->find($this->ticket_id);
         if (!$this->ticket) {
             return redirect()->to('/404');
         }
@@ -1070,10 +1076,6 @@ class Show extends Component
     {
         //Aparentemente no hace nada, pero si se borra te tiras el modulo
     }
-
-    // public function newAsignado(){
-    //     $this->asignar = !$this->asignar;
-    // }
 
     public function tareas()
     {
@@ -1391,7 +1393,6 @@ class Show extends Component
 
             $ansCumplido = $this->tiempoRestante > 0;
 
-
             $this->ticket->update([
                 'estado_id' => 6,
                 'ans_vencido' => $ansCumplido ? 0 : 1,
@@ -1454,6 +1455,24 @@ class Show extends Component
             $this->mandarParaAprobacion($comentario->id);
         }
 
+        if ($this->ticket->tercero_id != null) {
+            // 🔔 Notificar a terceros configurados en flujos_terceros
+            $flujoTercero = FlujoTercero::where('aplicacion_id', $this->ticket->aplicacion_id)
+                ->where('activo', true)
+                ->first();
+
+            if ($flujoTercero && !empty($flujoTercero->destinatarios)) {
+                $destinatarios = is_array($flujoTercero->destinatarios)
+                    ? $flujoTercero->destinatarios
+                    : json_decode($flujoTercero->destinatarios, true);
+
+                if (is_array($destinatarios)) {
+                    Notification::route('mail', $destinatarios)
+                        ->notify(new NuevoComentarioTercero($comentario));
+                }
+            }
+        }
+
         // Limpiar el estado después de agregar el comentario
         $this->newComment = '';
         $this->commentType = 0;
@@ -1503,10 +1522,30 @@ class Show extends Component
 
     public function consultoria()
     {
-        // Validar que se ingrese una justificación antes de cambiar el estado
-        $this->validate([
-            'justificacion' => 'required|string|min:15'
-        ]);
+        // dd($this->ticket->tercero_id);
+        if ($this->ticket->tercero_id != null) {
+            $this->validate([
+                'justificacion' => 'required|string|min:15',
+            ]);
+
+            $this->ticket->update([
+                'escalar' => true,
+                'estado_id' => 9,
+            ]);
+
+            $this->tercero_id = $this->ticket->tercero_id;
+        } else {
+            $this->validate([
+                'justificacion' => 'required|string|min:15',
+                'tercero_id'    => 'required|exists:terceros,id',
+            ]);
+
+            $this->ticket->update([
+                'escalar' => true,
+                'estado_id' => 9,
+                'tercero_id' => $this->tercero_id,
+            ]);
+        }
 
         // Guardar la justificación como comentario
         $comentario = $this->ticket->comentarios()->create([
@@ -1515,18 +1554,17 @@ class Show extends Component
             'tipo' => 0, // Tipo 0: Comentario público
         ]);
 
-        // Actualizar el estado del ticket
-        $this->ticket->update([
-            'escalar' => true,
-            'estado_id' => 9
-        ]);
+
+
+        $tercero = \App\Models\Tercero::find($this->tercero_id);
+        $nombreTercero = $tercero ? $tercero->nombre : 'Tercero desconocido';
 
         // Registrar en el historial
         Historial::create([
             'ticket_id' => $this->ticket->id,
             'user_id' => Auth::id(),
             'accion' => 'Escalado',
-            'detalle' => Auth::user()->name . ' Cambió el estado del ticket a: ANS DETENIDO',
+            'detalle' => 'El ticket fue escalado al tercero: ' . $nombreTercero,
         ]);
 
         // Registrar en la tabla TicketHistorial
@@ -1536,14 +1574,26 @@ class Show extends Component
             'fecha_cambio' => now(),
         ]);
 
-        // Notificar al usuario del ticket
-        $this->ticket->usuario->notify(new CambioEstado($this->ticket));
+        // 🔔 Notificar al tercero
+        $flujo = FlujoTercero::where('tercero_id', $this->tercero_id)
+            ->where('activo', true)
+            ->first();
+
+        if ($flujo && is_array($flujo->destinatarios)) {
+            foreach ($flujo->destinatarios as $correo) {
+                \Illuminate\Support\Facades\Notification::route('mail', $correo)
+                    ->notify(new \App\Notifications\TicketEscaladoTercero($this->ticket, $this->justificacion));
+            }
+        }
+
+        // 🔔 Notificar al usuario solicitante
+        $this->ticket->usuario->notify(new \App\Notifications\TicketEscaladoUsuario($this->ticket));
+
 
         // Emitir alerta de éxito
         $this->emit('showToast', ['type' => 'success', 'message' => 'Cambio de estado a: ANS DETENIDO']);
 
-        // Limpiar la justificación después del cambio
-        $this->justificacion = '';
+        $this->reset(['tercero_id', 'justificacion', 'escalar']);
 
         // Actualizar flujo y recargar ticket
         $this->updateFlow();

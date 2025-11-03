@@ -113,6 +113,12 @@ return [
         'emergency' => [
             'path' => storage_path('logs/laravel.log'),
         ],
+        'graph' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/graph-sync.log'),
+            'level' => 'info',
+            'days' => 7, // 🔹 Mantener solo 7 días
+        ],
     ],
 
 ];

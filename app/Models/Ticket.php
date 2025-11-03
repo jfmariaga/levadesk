@@ -37,6 +37,9 @@ class Ticket extends Model
         'tiempo_restante',
         'finalizar',
         'aviso_enviado_at',
+        'tercero_id',
+        'asignado_por_vacaciones',
+        'agente_original_id',
     ];
 
     public function usuario()
@@ -158,5 +161,10 @@ class Ticket extends Model
     public function excepcion()
     {
         return $this->hasOne(Excepciones::class);
+    }
+
+    public function tercero()
+    {
+        return $this->belongsTo(Tercero::class);
     }
 }

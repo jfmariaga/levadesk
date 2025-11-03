@@ -3,6 +3,7 @@
 namespace App\Http\Livewire\Ticket;
 
 use App\Models\Comentario;
+use App\Models\FlujoTercero;
 use App\Models\Historial;
 use App\Models\Ticket;
 use App\Models\TicketHistorial;
@@ -11,10 +12,12 @@ use App\Notifications\Finalizado;
 use App\Notifications\NoFuncionaProductivo;
 use App\Notifications\NoSolucion;
 use App\Notifications\NuevoComentario;
+use App\Notifications\NuevoComentarioTercero;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Illuminate\Support\Str;
 use \Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 
 
 class VerTicket extends Component
@@ -88,7 +91,7 @@ class VerTicket extends Component
                 } else {
                     return ['EN ESPERA DE APROBACIÓN PASO A PRODUCTIVO (Líder TI)'];
                 }
-            },            
+            },
             // 11 => [' 1. EN ESPERAS DE EVIDENCIAS SET DE PRUEBAS', '2. ADJUNTAR DOCUMENTACIÓN TÉCNICA', '3. PEDIR APROBACIÓN TRANSPORTE A PRODUCTIVO'],
             11 => function ($ticket) {
                 // Verificar primero si existe el cambio
@@ -227,9 +230,8 @@ class VerTicket extends Component
 
         $this->loadFlow();
         $this->updateFlow();
-
     }
-    
+
 
     public function aceptarSolucion($comentarioId)
     {
@@ -309,7 +311,6 @@ class VerTicket extends Component
 
         $this->verTicket();
         $this->updateFlow();
-
     }
 
     public function addComment()
@@ -319,7 +320,7 @@ class VerTicket extends Component
             $this->emit('faltaEvidencia');
             return;
         }
-        
+
         $this->validate(['newComment' => 'required|string']);
         // Crear el comentario y guardarlo en la variable $comentario
         $comentario = $this->ticket->comentarios()->create([
@@ -393,12 +394,8 @@ class VerTicket extends Component
                 $this->ticket->update([
                     'estado_id' => 3,
                 ]);
-
-
             }
         }
-
-
 
         // Asocia el archivo con el comentario recién creado si existe
         if ($this->newFile) {
@@ -409,6 +406,24 @@ class VerTicket extends Component
         if ($this->ticket->colaboradors) {
             foreach ($this->ticket->colaboradors as $colaborador) {
                 $colaborador->user->notify(new NuevoComentario($comentario));
+            }
+        }
+
+        if ($this->ticket->tercero_id != null) {
+            // 🔔 Notificar a terceros configurados en flujos_terceros
+            $flujoTercero = FlujoTercero::where('aplicacion_id', $this->ticket->aplicacion_id)
+                ->where('activo', true)
+                ->first();
+
+            if ($flujoTercero && !empty($flujoTercero->destinatarios)) {
+                $destinatarios = is_array($flujoTercero->destinatarios)
+                    ? $flujoTercero->destinatarios
+                    : json_decode($flujoTercero->destinatarios, true);
+
+                if (is_array($destinatarios)) {
+                    Notification::route('mail', $destinatarios)
+                        ->notify(new NuevoComentarioTercero($comentario));
+                }
             }
         }
 

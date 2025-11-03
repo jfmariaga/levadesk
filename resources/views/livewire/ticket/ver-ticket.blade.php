@@ -271,6 +271,50 @@
         .rating i:hover~i {
             color: gold;
         }
+
+        .custom-ticket-card .section {
+            margin-bottom: 1.3rem;
+        }
+
+        .custom-ticket-card h5 {
+            color: #0E69B2;
+            font-weight: 600;
+            margin-bottom: 0.6rem;
+        }
+
+        .custom-ticket-card .info-list {
+            list-style: none;
+            padding-left: 0;
+            margin-bottom: 0;
+        }
+
+        .custom-ticket-card .info-list li {
+            font-size: 0.9rem;
+            border-bottom: 1px solid #f0f0f0;
+            padding: 4px 0;
+        }
+
+        .badge-info {
+            background-color: #17a2b8;
+            font-size: 0.8rem;
+            padding: 4px 6px;
+        }
+
+        .rounded-circle {
+            border: 2px solid #0E69B2 !important;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-outline-primary i {
+            color: #464EB8;
+            /* color Teams */
+        }
+
+        .btn-outline-primary:hover {
+            background-color: #464EB8 !important;
+            color: white !important;
+            border-color: #464EB8 !important;
+        }
     </style>
     @if ($ticket)
         <div class="container-fluid">
@@ -522,8 +566,15 @@
                                                 @if ($puedeVerComentario)
                                                     <div class="card">
                                                         <div class="direct-chat-infos clearfix mt-1">
-                                                            <span
-                                                                class="direct-chat-name float-left ml-2">{{ $comentario->user->name ?? 'Anónimo' }}</span>
+                                                            <span class="direct-chat-name float-left ml-1">
+                                                                {{-- Mostrar nombre u origen --}}
+                                                                @if ($comentario->tipo == 10)
+                                                                    <i class="fas fa-user-tie text-primary"></i>
+                                                                    <strong>{{ $comentario->origen ?? 'Tercero' }}</strong>
+                                                                @else
+                                                                    {{ $comentario->user->name ?? 'Anónimo' }}
+                                                                @endif
+                                                            </span>
                                                             <span
                                                                 class="direct-chat-timestamp float-left ml-2">{{ $comentario->created_at->format('d M Y h:i a') }}</span>
                                                             @if ($comentario->tipo == 2 && Auth::id() == $ticket->usuario_id)
@@ -675,38 +726,107 @@
                     </div>
                 </div>
                 <div class="col-lg-3" style="position: sticky; top: 30px; align-self: flex-start;">
-                    <div class="card">
-                        <div class="card-header col-md-12">
-                            <div class="d-flex  align-items-center" style="background-color: #eeeeee">
-                                <div class="col-md-6">
-                                    <h5>Participantes</h5>
+                    <div class="card-body custom-ticket-card">
+
+                        {{-- 👨‍💻 Agente principal --}}
+                        <div class="section mb-3">
+                            <h5>Agente del Ticket</h5>
+                            <div class="d-flex align-items-center">
+                                @php
+                                    // 📸 Lógica para mostrar la foto del agente
+                                    if ($ticket->asignado && method_exists($ticket->asignado, 'adminlte_image')) {
+                                        $fotoAgente = $ticket->asignado->adminlte_image();
+                                    } elseif ($ticket->asignado && $ticket->asignado->profile_photo_path) {
+                                        $fotoAgente = Storage::url($ticket->asignado->profile_photo_path);
+                                    } else {
+                                        $fotoAgente = asset('images/default-avatar.png');
+                                    }
+                                @endphp
+
+                                <img src="{{ $fotoAgente }}"
+                                    alt="Foto de {{ $ticket->asignado->name ?? 'Agente no asignado' }}"
+                                    class="rounded-circle mr-3 shadow-sm" width="77" height="77"
+                                    style="object-fit: cover; border: 2px solid #0E69B2;">
+
+                                <div>
+                                    <ul class="info-list mb-0">
+                                        <li><strong>Nombre:</strong> {{ $ticket->asignado->name ?? 'Sin asignar' }}
+                                        </li>
+                                        <li><strong>Correo:</strong> {{ $ticket->asignado->email ?? 'No disponible' }}
+                                        </li>
+                                    </ul>
+
+                                    {{-- 💬 Botón para abrir chat en Teams --}}
+                                    @if (!empty($ticket->asignado->email))
+                                        <a href="msteams:/l/chat/0/0?users={{ $ticket->asignado->email }}"
+                                            class="btn btn-outline-primary btn-sm mt-2 d-inline-flex align-items-center"
+                                            target="_blank">
+                                            <i class="fab fa-microsoft-teams mr-2"></i> Hablar por Teams
+                                        </a>
+                                    @endif
                                 </div>
                             </div>
                         </div>
-                        <div class="card-body">
-                            <p><strong>Usuario :</strong> {{ $ticket->usuario->name }}</p>
-                            <p><strong>Agente TI :</strong> {{ $ticket->asignado->name }}</p>
-                            @if ($ticket->Colaboradors)
-                                @foreach ($ticket->colaboradors as $colaborador)
-                                    <p><strong>Colaborador :</strong> {{ $colaborador->user->name }}</p>
-                                @endforeach
-                            @endif
-                            @if ($ticket->cambio)
-                                <h5>Flujo de cambios</h5>
-                                <p><strong>Líder funcional:</strong>
-                                    {{ $ticket->cambio->aprobadorFuncionalCambio->name }}</p>
-                                <p><strong>Aprobador TI:</strong>
-                                    {{ $ticket->cambio->aprobadorTiCambio->name }}</p>
-                            @endif
-                            @if ($ticket->aprobacion)
-                                <h5>Flujo de accesos</h5>
-                                <p><strong>Líder funcional:</strong>
-                                    {{ $ticket->aprobacion->aprobadorFuncional->name }}</p>
-                                <p><strong>Aprobador TI:</strong>
-                                    {{ $ticket->aprobacion->aprobadorTi->name }}</p>
-                            @endif
-                        </div>
+
+                        {{-- 👥 Colaboradores --}}
+                        @if ($ticket->colaboradors && $ticket->colaboradors->count())
+                            <div class="section">
+                                <h5>Colaboradores</h5>
+                                <ul class="info-list">
+                                    @foreach ($ticket->colaboradors as $colaborador)
+                                        <li>{{ $colaborador->user->name }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
+
+                        {{-- 🧩 Tercero asignado --}}
+                        @if ($ticket->escalar && $ticket->tercero)
+                            <div class="section">
+                                <h5>Tercero Asignado</h5>
+                                <ul class="info-list">
+                                    <li><strong>Nombre:</strong> {{ $ticket->tercero->nombre }}</li>
+                                    @if (!empty($ticket->tercero->descripcion))
+                                        <li><strong>Descripción:</strong> {{ $ticket->tercero->descripcion }}</li>
+                                    @endif
+                                </ul>
+                                <span class="badge badge-info mt-1">Ticket escalado a tercero</span>
+                            </div>
+                        @endif
+
+                        {{-- 🔁 Flujo de cambios --}}
+                        @if ($ticket->cambio)
+                            <div class="section">
+                                <h5>Flujo de Cambios</h5>
+                                <ul class="info-list">
+                                    <li><strong>Líder funcional:</strong>
+                                        {{ $ticket->cambio->aprobadorFuncionalCambio->name }}</li>
+                                    <li><strong>Aprobador TI:</strong> {{ $ticket->cambio->aprobadorTiCambio->name }}
+                                    </li>
+                                </ul>
+                                @if ($ticket->cambio->tipo_cambio !== null)
+                                    <span class="badge badge-warning tipo-cambio">
+                                        {{ $ticket->cambio->tipo_cambio ? 'Cambio Complejo' : 'Cambio Simple' }}
+                                    </span>
+                                @endif
+                            </div>
+                        @endif
+
+                        {{-- 🔐 Flujo de accesos --}}
+                        @if ($ticket->aprobacion)
+                            <div class="section">
+                                <h5>Flujo de Accesos</h5>
+                                <ul class="info-list">
+                                    <li><strong>Líder funcional:</strong>
+                                        {{ $ticket->aprobacion->aprobadorFuncional->name }}</li>
+                                    <li><strong>Aprobador TI:</strong> {{ $ticket->aprobacion->aprobadorTi->name }}
+                                    </li>
+                                </ul>
+                            </div>
+                        @endif
+
                     </div>
+
                     <div class="card mt-3">
                         <div class="card-header">
                             <h5>Flujo del Ticket</h5>
@@ -730,8 +850,8 @@
     @push('js')
         <script>
             document.addEventListener('livewire:load', function() {
-                 // Renderizar flujo inicial
-                 const flowData = @json($flowData);
+                // Renderizar flujo inicial
+                const flowData = @json($flowData);
                 renderFlowDiagram(flowData);
 
                 // Volver a renderizar el flujo después de una actualización de Livewire
@@ -1059,7 +1179,7 @@
                 });
 
                 Livewire.on('faltaEvidencia', () => {
-                    toastRight('warning','Es necesario adjuntar evidencia');
+                    toastRight('warning', 'Es necesario adjuntar evidencia');
                 });
 
                 Livewire.on('confirmarReapertura', i => {
@@ -1072,9 +1192,6 @@
                         });
                 });
             });
-
-            
-               
         </script>
     @endpush
 </div>

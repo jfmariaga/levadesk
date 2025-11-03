@@ -349,6 +349,18 @@ return [
             'can' => 'dashboard',
         ],
         [
+            'text' => 'Terceros',
+            'route' => 'tercerosIndex',
+            'icon' => 'fas fa-random',
+            'can' => 'dashboard',
+        ],
+        [
+            'text' => 'Flujos de Terceros',
+            'route' => 'terceros',
+            'icon' => 'fas fa-random',
+            'can' => 'dashboard',
+        ],
+        [
             'text' => 'Sociedades',
             'route' => 'sociedad',
             'icon' => 'fas fa-fw fa-building',

@@ -172,6 +172,7 @@ class FormUsuarios extends Component
     public function render()
     {
         $usuariosActivos = User::where('estado', 1)->get();
-        return view('livewire.usuarios.form-usuarios', compact('usuariosActivos'));
+        $agentesActivos =  User::role(['Admin', 'Agente'])->where('id', '!=', 16)->get();
+        return view('livewire.usuarios.form-usuarios', compact('usuariosActivos','agentesActivos'));
     }
 }
