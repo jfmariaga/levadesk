@@ -144,7 +144,7 @@
                 <div class="card card-en-proceso" wire:click="filtrarEnProceso">
                     <div class="inner">
                         <h3>{{ $ticketsEnProceso }}</h3>
-                        <p>Solicitudes en Atención</p>
+                        <p>Solicitudes en Curso</p>
                     </div>
                     <div class="icon">
                         <i class="fas fa-headphones-alt"></i>

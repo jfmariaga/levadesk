@@ -1576,6 +1576,7 @@ class Show extends Component
 
         // 🔔 Notificar al tercero
         $flujo = FlujoTercero::where('tercero_id', $this->tercero_id)
+            ->where('aplicacion_id', $this->ticket->aplicacion_id)
             ->where('activo', true)
             ->first();
 

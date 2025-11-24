@@ -144,11 +144,15 @@
                             <thead>
                                 <tr>
                                     <th>Fecha</th>
+                                    <th>Año</th>
+                                    <th>Mes</th>
                                     <th>Código</th>
                                     <th>Titulo</th>
                                     <th>Prioridad</th>
                                     <th>Sociedad</th>
                                     <th>Tipo de Solicitud</th>
+                                    <th>País</th>
+                                    <th>Estado General</th>
                                     <th>Categoría</th>
                                     <th>Subcategoría</th>
                                     <th>Aplicación</th>
@@ -264,6 +268,12 @@
                                 title: 'Fecha'
                             },
                             {
+                                title: 'Año'
+                            },
+                            {
+                                title: 'Mes'
+                            },
+                            {
                                 title: 'Código'
                             },
                             {
@@ -276,7 +286,13 @@
                                 title: 'Sociedad'
                             },
                             {
-                                title: 'Tipo de Solicitud'
+                                title: 'País'
+                            },
+                            {
+                                title: 'Estado General'
+                            },
+                            {
+                                title: 'Tipo de solicitud'
                             },
                             {
                                 title: 'Categoría'
@@ -304,7 +320,7 @@
                             },
                             {
                                 title: 'Acc'
-                            }
+                            },
                         ],
                         language: {
                             "decimal": "",
@@ -331,7 +347,9 @@
                                 autoFilter: true,
                                 title: 'Estados',
                                 exportOptions: {
-                                    columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+                                    columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
+                                        18
+                                    ]
                                 },
                             },
                             {
@@ -339,7 +357,9 @@
                                 autoFilter: true,
                                 title: 'Estados',
                                 exportOptions: {
-                                    columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,13]
+                                    columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
+                                        18
+                                    ]
                                 },
                             }
                         ]
@@ -374,48 +394,43 @@
                 if (ov) ov.classList.add('d-none');
             });
 
-            // Mapeo de objetos a columnas DataTables
-            // function mapearFilas(rows) {
-            //     return rows.map(el => {
-            //         const id = el.id;
-            //         const href = `gestionar?ticket_id=${id}`;
-
-            //         // Función para envolver cada dato con un link
-            //         const linkWrap = (content) =>
-            //             `<a href="${href}" target="_blank" style="color: inherit; text-decoration: none;">${content}</a>`;
-
-            //         return [
-            //             linkWrap(el.created_at || ''),
-            //             linkWrap(el.nomenclatura || ''),
-            //             linkWrap(el.titulo || ''),
-            //             linkWrap((el.urgencia && el.urgencia.nombre) || ''),
-            //             linkWrap((el.sociedad && el.sociedad.nombre) || ''),
-            //             linkWrap((el.tipo_solicitud && el.tipo_solicitud.nombre) || ''),
-            //             linkWrap((el.categoria && el.categoria.nombre) || ''),
-            //             linkWrap((el.subcategoria && el.subcategoria.nombre) || ''),
-            //             linkWrap((el.aplicacion && el.aplicacion.nombre) || 'NO APLICA'),
-            //             linkWrap((el.usuario && el.usuario.name) || ''),
-            //             linkWrap((el.usuario && el.usuario.area) || 'Sin seleccionar'),
-            //             linkWrap((el.estado && el.estado.nombre) || ''),
-            //             linkWrap((el.asignado && el.asignado.name) || ''),
-            //             // Última columna con el botón de ver
-            //             `<a href="${href}" target="_blank" class="btn btn-xs btn-default text-primary mx-1 shadow" title="Ver">
-    //     <i class="far fa-eye"></i>
-    //  </a>`
-            //         ];
-            //     });
-            // }
-
             function mapearFilas(rows) {
                 return rows.map(el => {
+
                     const id = el.id;
                     const href = `gestionar?ticket_id=${id}`;
 
                     const linkWrap = (content) =>
                         `<a href="${href}" target="_blank" style="color: inherit; text-decoration: none;">${content}</a>`;
 
-                    // ✅ Determinar color según estado ANS
+                    // =========================
+                    // ⭐ 1. PAÍS SEGÚN SOCIEDAD
+                    // =========================
+                    const sociedadesColombia = ['PANAL', 'LEVAPAN', 'TULUÁ', 'LEVACOL'];
+                    const sociedadNombre = (el.sociedad && el.sociedad.nombre) ? el.sociedad.nombre.toUpperCase() : '';
+
+                    const pais = sociedadesColombia.includes(sociedadNombre) ?
+                        'COLOMBIA' :
+                        'REPÚBLICA DOMINICANA Y ECUADOR';
+
+                    // ==========================================
+                    // ⭐ 2. ESTADO GENERAL SEGÚN estado_id
+                    // ==========================================
+                    let estadoGeneral = '';
+
+                    if (el.estado.nombre === 'FINALIZADO') {
+                        estadoGeneral = 'FINALIZADO';
+                    } else if (el.estado.nombre === 'ASIGNADO') {
+                        estadoGeneral = 'POR INICIAR';
+                    } else {
+                        estadoGeneral = 'EN CURSO';
+                    }
+
+                    // ==========================
+                    // ⭐ BADGE DE ESTADO ANS
+                    // ==========================
                     let ansBadge = '';
+
                     if (el.estado_ans === 'Cumplido') {
                         ansBadge = '<span class="badge bg-success">Cumplido</span>';
                     } else if (el.estado_ans === 'No cumplido') {
@@ -424,27 +439,35 @@
                         ansBadge = '<span class="badge bg-warning text-dark">En curso</span>';
                     }
 
+                    // =======================================
+                    // ⭐ DEVOLVEMOS 17 COLUMNAS EXACTAMENTE
+                    // =======================================
                     return [
-                        linkWrap(el.created_at || ''),
-                        linkWrap(el.nomenclatura || ''),
-                        linkWrap(el.titulo || ''),
-                        linkWrap((el.urgencia && el.urgencia.nombre) || ''),
-                        linkWrap((el.sociedad && el.sociedad.nombre) || ''),
-                        linkWrap((el.tipo_solicitud && el.tipo_solicitud.nombre) || ''),
-                        linkWrap((el.categoria && el.categoria.nombre) || ''),
+                        linkWrap(el.created_at || ''), 
+                        linkWrap(el.anio || ''), 
+                        linkWrap(el.mes_nombre || ''),
+                        linkWrap(el.nomenclatura || ''), 
+                        linkWrap(el.titulo || ''), 
+                        linkWrap((el.urgencia && el.urgencia.nombre) || ''), 
+                        linkWrap((el.sociedad && el.sociedad.nombre) || ''), 
+                        linkWrap(pais), 
+                        linkWrap(estadoGeneral), 
+                        linkWrap((el.tipo_solicitud && el.tipo_solicitud.nombre) || ''), 
+                        linkWrap((el.categoria && el.categoria.nombre) || ''), 
                         linkWrap((el.subcategoria && el.subcategoria.nombre) || ''),
-                        linkWrap((el.aplicacion && el.aplicacion.nombre) || 'NO APLICA'),
-                        linkWrap((el.usuario && el.usuario.name) || ''),
-                        linkWrap((el.usuario && el.usuario.area) || 'Sin seleccionar'),
-                        linkWrap((el.estado && el.estado.nombre) || ''),
-                        linkWrap((el.asignado && el.asignado.name) || ''),
-                        ansBadge, // ✅ Nueva columna visual de ANS
+                        linkWrap((el.aplicacion && el.aplicacion.nombre) || 'NO APLICA'), 
+                        linkWrap((el.usuario && el.usuario.name) || ''), 
+                        linkWrap((el.usuario && el.usuario.area) || 'Sin seleccionar'), 
+                        linkWrap((el.estado && el.estado.nombre) || ''), 
+                        linkWrap((el.asignado && el.asignado.name) || ''), 
+                        ansBadge, 
                         `<a href="${href}" target="_blank" class="btn btn-xs btn-default text-primary mx-1 shadow" title="Ver">
                 <i class="far fa-eye"></i>
-             </a>`
+             </a>` // 17
                     ];
                 });
             }
+
 
 
 

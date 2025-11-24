@@ -1961,6 +1961,9 @@
     @push('js')
         <script>
             document.addEventListener('livewire:load', function() {
+
+                // Detectar desde dónde llegó el usuario
+
                 function initializeSelect2() {
                     $('.select2').select2();
 

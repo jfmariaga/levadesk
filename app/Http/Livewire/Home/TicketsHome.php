@@ -60,8 +60,10 @@ class TicketsHome extends Component
             'subcategoria_id',
             'tipo_solicitud_id',
             'aplicacion_id',
-            'urgencia_id'
+            'urgencia_id',
+            'ans_vencido',
         );
+
 
         // Filtros
         if ($this->fecha_desde && $this->fecha_hasta) {
@@ -105,9 +107,25 @@ class TicketsHome extends Component
 
             // Serializa plano y ligero
             $payload = $ticketsChunk->map(function ($t) {
+
+                $estado_ANS = 'En curso';
+
+                // Si está finalizado
+                if ($t->estado_id == 4 || $t->estado_id == 5) {
+                    if ($t->ans_vencido == 1) {
+                        $estado_ANS = 'No cumplido';
+                    } else {
+                        $estado_ANS = 'Cumplido';
+                    }
+                }
+
                 return [
                     'id'             => $t->id,
                     'created_at'     => optional($t->created_at)->format('Y-m-d'),
+                    //FECHA DESGLOSADA
+                    'anio'           => optional($t->created_at)->format('Y'),
+                    'mes'            => optional($t->created_at)->format('m'),       // 01,02,...12
+                    'mes_nombre'     => optional($t->created_at)->locale('es')->translatedFormat('F'),
                     'nomenclatura'   => $t->nomenclatura,
                     'titulo'         => $t->titulo,
                     'urgencia'       => $t->urgencia ? ['nombre' => $t->urgencia->nombre] : null,
@@ -122,6 +140,8 @@ class TicketsHome extends Component
                     'tipo_solicitud' => $t->tipoSolicitud ? ['nombre' => $t->tipoSolicitud->nombre] : null,
                     'aplicacion'     => $t->aplicacion ? ['nombre' => $t->aplicacion->nombre] : null,
                     'sociedad'       => $t->sociedad ? ['nombre' => $t->sociedad->nombre] : null,
+                    'estado_ans'     => $estado_ANS,
+
                 ];
             })->values()->toJson(JSON_UNESCAPED_UNICODE);
 
