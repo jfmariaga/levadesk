@@ -21,6 +21,14 @@
                         @enderror
                     </div>
                     <div class="form-group col-md-6">
+                        <label for="last_name"><i class="fas fa-user"></i> Apellido <b class="text-danger">*</b></label>
+                        <input type="text" id="last_name" class="form-control" wire:model="last_name"
+                            placeholder="Ingresar Apellidos">
+                        @error('last_name')
+                            <span class="text-danger">{{ $message }}</span>
+                        @enderror
+                    </div>
+                    <div class="form-group col-md-12">
                         <label for="email"><i class="fas fa-envelope"></i> Correo <b
                                 class="text-danger">*</b></label>
                         <input type="email" id="email" class="form-control" wire:model="email"

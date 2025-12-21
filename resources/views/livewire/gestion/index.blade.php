@@ -211,7 +211,7 @@
                                         <select wire:ignore id="selectedUsuario" name="usuarios" class="select2">
                                             <option value="">Seleccionar Usuario</option>
                                             @foreach ($usuarios as $usuario)
-                                                <option value="{{ $usuario->id }}">{{ $usuario->name }}</option>
+                                                <option value="{{ $usuario->id }}">{{ $usuario->name }} {{ $usuario->last_name }}</option>
                                             @endforeach
                                         </select>
                                         <button class="btn btn-light mx-2" wire:click="cargarDatos()"
@@ -450,7 +450,7 @@
                                 <td class="pointer">${categoria.nombre}</td>
                                 <td class="pointer">${subcategoria.nombre}</td>
                                 <td class="pointer">${ aplicacion ?aplicacion.nombre:'NO APLICA'}</td>
-                                <td class="pointer">${usuario.name}</td>
+                                <td class="pointer">${usuario.name} ${usuario.last_name ? usuario.last_name : ''}</td>
                                 <td class="pointer">${estado ? estado.nombre:''}</td>
                         <td class="pointer">${rol}</td>
                         <td>

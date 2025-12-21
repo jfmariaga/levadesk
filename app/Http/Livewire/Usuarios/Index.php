@@ -17,7 +17,6 @@ class Index extends Component
 
     public function cargarUsuarios(){
         $usuarios = User::with(['roles', 'sociedad'])->get()->toArray();
-        // dd($usuarios);
         $this->emit('cargarUsuariosTabla', json_encode($usuarios));
     }
 }

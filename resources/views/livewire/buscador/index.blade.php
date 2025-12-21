@@ -55,7 +55,7 @@
                                     <td>{{ $ticket->tipoSolicitud->nombre }}</td>
                                     <td>{{ $ticket->categoria->nombre }}</td>
                                     <td>{{ $ticket->subcategoria->nombre }}</td>
-                                    <td>{{ $ticket->usuario->name }}</td>
+                                    <td>{{ $ticket->usuario->full_name }}</td>
                                     <td>{{ $ticket->estado->nombre }}</td>
                                     <td>
                                         <a target="_blank" href="gestionar?ticket_id={{ $ticket->id }}"

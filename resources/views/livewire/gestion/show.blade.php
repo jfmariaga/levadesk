@@ -422,8 +422,13 @@
     @if ($ticket)
         <div class="container-fluid">
             <div class="row">
-                <a href="{{ route('gestion') }}" class="btn btn-sm btn-outline-secondary ml-3 mb-2 float-right"><i
+                @if (auth()->user()->hasAnyRole('Admin'))
+                    <a href="{{ route('dashboard') }}" class="btn btn-sm btn-outline-secondary ml-3 mb-2 float-right"><i
                         class="fas fa-angle-double-left"></i> Volver</a>
+                @else
+                    <a href="{{ route('gestion') }}" class="btn btn-sm btn-outline-secondary ml-3 mb-2 float-right"><i
+                        class="fas fa-angle-double-left"></i> Volver</a>
+                @endif
             </div>
             <div class="row">
                 <div class="col-lg-9">
@@ -678,7 +683,7 @@
                                                                 <option value="">No asignado</option>
                                                                 @foreach ($ticket->colaboradores as $colaborador)
                                                                     <option value="{{ $colaborador->id }}">
-                                                                        {{ $colaborador->name }}
+                                                                        {{ $colaborador->name }} {{ $colaborador->last_name }} 
                                                                     </option>
                                                                 @endforeach
                                                             </select>
@@ -741,7 +746,7 @@
 
                                                                     @if ($tarea->user_id)
                                                                         <span class="text-muted">Responsable:
-                                                                            {{ $tarea->user->name }}</span>
+                                                                            {{ $tarea->user->name }} {{ $tarea->user->last_name }}</span>
                                                                     @endif
 
                                                                     <div class="mt-3">
@@ -1076,7 +1081,7 @@
                                                                 <option value="">Seleccionar...</option>
                                                                 @foreach ($agentes as $agente)
                                                                     <option value="{{ $agente->id }}">
-                                                                        {{ $agente->name }}
+                                                                        {{ $agente->name }}  {{ $agente->last_name }}
                                                                     </option>
                                                                 @endforeach
                                                             </select>
@@ -1131,9 +1136,9 @@
                                                             <strong>{{ $ticket->aprobacion->created_at->format('d/m/Y H:i') }}</strong>.
                                                         </p>
                                                         <p><strong>Líder funcional:</strong>
-                                                            {{ $ticket->aprobacion->aprobadorFuncional->name }}</p>
+                                                            {{ $ticket->aprobacion->aprobadorFuncional->name }} {{ $ticket->aprobacion->aprobadorFuncional->last_name }}</p>
                                                         <p><strong>Aprobador TI:</strong>
-                                                            {{ $ticket->aprobacion->aprobadorTi->name }}</p>
+                                                            {{ $ticket->aprobacion->aprobadorTi->name }} {{ $ticket->aprobacion->aprobadorTi->last_name }}</p>
                                                         <p>Para ver el estado del flujo, observa el timeline del ticket.
                                                         </p>
                                                         <hr>
@@ -1146,7 +1151,7 @@
                                                                         <option value="">Líder funcional</option>
                                                                         @foreach ($usuarios as $usuario)
                                                                             <option value="{{ $usuario->id }}">
-                                                                                {{ $usuario->name }}
+                                                                                {{ $usuario->name }} {{ $usuario->last_name }}
                                                                             </option>
                                                                         @endforeach
                                                                     </select>
@@ -1159,7 +1164,7 @@
                                                                         <option value="">Aprobador TI</option>
                                                                         @foreach ($aprobadores as $aprobador)
                                                                             <option value="{{ $aprobador->id }}">
-                                                                                {{ $aprobador->name }}
+                                                                                {{ $aprobador->name }} {{ $aprobador->last_name }}
                                                                             </option>
                                                                         @endforeach
                                                                     </select>
@@ -1179,9 +1184,9 @@
                                                             <strong>{{ $ticket->aprobacion->created_at->format('d/m/Y H:i') }}</strong>.
                                                         </p>
                                                         <p><strong>Líder funcional:</strong>
-                                                            {{ $ticket->aprobacion->aprobadorFuncional->name }}</p>
+                                                            {{ $ticket->aprobacion->aprobadorFuncional->name }}  {{ $ticket->aprobacion->aprobadorFuncional->last_name }}</p>
                                                         <p><strong>Aprobador TI:</strong>
-                                                            {{ $ticket->aprobacion->aprobadorTi->name }}</p>
+                                                            {{ $ticket->aprobacion->aprobadorTi->name }} {{ $ticket->aprobacion->aprobadorTi->last_name }}</p>
                                                         <p>Para ver el estado del flujo, observa el timeline del ticket.
                                                         </p>
                                                         <hr>
@@ -1196,9 +1201,9 @@
                                                         <p>El flujo de aprobación ha sido completado y aprobado. Por
                                                             favor ejecuta el requerimiento del usuario.</p>
                                                         <p><strong>Líder funcional:</strong>
-                                                            {{ $ticket->aprobacion->aprobadorFuncional->name }}</p>
+                                                            {{ $ticket->aprobacion->aprobadorFuncional->name }} {{ $ticket->aprobacion->aprobadorFuncional->last_name }}</p>
                                                         <p><strong>Aprobador TI:</strong>
-                                                            {{ $ticket->aprobacion->aprobadorTi->name }}</p>
+                                                            {{ $ticket->aprobacion->aprobadorTi->name }}  {{ $ticket->aprobacion->aprobadorTi->last_name }}</p>
                                                         <hr>
                                                     @endif
                                                 @else
@@ -1213,7 +1218,7 @@
                                                                     <option value="">Seleccionar...</option>
                                                                     @foreach ($usuarios as $usuario)
                                                                         <option value="{{ $usuario->id }}">
-                                                                            {{ $usuario->name }}</option>
+                                                                            {{ $usuario->name }} {{ $usuario->last_name }}</option>
                                                                     @endforeach
                                                                 </select>
                                                             </div>
@@ -1230,7 +1235,7 @@
                                                                     <option value="">Seleccionar...</option>
                                                                     @foreach ($aprobadores as $aprobador)
                                                                         <option value="{{ $aprobador->id }}">
-                                                                            {{ $aprobador->name }}</option>
+                                                                            {{ $aprobador->name }} {{ $aprobador->last_name }}</option>
                                                                     @endforeach
                                                                 </select>
                                                             </div>
@@ -1382,9 +1387,9 @@
                                                             <strong>{{ $ticket->cambio->created_at->format('d/m/Y H:i') }}</strong>.
                                                         </p>
                                                         <p><strong>Líder funcional:</strong>
-                                                            {{ $ticket->cambio->aprobadorFuncionalCambio->name }}</p>
+                                                            {{ $ticket->cambio->aprobadorFuncionalCambio->name }} {{ $ticket->cambio->aprobadorFuncionalCambio->last_name }}</p>
                                                         <p><strong>Aprobador TI:</strong>
-                                                            {{ $ticket->cambio->aprobadorTiCambio->name }}</p>
+                                                            {{ $ticket->cambio->aprobadorTiCambio->name }}  {{ $ticket->cambio->aprobadorTiCambio->last_name }}</p>
                                                         <p>Para ver el estado del flujo, observa el timeline del ticket.
                                                         </p>
                                                         <hr>
@@ -1397,7 +1402,7 @@
                                                                         <option value="">Líder funcional</option>
                                                                         @foreach ($usuarios as $usuario)
                                                                             <option value="{{ $usuario->id }}">
-                                                                                {{ $usuario->name }}
+                                                                                {{ $usuario->name }} {{ $usuario->last_name }}
                                                                             </option>
                                                                         @endforeach
                                                                     </select>
@@ -1410,7 +1415,7 @@
                                                                         <option value="">Aprobador TI</option>
                                                                         @foreach ($aprobadores as $aprobador)
                                                                             <option value="{{ $aprobador->id }}">
-                                                                                {{ $aprobador->name }}
+                                                                                {{ $aprobador->name }}  {{ $aprobador->last_name }}
                                                                             </option>
                                                                         @endforeach
                                                                     </select>
@@ -1430,9 +1435,9 @@
                                                             <strong>{{ $ticket->cambio->created_at->format('d/m/Y H:i') }}</strong>.
                                                         </p>
                                                         <p><strong>Líder funcional:</strong>
-                                                            {{ $ticket->cambio->aprobadorFuncionalCambio->name }}</p>
+                                                            {{ $ticket->cambio->aprobadorFuncionalCambio->name }} {{ $ticket->cambio->aprobadorFuncionalCambio->last_name }}</p>
                                                         <p><strong>Aprobador TI:</strong>
-                                                            {{ $ticket->cambio->aprobadorTiCambio->name }}</p>
+                                                            {{ $ticket->cambio->aprobadorTiCambio->name }}  {{ $ticket->cambio->aprobadorTiCambio->last_name }}</p>
                                                         <p>Para ver el estado del flujo, observa el timeline del ticket.
                                                         </p>
                                                         <hr>
@@ -1447,9 +1452,9 @@
                                                         <p>El flujo de aprobación ha sido completado y aprobado. Por
                                                             favor ejecuta el requerimiento del usuario.</p>
                                                         <p><strong>Líder funcional:</strong>
-                                                            {{ $ticket->cambio->aprobadorFuncionalCambio->name }}</p>
+                                                            {{ $ticket->cambio->aprobadorFuncionalCambio->name }}  {{ $ticket->cambio->aprobadorFuncionalCambio->last_name }}</p>
                                                         <p><strong>Aprobador TI:</strong>
-                                                            {{ $ticket->cambio->aprobadorTiCambio->name }}</p>
+                                                            {{ $ticket->cambio->aprobadorTiCambio->name }} {{ $ticket->cambio->aprobadorTiCambio->last_name }}</p>
                                                         <hr>
                                                     @endif
                                                 @else
@@ -1462,7 +1467,7 @@
                                                                     <option value="">Líder funcional</option>
                                                                     @foreach ($usuarios as $usuario)
                                                                         <option value="{{ $usuario->id }}">
-                                                                            {{ $usuario->name }}</option>
+                                                                            {{ $usuario->name }} {{ $usuario->last_name }}</option>
                                                                     @endforeach
                                                                 </select>
                                                             </div>
@@ -1477,7 +1482,7 @@
                                                                     <option value="">Aprobador TI</option>
                                                                     @foreach ($aprobadores as $aprobador)
                                                                         <option value="{{ $aprobador->id }}">
-                                                                            {{ $aprobador->name }}</option>
+                                                                            {{ $aprobador->name }} {{ $aprobador->last_name }}</option>
                                                                     @endforeach
                                                                 </select>
                                                             </div>
@@ -1555,7 +1560,7 @@
                                                                 <i class="fas fa-user-tie text-primary"></i>
                                                                 <strong>{{ $comentario->origen ?? 'Tercero' }}</strong>
                                                             @else
-                                                                {{ $comentario->user->name ?? 'Anónimo' }}
+                                                                {{ $comentario->user->full_name ?? 'Anónimo' }}
                                                             @endif
                                                         </span>
                                                         <span class="direct-chat-timestamp float-left ml-2 text-muted">
@@ -1588,7 +1593,7 @@
                                                                         @elseif($ticket->cambio->check_aprobado_ti == true && $comentario->check_comentario == true)
                                                                             <h5 class="badge text-bg-dark"
                                                                                 style="background-color: #a3da92;">
-                                                                                {{ $ticket->cambio->aprobadorTiCambio->name }}
+                                                                                {{ $ticket->cambio->aprobadorTiCambio->name }} {{ $ticket->cambio->aprobadorTiCambio->last_name }}
                                                                                 aprobó el paso a producción</h5>
                                                                         @else
                                                                             <div class="dropdown d-none">
@@ -1835,7 +1840,7 @@
                                         <select class="select2 form-control" id="colaborador">
                                             <option value="">Seleccionar...</option>
                                             @foreach ($agentes as $agente)
-                                                <option value="{{ $agente->id }}">{{ $agente->name }}</option>
+                                                <option value="{{ $agente->id }}">{{ $agente->name }} {{ $agente->last_name }}</option>
                                             @endforeach
                                         </select>
                                     </div>
@@ -1856,7 +1861,7 @@
                             <div class="section">
                                 <h5>Información del usuario</h5>
                                 <ul class="info-list">
-                                    <li><strong>Usuario:</strong> {{ $ticket->usuario->name }}</li>
+                                    <li><strong>Usuario:</strong> {{ $ticket->usuario->full_name }}</li>
                                     <li><strong>Correo:</strong> {{ $ticket->usuario->email }}</li>
                                     <li><strong>Sociedad:</strong> {{ $ticket->usuario->sociedad->nombre }}</li>
                                     <li><strong>Área:</strong>
@@ -1868,7 +1873,7 @@
                             <div class="section">
                                 <h5>Agente del ticket</h5>
                                 <ul class="info-list">
-                                    <li>{{ $ticket->asignado->name }}</li>
+                                    <li>{{ $ticket->asignado->full_name }}</li>
                                 </ul>
                             </div>
 
@@ -1889,7 +1894,7 @@
                                     <h5>Supervisores</h5>
                                     <ul class="info-list">
                                         @foreach ($supervisores as $s)
-                                            <li>{{ $s->name }}</li>
+                                            <li>{{ $s->full_name }}</li>
                                         @endforeach
                                     </ul>
                                 </div>
@@ -1900,7 +1905,7 @@
                                     <h5>Colaboradores</h5>
                                     <ul class="info-list">
                                         @foreach ($ticket->colaboradors as $colaborador)
-                                            <li>{{ $colaborador->user->name }}</li>
+                                            <li>{{ $colaborador->user->full_name }}</li>
                                         @endforeach
                                     </ul>
                                 </div>
@@ -1911,9 +1916,9 @@
                                     <h5>Aprobadores de Cambio</h5>
                                     <ul class="info-list">
                                         <li><strong>Líder funcional:</strong>
-                                            {{ $ticket->cambio->aprobadorFuncionalCambio->name }}</li>
+                                            {{ $ticket->cambio->aprobadorFuncionalCambio->full_name }}</li>
                                         <li><strong>Aprobador TI:</strong>
-                                            {{ $ticket->cambio->aprobadorTiCambio->name }}</li>
+                                            {{ $ticket->cambio->aprobadorTiCambio->full_name }}</li>
                                     </ul>
                                     @if ($ticket->cambio->tipo_cambio !== null)
                                         <span class="badge badge-warning tipo-cambio">
@@ -1928,9 +1933,9 @@
                                     <h5>Flujo de Accesos</h5>
                                     <ul class="info-list">
                                         <li><strong>Líder funcional:</strong>
-                                            {{ $ticket->aprobacion->aprobadorFuncional->name }}</li>
+                                            {{ $ticket->aprobacion->aprobadorFuncional->full_name }}</li>
                                         <li><strong>Aprobador TI:</strong>
-                                            {{ $ticket->aprobacion->aprobadorTi->name }}</li>
+                                            {{ $ticket->aprobacion->aprobadorTi->full_name }}</li>
                                     </ul>
                                 </div>
                             @endif

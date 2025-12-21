@@ -62,6 +62,7 @@ class RegisterController extends Controller
     {
         return Validator::make($data, [
             'name' => ['required', 'string', 'max:255'],
+            'last_name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users', function ($attribute, $value, $fail) {
                 $allowedDomains = ['panalsas.com', 'levapan.com', 'levapan.com.do', 'levapan.com.ec', 'levacolsas.com', 'levapan.com.pe'];
                 $emailDomain = substr(strrchr($value, "@"), 1);
@@ -85,6 +86,7 @@ class RegisterController extends Controller
     {
         $user = User::create([
             'name' => $data['name'],
+            'last_name' => $data['last_name'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
             'estado' => true, // Por defecto, el estado es 'activo'

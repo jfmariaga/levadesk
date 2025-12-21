@@ -167,7 +167,12 @@
                         body.append(`<tr id="tr_${id}">
             <td class="pointer">${nombre}</td>
             <td class="pointer">${descripcion ? descripcion : ''}</td>
-            <td class="pointer">${usuarios.map(usuario => usuario.name).join(', ')}</td>
+           <td class="pointer">
+                ${usuarios
+                    .map(u => `${u.name} ${u.last_name ?? ''}`.trim())
+                    .join(', ')
+                }
+            </td>
             <td>
                 <div class="d-flex">
                     <button onclick="editar(${id})" class="btn btn-xs btn-default text-primary mx-1 shadow" title="Edit">

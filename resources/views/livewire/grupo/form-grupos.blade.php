@@ -34,7 +34,7 @@
                     <div class="select2_100" wire:ignore>
                         <select multiple id="usuarios" class="form-control select2">
                             @foreach ($usuarios as $usuario)
-                                <option value="{{ $usuario->id }}">{{ $usuario->name }}</option>
+                                <option value="{{ $usuario->id }}">{{ $usuario->full_name }}</option>
                             @endforeach
                         </select>
                     </div>

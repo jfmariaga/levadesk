@@ -41,8 +41,8 @@ class Index extends Component
         $this->calcularTotales();
 
         $this->estados    = Estado::select('id', 'nombre')->get();
-        $this->usuarios   = User::select('id', 'name')->get();
-        $this->agentes    = User::role(['Agente', 'Admin'])->select('id', 'name')->get();
+        $this->usuarios   = User::select('id', 'name','last_name')->get();
+        $this->agentes    = User::role(['Agente', 'Admin'])->select('id', 'name', 'last_name')->get();
         $this->sociedades = Sociedad::select('id', 'nombre')->get();
     }
 
@@ -60,8 +60,8 @@ class Index extends Component
             'ticket' => function ($q) {
                 $q->with([
                     'estado:id,nombre',
-                    'asignado:id,name',
-                    'usuario:id,name,area',
+                    'asignado:id,name,last_name',
+                    'usuario:id,name,last_name,area',
                     'sociedad:id,nombre,codigo',
                     'urgencia:id,nombre',
                     'categoria:id,nombre',
@@ -132,10 +132,10 @@ class Index extends Component
                     'categoria'        => $ticket->categoria?->nombre,
                     'subcategoria'     => $ticket->subcategoria?->nombre,
                     'aplicacion'       => $ticket->aplicacion?->nombre,
-                    'usuario'          => $ticket->usuario?->name,
+                    'usuario'          => $ticket->usuario?->full_name,
                     'area'             => $ticket->usuario?->area,
                     'estado'           => $ticket->estado?->nombre,
-                    'asignado'         => $ticket->asignado?->name,
+                    'asignado'         => $ticket->asignado?->full_name,
                     'tarea_titulo'     => $tarea->titulo,
                     'tarea_desc'       => $tarea->descripcion,
                     'tarea_estado'     => $tarea->estado,

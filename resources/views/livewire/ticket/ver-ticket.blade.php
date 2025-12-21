@@ -750,7 +750,9 @@
 
                                 <div>
                                     <ul class="info-list mb-0">
-                                        <li><strong>Nombre:</strong> {{ $ticket->asignado->name ?? 'Sin asignar' }}
+                                        <li>
+                                            <strong>Nombre:</strong>
+                                            {{ $ticket->asignado ? trim($ticket->asignado->name . ' ' . ($ticket->asignado->last_name ?? '')) : 'Sin asignar' }}
                                         </li>
                                         <li><strong>Correo:</strong> {{ $ticket->asignado->email ?? 'No disponible' }}
                                         </li>

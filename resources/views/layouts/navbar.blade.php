@@ -33,7 +33,7 @@
                 <img src="{{ Auth::user()->adminlte_image() }}" class="img-circle elevation-2" alt="User Image"
                     width="30" height="30">
                 <!-- Nombre del usuario -->
-                <span class="ml-2">{{ Auth::user()->name }}</span>
+                <span class="ml-2">{{ Auth::user()->name }} {{ Auth::user()->last_name }}</span>
             </a>
             <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
                 <!-- Rol del usuario -->

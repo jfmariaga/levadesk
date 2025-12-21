@@ -19,7 +19,7 @@ class Perfil extends Component
 {
     use WithFileUploads;
 
-    public $name, $email, $current_password, $password, $password_confirmation, $profile_photo, $area;
+    public $name, $last_name, $email, $current_password, $password, $password_confirmation, $profile_photo, $area;
     public $activeSection = 'profile';
     public $nuevoAsignadoId;
     public $backupAsignaciones = [];
@@ -30,10 +30,14 @@ class Perfil extends Component
     {
         $user = Auth::user();
         $this->name = $user->name;
+        $this->last_name = $user->last_name;
         $this->email = $user->email;
         $this->area = $user->area;
         $this->en_vacaciones = $user->en_vacaciones;
         $this->activeSection = session('activeSection', 'profile');
+
+        $this->emit('selectArea', $this->area);
+
 
         // Inicializar backupAsignaciones desde DB
         $this->backupAsignaciones = BackupFlujo::where('agente_id', $user->id)
@@ -62,6 +66,7 @@ class Perfil extends Component
     {
         $this->validate([
             'name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
             'email' => [
                 'required',
                 'email',
@@ -86,9 +91,10 @@ class Perfil extends Component
         }
 
         $user->update([
-            'name' => $this->name,
-            'email' => $this->email,
-            'area' => $this->area,
+            'name'      => $this->name,
+            'last_name' => $this->last_name,
+            'email'     => $this->email,
+            'area'      => $this->area,
         ]);
 
         $this->emit('showToast', ['type' => 'success', 'message' => 'Perfil actualizado con éxito.']);

@@ -106,6 +106,8 @@
 
             function llenarTabla(data) {
                 data = JSON.parse(data);
+                console.log(data);
+                
                 return new Promise((resolve) => {
                     let body = $('#content_tabla_ans');
                     for (let index = 0; index < data.length; index++) {
@@ -113,6 +115,7 @@
                         const {
                             id,
                             name,
+                            last_name,
                             email,
                             area,
                             estado,
@@ -124,7 +127,7 @@
                         const rolesString = roles.map(role => role.name).join(', ');
 
                         body.append(`<tr id="tr_${id}">
-                            <td class="pointer">${name}</td>
+                            <td class="pointer">${name} ${last_name? last_name : ''}</td>
                             <td class="pointer">${email}</td>
                             <td class="pointer">${rolesString ? rolesString : 'Sin definir'}</td>
                             <td class="pointer">${sociedad ? sociedad.nombre : 'Sin definir'}</td>

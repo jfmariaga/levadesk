@@ -227,7 +227,7 @@
                                         <td>${categoria ? categoria.nombre : ''}</td>
                                         <td>${subcategoria ? subcategoria.nombre : ''}</td>
                                         <td>${estado ? estado.nombre : ''}</td>
-                                        <td>${asignado ? asignado.name : ''}</td>
+                                        <td>${asignado ? `${asignado.name} ${asignado.last_name ?? ''}` : ''}</td>
                                         <td>
                                             <div class="d-flex">
                                                 <a href="verTicket?ticket_id=${id}" target="_blank" class="btn btn-xs btn-default text-primary mx-1 shadow" title="Ver"><i class="far fa-eye"></i></a>

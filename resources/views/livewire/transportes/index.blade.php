@@ -146,14 +146,14 @@
                                 <select wire:ignore id="selectedUsuario" class="select2 mx-1">
                                     <option value="">Seleccionar Usuario</option>
                                     @foreach ($usuarios as $u)
-                                        <option value="{{ $u->id }}">{{ $u->name }}</option>
+                                        <option value="{{ $u->id }}">{{ $u->full_name }}</option>
                                     @endforeach
                                 </select>
 
                                 <select wire:ignore id="selectedAgente" class="select2 mx-1">
                                     <option value="">Seleccionar Agente</option>
                                     @foreach ($agentes as $a)
-                                        <option value="{{ $a->id }}">{{ $a->name }}</option>
+                                        <option value="{{ $a->id }}">{{ $a->full_name }}</option>
                                     @endforeach
                                 </select>
 

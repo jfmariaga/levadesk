@@ -97,7 +97,7 @@
                     <div class="card-body text-center">
                         <img src="{{ $profile_photo_preview ?? Auth::user()->adminlte_image() }}"
                             class="rounded-circle mb-3 profile-img" alt="Foto de perfil">
-                        <h4 class="user-name">{{ Auth::user()->name }}</h4>
+                        <h4 class="user-name">{{ Auth::user()->name }} {{ Auth::user()->last_name }}</h4>
                         <p class="text-muted">{{ Auth::user()->adminlte_desc() }}</p>
                         <p class="mb-2"><strong>Sociedad:</strong> {{ $sociedad->nombre ?? 'No asignada' }}</p>
                         <p class="mb-2"><strong>Área:</strong> {{ Auth::user()->area ?? 'Sin definir' }}</p>
@@ -108,39 +108,6 @@
                                 </button>
                             </div>
                         @endif
-
-                        {{-- <p class="mb-0"><strong>Grupos de Atención:</strong></p>
-                        <ul class="list-unstyled">
-                            @foreach ($grupos as $grupo)
-                                <li>{{ $grupo->nombre }}</li>
-                            @endforeach
-                        </ul> --}}
-
-                        {{-- @if (!Auth::user()->hasRole('Usuario') && !Auth::user()->hasRole('Aprobador'))
-                            <div class="form-group d-flex flex-column align-items-center">
-                                @if (Auth::user()->en_vacaciones)
-                                    <p><strong>Agente BK:</strong>
-                                        {{ Auth::user()->backups->last()->name ?? 'No asignado' }}</p>
-                                    <button class="btn btn-outline-info btn-sm" wire:click="volverDelTrabajo">
-                                        Regresar al trabajo
-                                    </button>
-                                @else
-                                    <div class="form-group mb-3">
-                                        <label for="agente">Si te vas a ausentar, por favor elige un agente como tu BK:</label>
-                                        <select wire:model="nuevoAsignadoId" id="agente"
-                                            class="form-control form-control-sm">
-                                            <option value="">Seleccionar automáticamente</option>
-                                            @foreach ($agentes as $agente)
-                                                <option value="{{ $agente->id }}">{{ $agente->name }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                    <button class="btn btn-outline-info btn-sm" wire:click="marcarVacaciones">
-                                        Confirmar
-                                    </button>
-                                @endif
-                            </div>
-                        @endif --}}
                     </div>
                 </div>
             </div>
@@ -174,10 +141,19 @@
                         <div class="card-body">
                             <form wire:submit.prevent="updateProfile" enctype="multipart/form-data">
                                 <div class="form-group mb-3">
-                                    <label for="name" class="form-label">Nombre Completo</label>
+                                    <label for="name" class="form-label">Nombre</label>
                                     <input type="text" wire:model.defer="name" class="form-control form-control-sm"
                                         id="name">
                                     @error('name')
+                                        <span class="text-danger small">{{ $message }}</span>
+                                    @enderror
+                                </div>
+
+                                <div class="form-group mb-3">
+                                    <label for="last_name" class="form-label">Apellidos</label>
+                                    <input type="text" wire:model.defer="last_name"
+                                        class="form-control form-control-sm" id="last_name">
+                                    @error('last_name')
                                         <span class="text-danger small">{{ $message }}</span>
                                     @enderror
                                 </div>
@@ -193,7 +169,7 @@
 
                                 <div wire:ignore class="form-group mb-3">
                                     <label for="email" class="form-label">Área</label>
-                                    <select id="area" class="select2">
+                                    <select id="area" class="select2 form-control">
                                         <option value="">Seleccionar...</option>
                                         <option value="Administración Planta">Administración Planta</option>
                                         <option value="Administrativa y Financiera">Administrativa y Financiera</option>
@@ -280,105 +256,6 @@
                 @endif
 
                 <!-- VACACIONES / BK -->
-                {{-- @if ($activeSection === 'vacaciones')
-                    <div class="card shadow-sm mb-4">
-                        <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
-                            <h5 class="card-title mb-0"><i class="fas fa-plane me-2"></i> Configurar Backups</h5>
-                        </div>
-                        <div class="card-body">
-                            <p>Selecciona un agente backup por flujo o aplicación para cubrir tus tickets durante
-                                vacaciones.</p>
-
-                            <div class="table-responsive">
-                                <table class="table table-sm table-bordered">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th>Tipo</th>
-                                            <th>Nombre</th>
-                                            <th>Grupo</th>
-                                            <th>Agente Backup</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @forelse ($flujos as $flujo)
-                                            <tr>
-                                                <td><span class="badge bg-secondary">Flujo</span></td>
-                                                <td>{{ $flujo->subcategoria->nombre ?? 'Sin nombre' }}</td>
-                                                <td>{{ $flujo->grupo->nombre ?? 'Sin grupo' }}</td>
-                                                <td>
-                                                    <select wire:model="backupAsignaciones.flujo:{{ $flujo->id }}"
-                                                        class="form-select form-select-sm">
-                                                        <option value="">-- Seleccionar --</option>
-                                                        @foreach ($agentes as $agente)
-                                                            <option value="{{ $agente->id }}">{{ $agente->name }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
-                                                </td>
-                                            </tr>
-                                        @empty
-                                            <tr>
-                                                <td colspan="4" class="text-center text-muted">No hay flujos
-                                                    asignados.</td>
-                                            </tr>
-                                        @endforelse
-
-                                        @foreach ($apps as $app)
-                                            <tr>
-                                                <td><span class="badge bg-success">Aplicación</span></td>
-                                                <td>{{ $app->nombre }}</td>
-                                                <td>{{ $app->grupo->nombre ?? 'Sin grupo' }}</td>
-                                                <td>
-                                                    <select wire:model="backupAsignaciones.app:{{ $app->id }}"
-                                                        class="form-select form-select-sm">
-                                                        <option value="">-- Seleccionar --</option>
-                                                        @foreach ($agentes as $agente)
-                                                            <option value="{{ $agente->id }}">{{ $agente->name }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            <div class="d-flex justify-content-between mt-3">
-                                <button wire:click="guardarBackups" class="btn btn-success btn-sm">
-                                    <i class="fas fa-save me-1"></i> Guardar Backups
-                                </button>
-
-                                @php
-                                    // Cantidad total de flujos y aplicaciones asignadas al agente
-                                    $totalItems = count($flujos ?? []) + count($apps ?? []);
-
-                                    // Cuántos selects tienen valor asignado
-                                    $asignados = collect($backupAsignaciones ?? [])
-                                        ->filter(fn($v) => !empty($v))
-                                        ->count();
-
-                                    // Si faltan asignaciones, desactivar botón
-                                    $faltan = $totalItems > $asignados;
-                                @endphp
-
-                                <button wire:click="marcarVacaciones" class="btn btn-outline-info btn-sm"
-                                    @if ($faltan) disabled @endif>
-                                    <i class="fas fa-plane me-1"></i> Marcar Vacaciones
-                                </button>
-                            </div>
-
-                            @if ($faltan)
-                                <div class="alert alert-warning mt-2 py-2 text-center">
-                                    ⚠️ Debes asignar un backup a todos los flujos y aplicaciones antes de continuar.
-                                </div>
-                            @endif
-
-                        </div>
-                    </div>
-                @endif --}}
-
-                <!-- VACACIONES / BK -->
                 @if ($activeSection === 'vacaciones')
                     <div class="card shadow-sm mb-4">
                         <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
@@ -399,7 +276,8 @@
                                         class="form-select form-select-sm">
                                         <option value="">-- Seleccionar agente --</option>
                                         @foreach ($agentes as $agente)
-                                            <option value="{{ $agente->id }}">{{ $agente->name }}</option>
+                                            <option value="{{ $agente->id }}">{{ $agente->name }}
+                                                {{ $agente->last_name }}</option>
                                         @endforeach
                                     </select>
                                     <button wire:click="asignarBackupGlobal" class="btn btn-sm btn-outline-primary">
@@ -430,6 +308,7 @@
                                                         <option value="">-- Seleccionar --</option>
                                                         @foreach ($agentes as $agente)
                                                             <option value="{{ $agente->id }}">{{ $agente->name }}
+                                                                {{ $agente->name }}
                                                             </option>
                                                         @endforeach
                                                     </select>
@@ -453,6 +332,7 @@
                                                         <option value="">-- Seleccionar --</option>
                                                         @foreach ($agentes as $agente)
                                                             <option value="{{ $agente->id }}">{{ $agente->name }}
+                                                                {{ $agente->name }}
                                                             </option>
                                                         @endforeach
                                                     </select>
@@ -505,6 +385,12 @@
             document.addEventListener('livewire:load', function() {
                 Livewire.on('showToast', (data) => {
                     toastRight(data.type, data.message);
+                });
+
+                Livewire.on('selectArea', (area) => {
+                    console.log("buscando el area");
+
+                    $('#area').val(area).trigger('change');
                 });
             });
 

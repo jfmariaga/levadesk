@@ -16,6 +16,7 @@ class FormUsuarios extends Component
     public $usuario_old;
     public $sociedades = [];
     public $roles = [];
+    public $last_name;
 
     // Tickets pendientes
     public $ticketsComoUsuario = [];
@@ -27,6 +28,7 @@ class FormUsuarios extends Component
 
     protected $rules = [
         'name' => 'required|string|max:255',
+        'last_name' => 'required|string|max:255',
         'email' => 'required',
         'rol' => 'required',
         'sociedad_id' => 'required',
@@ -43,6 +45,7 @@ class FormUsuarios extends Component
     {
         $this->usuario_old = User::find($id);
         $this->name = $this->usuario_old->name;
+        $this->last_name = $this->usuario_old->last_name;
         $this->email  = $this->usuario_old->email;
         $this->rol = $this->usuario_old->roles->pluck('id')->toArray();
         $this->sociedad_id  = $this->usuario_old->sociedad_id;
@@ -90,6 +93,7 @@ class FormUsuarios extends Component
     public function guardarUsuario()
     {
         $this->usuario_old->name  = $this->name;
+        $this->usuario_old->last_name  = $this->last_name;
         $this->usuario_old->email = $this->email;
         $this->usuario_old->sociedad_id = $this->sociedad_id;
         $this->usuario_old->estado = $this->estado;

@@ -28,6 +28,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'en_vacaciones',
         'aprobador_ti',
         'area',
+        'last_name',
     ];
 
     /**
@@ -138,5 +139,10 @@ class User extends Authenticatable implements MustVerifyEmail
     public function esBackupDe()
     {
         return $this->belongsToMany(User::class, 'agente_backup', 'backup_id', 'agente_id')->withTimestamps();
+    }
+
+    public function getFullNameAttribute()
+    {
+        return trim($this->name . ' ' . ($this->last_name ?? ''));
     }
 }

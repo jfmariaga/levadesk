@@ -111,14 +111,16 @@
                                     <select wire:ignore id="selectedUsuario" name="usuarios" class="select2">
                                         <option value="">Seleccionar Usuario</option>
                                         @foreach ($usuarios as $usuario)
-                                            <option value="{{ $usuario->id }}">{{ $usuario->name }}</option>
+                                            <option value="{{ $usuario->id }}">{{ $usuario->name }}
+                                                {{ $usuario->last_name }}</option>
                                         @endforeach
                                     </select>
 
                                     <select wire:ignore id="selectedAgente" name="agentes" class="select2">
                                         <option value="">Seleccionar Agente</option>
                                         @foreach ($agentes as $a)
-                                            <option value="{{ $a->id }}">{{ $a->name }}</option>
+                                            <option value="{{ $a->id }}">{{ $a->name }}
+                                                {{ $a->last_name }}</option>
                                         @endforeach
                                     </select>
 
@@ -143,24 +145,25 @@
                         <table class="table table-striped tabla_gestion_tickets d-none" style="width:100%;">
                             <thead>
                                 <tr>
-                                    <th>Fecha</th>
+                                    <th>País</th>
                                     <th>Año</th>
                                     <th>Mes</th>
+                                    <th>Fecha</th>
                                     <th>Código</th>
                                     <th>Titulo</th>
                                     <th>Prioridad</th>
                                     <th>Sociedad</th>
                                     <th>Tipo de Solicitud</th>
-                                    <th>País</th>
-                                    <th>Estado General</th>
                                     <th>Categoría</th>
                                     <th>Subcategoría</th>
                                     <th>Aplicación</th>
                                     <th>Usuario</th>
                                     <th>Área</th>
+                                    <th>Estado General</th>
                                     <th>Estado</th>
                                     <th>Agente</th>
                                     <th>Estado ANS</th>
+                                    <th>Tercero</th>
                                     <th>Acc</th>
                                 </tr>
                             </thead>
@@ -265,13 +268,17 @@
                     dt = $('.tabla_gestion_tickets').DataTable({
                         data: [],
                         columns: [{
-                                title: 'Fecha'
+                                title: 'País'
                             },
+
                             {
                                 title: 'Año'
                             },
                             {
                                 title: 'Mes'
+                            },
+                            {
+                                title: 'Fecha'
                             },
                             {
                                 title: 'Código'
@@ -284,12 +291,6 @@
                             },
                             {
                                 title: 'Sociedad'
-                            },
-                            {
-                                title: 'País'
-                            },
-                            {
-                                title: 'Estado General'
                             },
                             {
                                 title: 'Tipo de solicitud'
@@ -308,6 +309,9 @@
                             },
                             {
                                 title: 'Área'
+                            },                            
+                            {
+                                title: 'Estado General'
                             },
                             {
                                 title: 'Estado'
@@ -317,6 +321,9 @@
                             },
                             {
                                 title: 'Estado ANS'
+                            },
+                            {
+                                title: 'Tercero'
                             },
                             {
                                 title: 'Acc'
@@ -345,7 +352,7 @@
                         buttons: [{
                                 extend: 'excelHtml5',
                                 autoFilter: true,
-                                title: 'Estados',
+                                title: 'Dashboard',
                                 exportOptions: {
                                     columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
                                         18
@@ -396,7 +403,8 @@
 
             function mapearFilas(rows) {
                 return rows.map(el => {
-
+                    console.log(el);
+                    
                     const id = el.id;
                     const href = `gestionar?ticket_id=${id}`;
 
@@ -443,24 +451,25 @@
                     // ⭐ DEVOLVEMOS 17 COLUMNAS EXACTAMENTE
                     // =======================================
                     return [
-                        linkWrap(el.created_at || ''), 
-                        linkWrap(el.anio || ''), 
+                        linkWrap(pais),
+                        linkWrap(el.anio || ''),
                         linkWrap(el.mes_nombre || ''),
-                        linkWrap(el.nomenclatura || ''), 
-                        linkWrap(el.titulo || ''), 
-                        linkWrap((el.urgencia && el.urgencia.nombre) || ''), 
-                        linkWrap((el.sociedad && el.sociedad.nombre) || ''), 
-                        linkWrap(pais), 
-                        linkWrap(estadoGeneral), 
-                        linkWrap((el.tipo_solicitud && el.tipo_solicitud.nombre) || ''), 
-                        linkWrap((el.categoria && el.categoria.nombre) || ''), 
+                        linkWrap(el.created_at || ''),
+                        linkWrap(el.nomenclatura || ''),
+                        linkWrap(el.titulo || ''),
+                        linkWrap((el.urgencia && el.urgencia.nombre) || ''),
+                        linkWrap((el.sociedad && el.sociedad.nombre) || ''),
+                        linkWrap((el.tipo_solicitud && el.tipo_solicitud.nombre) || ''),
+                        linkWrap((el.categoria && el.categoria.nombre) || ''),
                         linkWrap((el.subcategoria && el.subcategoria.nombre) || ''),
-                        linkWrap((el.aplicacion && el.aplicacion.nombre) || 'NO APLICA'), 
-                        linkWrap((el.usuario && el.usuario.name) || ''), 
-                        linkWrap((el.usuario && el.usuario.area) || 'Sin seleccionar'), 
-                        linkWrap((el.estado && el.estado.nombre) || ''), 
-                        linkWrap((el.asignado && el.asignado.name) || ''), 
-                        ansBadge, 
+                        linkWrap((el.aplicacion && el.aplicacion.nombre) || 'NO APLICA'),
+                        linkWrap((el.usuario && el.usuario.full_name) || ''),
+                        linkWrap((el.usuario && el.usuario.area) || 'Sin seleccionar'),
+                        linkWrap(estadoGeneral),
+                        linkWrap((el.estado && el.estado.nombre) || ''),
+                        linkWrap((el.asignado && el.asignado.full_name) || ''),
+                        ansBadge,
+                        linkWrap((el.tercero && el.tercero.nombre) || 'Sin Escalar'),
                         `<a href="${href}" target="_blank" class="btn btn-xs btn-default text-primary mx-1 shadow" title="Ver">
                 <i class="far fa-eye"></i>
              </a>` // 17
