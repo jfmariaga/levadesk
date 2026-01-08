@@ -309,7 +309,7 @@
                             },
                             {
                                 title: 'Área'
-                            },                            
+                            },
                             {
                                 title: 'Estado General'
                             },
@@ -404,7 +404,7 @@
             function mapearFilas(rows) {
                 return rows.map(el => {
                     console.log(el);
-                    
+
                     const id = el.id;
                     const href = `gestionar?ticket_id=${id}`;
 
@@ -414,19 +414,29 @@
                     // =========================
                     // ⭐ 1. PAÍS SEGÚN SOCIEDAD
                     // =========================
-                    const sociedadesColombia = ['PANAL', 'LEVAPAN', 'TULUÁ', 'LEVACOL'];
-                    const sociedadNombre = (el.sociedad && el.sociedad.nombre) ? el.sociedad.nombre.toUpperCase() : '';
 
-                    const pais = sociedadesColombia.includes(sociedadNombre) ?
-                        'COLOMBIA' :
-                        'REPÚBLICA DOMINICANA Y ECUADOR';
+                    const paisPorSociedad = {
+                        PANAL: 'COLOMBIA',
+                        LEVAPAN: 'COLOMBIA',
+                        'TULUÁ': 'COLOMBIA',
+                        LEVACOL: 'COLOMBIA',
+                        'REPÚBLICA DOMINICANA': 'REPÚBLICA DOMINICANA',
+                        ECUADOR: 'ECUADOR'
+                    };
+
+                    const sociedadNombre = (el.sociedad && el.sociedad.nombre) ?
+                        el.sociedad.nombre.toUpperCase() :
+                        '';
+
+                    const pais = paisPorSociedad[sociedadNombre] ?? 'SIN DEFINIR';
+
 
                     // ==========================================
                     // ⭐ 2. ESTADO GENERAL SEGÚN estado_id
                     // ==========================================
                     let estadoGeneral = '';
 
-                    if (el.estado.nombre === 'FINALIZADO') {
+                    if (el.estado.nombre === 'FINALIZADO' || el.estado.nombre === 'POR ACEPTACION' ||el.estado.nombre === 'VALIDAR AMBIENTE PRODUCTIVO' || el.estado.nombre === 'FINALIZAR TICKET') {
                         estadoGeneral = 'FINALIZADO';
                     } else if (el.estado.nombre === 'ASIGNADO') {
                         estadoGeneral = 'POR INICIAR';

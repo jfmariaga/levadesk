@@ -1523,29 +1523,18 @@ class Show extends Component
     public function consultoria()
     {
         // dd($this->ticket->tercero_id);
-        if ($this->ticket->tercero_id != null) {
-            $this->validate([
-                'justificacion' => 'required|string|min:15',
-            ]);
 
-            $this->ticket->update([
-                'escalar' => true,
-                'estado_id' => 9,
-            ]);
+        $this->validate([
+            'justificacion' => 'required|string|min:15',
+            'tercero_id'    => 'required|exists:terceros,id',
+        ]);
 
-            $this->tercero_id = $this->ticket->tercero_id;
-        } else {
-            $this->validate([
-                'justificacion' => 'required|string|min:15',
-                'tercero_id'    => 'required|exists:terceros,id',
-            ]);
+        $this->ticket->update([
+            'escalar' => true,
+            'estado_id' => 9,
+            'tercero_id' => $this->tercero_id,
+        ]);
 
-            $this->ticket->update([
-                'escalar' => true,
-                'estado_id' => 9,
-                'tercero_id' => $this->tercero_id,
-            ]);
-        }
 
         // Guardar la justificación como comentario
         $comentario = $this->ticket->comentarios()->create([

@@ -1357,6 +1357,22 @@
                                                             detener el ANS y dejar una nueva justificación.</p>
                                                     </div>
 
+                                                    {{-- Selector de tercero --}}
+                                                    <div class="form-group">
+                                                        <label><strong>Selecciona el tercero:</strong></label>
+                                                        <select wire:model="tercero_id" class="form-control">
+                                                            <option value="">-- Selecciona un tercero --</option>
+                                                            @foreach ($terceros as $tercero)
+                                                                <option value="{{ $tercero->id }}">
+                                                                    {{ $tercero->nombre }}</option>
+                                                            @endforeach
+                                                        </select>
+                                                        @error('tercero_id')
+                                                            <span class="text-danger">El campo tercero es
+                                                                obligatorio.</span>
+                                                        @enderror
+                                                    </div>
+
                                                     <div class="form-group">
                                                         <label><strong>Justificación:</strong></label>
                                                         <textarea wire:model.defer="justificacion" class="form-control" rows="3"
