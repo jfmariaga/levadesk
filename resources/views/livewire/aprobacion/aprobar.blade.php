@@ -590,26 +590,26 @@
                             </div>
                         </div>
                         <div class="card-body">
-                            <p><strong>Usuario :</strong> {{ $ticket->usuario->name }}</p>
-                            <p><strong>Agente TI :</strong> {{ $ticket->asignado->name }}</p>
+                            <p><strong>Usuario :</strong> {{ $ticket->usuario->name }} {{ $ticket->usuario->last_name }}</p>
+                            <p><strong>Agente TI :</strong> {{ $ticket->asignado->name }} {{ $ticket->asignado->last_name }}</p>
                             @if ($ticket->Colaboradors)
                                 @foreach ($ticket->colaboradors as $colaborador)
-                                    <p><strong>Colaborador :</strong> {{ $colaborador->user->name }}</p>
+                                    <p><strong>Colaborador :</strong> {{ $colaborador->user->name }} {{ $colaborador->user->last_name }}</p>
                                 @endforeach
                             @endif
                             @if ($ticket->cambio)
                                 <h5>Flujo de cambios</h5>
                                 <p><strong>Líder funcional:</strong>
-                                    {{ $ticket->cambio->aprobadorFuncionalCambio->name }}</p>
+                                    {{ $ticket->cambio->aprobadorFuncionalCambio->name }} {{ $ticket->cambio->aprobadorFuncionalCambio->last_name }}</p>
                                 <p><strong>Aprobador TI:</strong>
-                                    {{ $ticket->cambio->aprobadorTiCambio->name }}</p>
+                                    {{ $ticket->cambio->aprobadorTiCambio->name }} {{ $ticket->cambio->aprobadorTiCambio->last_name }}</p>
                             @endif
                             @if ($ticket->aprobacion)
                                 <h5>Flujo de accesos</h5>
                                 <p><strong>Líder funcional:</strong>
-                                    {{ $ticket->aprobacion->aprobadorFuncional->name }}</p>
-                                <p><strong>Aprobador TI:</strong>
-                                    {{ $ticket->aprobacion->aprobadorTi->name }}</p>
+                                    {{ $ticket->aprobacion->aprobadorFuncional->name }} {{ $ticket->aprobacion->aprobadorFuncional->last_name }}</p>
+                                <p><strong>Aprobador TI:</strong> 
+                                    {{ $ticket->aprobacion->aprobadorTi->name }} {{ $ticket->aprobacion->aprobadorTi->last_name }}</p>
                             @endif
                         </div>
                     </div>

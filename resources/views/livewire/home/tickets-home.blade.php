@@ -436,7 +436,7 @@
                     // ==========================================
                     let estadoGeneral = '';
 
-                    if (el.estado.nombre === 'FINALIZADO' || el.estado.nombre === 'POR ACEPTACION' ||el.estado.nombre === 'VALIDAR AMBIENTE PRODUCTIVO' || el.estado.nombre === 'FINALIZAR TICKET') {
+                    if (el.estado.nombre === 'FINALIZADO' || el.estado.nombre === 'POR ACEPTACION' ||el.estado.nombre === 'VALIDAR AMBIENTE PRODUCTIVO' || el.estado.nombre === 'FINALIZAR TICKET' || el.estado.nombre === 'RECHAZADO') {
                         estadoGeneral = 'FINALIZADO';
                     } else if (el.estado.nombre === 'ASIGNADO') {
                         estadoGeneral = 'POR INICIAR';

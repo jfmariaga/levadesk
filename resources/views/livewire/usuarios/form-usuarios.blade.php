@@ -104,6 +104,7 @@
                             <option value="Administrativa y Financiera">Administrativa y Financiera</option>
                             <option value="Auditoría">Auditoría</option>
                             <option value="Cadena de Abastecimiento">Cadena de Abastecimiento</option>
+                            <option value="Cartera">Cartera</option>
                             <option value="Comercial Biolev">Comercial Biolev</option>
                             <option value="Comercial Consumo">Comercial Consumo</option>
                             <option value="Comercial Exportaciones">Comercial Exportaciones</option>
@@ -113,6 +114,7 @@
                             <option value="Contabilidad e Impuestos">Contabilidad e Impuestos</option>
                             <option value="Control Calidad">Control Calidad</option>
                             <option value="Control Financiero">Control Financiero</option>
+                            <option value="Cuentas por Pagar">Cuentas por Pagar</option>
                             <option value="Departamento Técnico">Departamento Técnico</option>
                             <option value="Desarrollo de Negocios">Desarrollo de Negocios</option>
                             <option value="Gente y Cultura">Gente y Cultura</option>
@@ -130,6 +132,7 @@
                             <option value="Producción">Producción</option>
                             <option value="Servicios Administrativos">Servicios Administrativos</option>
                             <option value="Tecnología">Tecnología</option>
+                            <option value="Tesorería">Tesorería</option>
                         </select>
                         @error('area')
                             <small class="text-danger">{{ $message }}</small>

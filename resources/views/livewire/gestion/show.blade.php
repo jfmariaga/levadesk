@@ -1695,7 +1695,7 @@
                                                                     <option value="1">Privado</option>
                                                                     @if (Auth::id() == $ticket->asignado_a)
                                                                         @php
-                                                                            $esCambioSimple =
+                                                                                $esCambioSimple =
                                                                                 $ticket->cambio &&
                                                                                 $ticket->cambio->tipo_cambio == 0;
                                                                         @endphp
@@ -1713,14 +1713,15 @@
                                                                         @endif
 
                                                                         @if (
-                                                                            $ticket->cambio &&
+                                                                                $ticket->cambio &&
                                                                                 $ticket->cambio->estado == 'aprobado' &&
                                                                                 $ticket->cambio->check_aprobado_ti == false &&
                                                                                 $ticket->cambio->tipo_cambio == true &&
                                                                                 $ticket->estado_id != 11 &&
                                                                                 $ticket->estado_id != 10 &&
                                                                                 $ticket->estado_id != 9 &&
-                                                                                $ticket->finalizar != true)
+                                                                                $ticket->finalizar != true
+                                                                            )
                                                                             @if (!$ticket->solucion())
                                                                                 <option value="5">Set de pruebas
                                                                                 </option>

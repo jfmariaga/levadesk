@@ -56,13 +56,13 @@
                         <select wire:ignore id="selectedUsuario" name="usuarios" class="select2">
                             <option value="">Seleccionar Usuario</option>
                             @foreach ($usuarios as $usuario)
-                                <option value="{{ $usuario->id }}">{{ $usuario->name }}</option>
+                                <option value="{{ $usuario->id }}">{{ $usuario->name }} {{ $usuario->last_name }}</option>
                             @endforeach
                         </select>
                         <select wire:ignore id="selectedAgente" name="agentes" class="select2">
                             <option value="">Seleccionar Agente</option>
                             @foreach ($agentes as $a)
-                                <option value="{{ $a->id }}">{{ $a->name }}</option>
+                                <option value="{{ $a->id }}">{{ $a->name }} {{ $a->last_name }}</option>
                             @endforeach
                         </select>
                         <button class="btn btn-light mx-2" wire:click="loadAprobaciones()"

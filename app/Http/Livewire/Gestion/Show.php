@@ -1520,74 +1520,164 @@ class Show extends Component
         $this->reset('newFileCambio');
     }
 
+    // public function consultoria()
+    // {
+    //     // dd($this->ticket->tercero_id);
+
+    //     $this->validate([
+    //         'justificacion' => 'required|string|min:15',
+    //         'tercero_id'    => 'required|exists:terceros,id',
+    //     ]);
+
+    //     $this->ticket->update([
+    //         'escalar' => true,
+    //         'estado_id' => 9,
+    //         'tercero_id' => $this->tercero_id,
+    //     ]);
+
+
+    //     // Guardar la justificación como comentario
+    //     $comentario = $this->ticket->comentarios()->create([
+    //         'user_id' => auth()->id(),
+    //         'comentario' => 'El agente TI detuvo el ANS, Justificación: ' . $this->justificacion,
+    //         'tipo' => 0, // Tipo 0: Comentario público
+    //     ]);
+
+
+
+    //     $tercero = \App\Models\Tercero::find($this->tercero_id);
+    //     $nombreTercero = $tercero ? $tercero->nombre : 'Tercero desconocido';
+
+    //     // Registrar en el historial
+    //     Historial::create([
+    //         'ticket_id' => $this->ticket->id,
+    //         'user_id' => Auth::id(),
+    //         'accion' => 'Escalado',
+    //         'detalle' => 'El ticket fue escalado al tercero: ' . $nombreTercero,
+    //     ]);
+
+    //     // Registrar en la tabla TicketHistorial
+    //     TicketHistorial::create([
+    //         'ticket_id' => $this->ticket->id,
+    //         'estado_id' => 9,
+    //         'fecha_cambio' => now(),
+    //     ]);
+
+    //     // 🔔 Notificar al tercero
+    //     $flujo = FlujoTercero::where('tercero_id', $this->tercero_id)
+    //         ->where('aplicacion_id', $this->ticket->aplicacion_id)
+    //         ->where('activo', true)
+    //         ->first();
+
+    //     if ($flujo && is_array($flujo->destinatarios)) {
+    //         foreach ($flujo->destinatarios as $correo) {
+    //             \Illuminate\Support\Facades\Notification::route('mail', $correo)
+    //                 ->notify(new \App\Notifications\TicketEscaladoTercero($this->ticket, $this->justificacion));
+    //         }
+    //     }
+
+    //     // 🔔 Notificar al usuario solicitante
+    //     $this->ticket->usuario->notify(new \App\Notifications\TicketEscaladoUsuario($this->ticket));
+
+
+    //     // Emitir alerta de éxito
+    //     $this->emit('showToast', ['type' => 'success', 'message' => 'Cambio de estado a: ANS DETENIDO']);
+
+    //     $this->reset(['tercero_id', 'justificacion', 'escalar']);
+
+    //     // Actualizar flujo y recargar ticket
+    //     $this->updateFlow();
+    //     $this->loadTicket($this->ticket->id);
+    // }
+
     public function consultoria()
     {
-        // dd($this->ticket->tercero_id);
-
         $this->validate([
             'justificacion' => 'required|string|min:15',
             'tercero_id'    => 'required|exists:terceros,id',
         ]);
 
-        $this->ticket->update([
-            'escalar' => true,
-            'estado_id' => 9,
-            'tercero_id' => $this->tercero_id,
-        ]);
-
-
-        // Guardar la justificación como comentario
-        $comentario = $this->ticket->comentarios()->create([
-            'user_id' => auth()->id(),
-            'comentario' => 'El agente TI detuvo el ANS, Justificación: ' . $this->justificacion,
-            'tipo' => 0, // Tipo 0: Comentario público
-        ]);
-
-
-
         $tercero = \App\Models\Tercero::find($this->tercero_id);
-        $nombreTercero = $tercero ? $tercero->nombre : 'Tercero desconocido';
+        if (!$tercero) {
+            $this->emit('showToast', [
+                'type' => 'error',
+                'message' => 'El tercero seleccionado no existe.'
+            ]);
+            return;
+        }
 
-        // Registrar en el historial
-        Historial::create([
-            'ticket_id' => $this->ticket->id,
-            'user_id' => Auth::id(),
-            'accion' => 'Escalado',
-            'detalle' => 'El ticket fue escalado al tercero: ' . $nombreTercero,
-        ]);
+        $esInterno = (int) $tercero->id === 2 || (int) $tercero->id === 4;
 
-        // Registrar en la tabla TicketHistorial
-        TicketHistorial::create([
-            'ticket_id' => $this->ticket->id,
-            'estado_id' => 9,
-            'fecha_cambio' => now(),
-        ]);
+        $flujo = null;
 
-        // 🔔 Notificar al tercero
-        $flujo = FlujoTercero::where('tercero_id', $this->tercero_id)
-            ->where('aplicacion_id', $this->ticket->aplicacion_id)
-            ->where('activo', true)
-            ->first();
+        if (!$esInterno) {
+            $flujo = FlujoTercero::where('tercero_id', $this->tercero_id)
+                ->where('aplicacion_id', $this->ticket->aplicacion_id)
+                ->where('activo', true)
+                ->first();
 
-        if ($flujo && is_array($flujo->destinatarios)) {
-            foreach ($flujo->destinatarios as $correo) {
-                \Illuminate\Support\Facades\Notification::route('mail', $correo)
-                    ->notify(new \App\Notifications\TicketEscaladoTercero($this->ticket, $this->justificacion));
+            if (!$flujo) {
+                $this->emit('showToast', [
+                    'type' => 'error',
+                    'message' => 'No existe un flujo activo para el tercero seleccionado con la aplicación de este ticket.'
+                ]);
+                return;
             }
         }
 
-        // 🔔 Notificar al usuario solicitante
-        $this->ticket->usuario->notify(new \App\Notifications\TicketEscaladoUsuario($this->ticket));
+        DB::transaction(function () use ($tercero) {
+            $this->ticket->update([
+                'escalar'    => true,
+                'estado_id'  => 9,
+                'tercero_id' => $this->tercero_id,
+            ]);
 
+            $this->ticket->comentarios()->create([
+                'user_id'    => auth()->id(),
+                'comentario' => 'El agente TI detuvo el ANS, Justificación: ' . $this->justificacion,
+                'tipo'       => 0,
+            ]);
 
-        // Emitir alerta de éxito
-        $this->emit('showToast', ['type' => 'success', 'message' => 'Cambio de estado a: ANS DETENIDO']);
+            Historial::create([
+                'ticket_id' => $this->ticket->id,
+                'user_id'   => Auth::id(),
+                'accion'    => 'Escalado',
+                'detalle'   => 'El ticket fue escalado al tercero: ' . $tercero->nombre,
+            ]);
+
+            TicketHistorial::create([
+                'ticket_id'    => $this->ticket->id,
+                'estado_id'    => 9,
+                'fecha_cambio' => now(),
+            ]);
+        });
+
+        if (!$esInterno && $flujo) {
+            $destinatarios = is_array($flujo->destinatarios)
+                ? $flujo->destinatarios
+                : json_decode($flujo->destinatarios, true);
+
+            if (is_array($destinatarios)) {
+                foreach ($destinatarios as $correo) {
+                    \Illuminate\Support\Facades\Notification::route('mail', $correo)
+                        ->notify(new \App\Notifications\TicketEscaladoTercero($this->ticket, $this->justificacion));
+                }
+            }
+        }
+
+        $this->ticket->usuario->notify(
+            new \App\Notifications\TicketEscaladoUsuario($this->ticket)
+        );
+
+        $this->emit('showToast', [
+            'type' => 'success',
+            'message' => 'Cambio de estado a: ANS DETENIDO'
+        ]);
 
         $this->reset(['tercero_id', 'justificacion', 'escalar']);
 
-        // Actualizar flujo y recargar ticket
         $this->updateFlow();
-        $this->loadTicket($this->ticket->id);
+        $this->loadTicket();
     }
 
     public function consultoriaCambio()

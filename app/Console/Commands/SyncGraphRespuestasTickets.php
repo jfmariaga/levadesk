@@ -156,27 +156,25 @@ class SyncGraphRespuestasTickets extends Command
      */
     private function limpiarBody($bodyHtml)
     {
-        // 1️⃣ Eliminar etiquetas HTML innecesarias
+        if (empty($bodyHtml)) {
+            return null;
+        }
+
+        // 1️⃣ Convertir HTML a texto
         $texto = strip_tags($bodyHtml);
 
-        // 2️⃣ Convertir entidades HTML
+        // 2️⃣ Decodificar entidades
         $texto = html_entity_decode($texto, ENT_QUOTES | ENT_HTML5, 'UTF-8');
 
-        // 3️⃣ Quitar saltos excesivos
-        $texto = preg_replace("/(\r?\n){2,}/", "\n", $texto);
+        // 3️⃣ Normalizar saltos de línea
+        $texto = preg_replace("/(\r\n|\r|\n){2,}/", "\n\n", $texto);
 
-        // 4️⃣ Cortar justo antes de los indicios de mensajes previos o firmas
+        // 4️⃣ Detectar inicio del hilo de conversación (patrones seguros)
         $patrones = [
-            '/(De:|From:).*/si',
-            '/(On .* wrote:)/si',
-            '/El .* escribió:/si',
-            '/-----Mensaje original-----/si',
-            '/LevaDesk.*Estimado equipo.*/si',
-            '/Este mensaje puede contener.*$/si',
-            '/ProteccionDatos.*$/si',
-            '/Firma levapan.*$/si',
-            '/Grupo Levapan.*$/si',
-            '/http:\/\/www\.stratesys-ts\.com.*/si', // corta al ver firma del tercero
+            '/\d{2}\/\d{2}\/\d{4}.*wrote:/i', // Outlook estilo: 06/03/2026 ... wrote:
+            '/On .* wrote:/i',                // Gmail
+            '/El .* escribió:/i',             // Español
+            '/-----Original Message-----/i',  // Outlook clásico
         ];
 
         foreach ($patrones as $pattern) {
@@ -186,10 +184,9 @@ class SyncGraphRespuestasTickets extends Command
             }
         }
 
-        // 5️⃣ Quitar espacios en blanco y caracteres raros
-        $texto = trim(preg_replace('/\s+/', ' ', $texto));
+        // 5️⃣ Limpiar espacios
+        $texto = trim($texto);
 
-        // 6️⃣ Evitar respuestas vacías o automáticas
         if (strlen($texto) < 5) {
             return null;
         }

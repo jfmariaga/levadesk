@@ -285,9 +285,15 @@ class FormTickets extends Component
                     $grupo = $aplicacion->grupo;
 
                     if ($grupo) {
-                        $usuario = $grupo->usuarios()
-                            ->withCount('ticketsAsignados')
-                            ->orderBy('tickets_asignados_count', 'asc')
+                        // $usuario = $grupo->usuarios()
+                        //     ->withCount('ticketsAsignados')
+                        //     ->orderBy('tickets_asignados_count', 'asc')
+                        //     ->first();
+                       $usuario = $grupo->usuarios()
+                            ->withCount(['ticketsAsignados as tickets_en_atencion_count' => function ($query) {
+                                $query->where('estado_id', 3);
+                            }])
+                            ->orderBy('tickets_en_atencion_count', 'asc')
                             ->first();
                     } else {
                         $this->emit('showToast', [
@@ -317,9 +323,16 @@ class FormTickets extends Component
             }
 
             // Obtener el usuario con menos tickets asignados en ese grupo
-            $usuario = $grupo->usuarios()
-                ->withCount('ticketsAsignados')
-                ->orderBy('tickets_asignados_count', 'asc')
+            // $usuario = $grupo->usuarios()
+            //     ->withCount('ticketsAsignados')
+            //     ->orderBy('tickets_asignados_count', 'asc')
+            //     ->first();
+
+           $usuario = $grupo->usuarios()
+                ->withCount(['ticketsAsignados as tickets_en_atencion_count' => function ($query) {
+                    $query->where('estado_id', 3);
+                }])
+                ->orderBy('tickets_en_atencion_count', 'asc')
                 ->first();
         }
 
@@ -541,7 +554,6 @@ class FormTickets extends Component
         return $icons[$extension] ?? asset('icons/default-icon.png');
         $this->resetValidation();
     }
-
 
     public function render()
     {
