@@ -628,7 +628,7 @@
                         </div>
                         <div class="card-body">
                             <p><strong>Usuario :</strong> {{ $ticket->usuario->name }} {{ $ticket->usuario->last_name }}</p>
-                            <p><strong>Agente TI :</strong> {{ $ticket->asignado->name }} {{ $ticket->usuario->last_name }}</p>
+                            <p><strong>Agente TI :</strong> {{ $ticket->asignado->name }} {{ $ticket->asignado->last_name }}</p>
                             @if ($ticket->Colaboradors)
                                 @foreach ($ticket->colaboradors as $colaborador)
                                     <p><strong>Colaborador :</strong> {{ $colaborador->user->name }} {{ $colaborador->user->last_name }}</p>

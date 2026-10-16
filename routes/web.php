@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Auth\SsoController;
 use App\Http\Controllers\Auth\VerificationController;
 use App\Http\Controllers\HomeController;
 use Illuminate\Support\Facades\Auth;
@@ -32,6 +33,10 @@ Route::get('/', function () {
 });
 
 Auth::routes(['verify' => true]);
+
+// SSO Microsoft (app multi-tenant; el tenant se valida en el callback)
+Route::get('sso/redirect', [SsoController::class, 'redirect'])->name('sso.redirect');
+Route::get('sso/levapan/callback', [SsoController::class, 'callback'])->name('sso.callback');
 
 Route::get('/email/verify', function () {
     return view('auth.verify');
@@ -75,6 +80,9 @@ Route::group(['middleware' => ['auth', 'verified']], function () {
         Route::view('ticket', 'admin.ticket.index')->name('ticket');
         Route::view('verTicket', 'admin.ticket.verTicket')->name('verTicket');
     });
+
+    Route::get('investigar-sap/{ticket?}', [\App\Http\Controllers\SapIaController::class, 'ir'])
+        ->whereNumber('ticket')->middleware('can:investigacion-sap')->name('sapia.ir');
 
     Route::group(['middleware' => 'can:aprobacion'], function () {
         Route::view('aprobacion', 'admin.aprobacion.index')->name('aprobacion');

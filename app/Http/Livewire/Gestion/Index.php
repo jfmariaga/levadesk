@@ -11,15 +11,17 @@ use Livewire\Component;
 
 class Index extends Component
 {
-    public $tickets;
+    // Colecciones grandes fuera del estado publico: el POST de Livewire las reenvia
+    // y el WAF (AWS) bloquea cuerpos de mas de 8KB
+    protected $tickets;
     public $ticketsSolucionados;
     public $ticketsEnProceso;
     public $ticketsPorIniciar;
     public $totalHorasSoporte;
     public $fecha_desde, $fecha_hasta;
     public $item;
-    public $estados, $SelectedEstado;
-    public $usuarios, $selectedUsuario;
+    public $SelectedEstado;
+    public $selectedUsuario;
 
 
     protected $listeners = ['cargarDatos', 'gestionTicket'];
@@ -30,8 +32,6 @@ class Index extends Component
     {
         $this->iniciarFechas();
         $this->cargarDatos();
-        $this->estados = Estado::all();
-        $this->usuarios = User::all();
     }
 
     public function filtrarEnProceso()
@@ -113,7 +113,7 @@ class Index extends Component
         })->filter(fn($t) => $t->rol !== null);
 
         // Estadísticas
-        $this->ticketsSolucionados = $this->tickets->where('estado_id', 4);
+        $this->ticketsSolucionados = $this->tickets->where('estado_id', 4)->count();
         $this->ticketsEnProceso = $this->tickets->whereIn('estado_id', [
             3,
             6,
@@ -133,7 +133,25 @@ class Index extends Component
         $this->ticketsPorIniciar = $this->tickets->where('estado_id', 1)->count();
         $this->totalHorasSoporte = $this->calcularHorasSoporte($this->tickets);
 
-        $this->emit('cargarGestioTicketTabla', json_encode($this->tickets));
+        // Solo los campos que usa la tabla (evita respuestas de >1MB que el proxy bloquea)
+        $nombre = fn($r) => $r ? ['nombre' => $r->nombre] : null;
+        $payload = $this->tickets->map(fn($t) => [
+            'id' => $t->id,
+            'created_at' => $t->created_at,
+            'nomenclatura' => $t->nomenclatura,
+            'titulo' => $t->titulo,
+            'urgencia' => $nombre($t->urgencia),
+            'estado' => $nombre($t->estado),
+            'categoria' => $nombre($t->categoria),
+            'subcategoria' => $nombre($t->subcategoria),
+            'tipo_solicitud' => $nombre($t->tipoSolicitud),
+            'aplicacion' => $nombre($t->aplicacion),
+            'sociedad' => $nombre($t->sociedad),
+            'usuario' => $t->usuario ? ['name' => $t->usuario->name, 'last_name' => $t->usuario->last_name] : null,
+            'rol' => $t->rol,
+        ])->values();
+
+        $this->emit('cargarGestioTicketTabla', json_encode($payload));
     }
 
     public function calcularHorasSoporte($tickets)
@@ -165,7 +183,10 @@ class Index extends Component
         if (!$this->fecha_desde && !$this->fecha_hasta) {
             $this->iniciarFechas();
         }
-        return view('livewire.gestion.index');
+        return view('livewire.gestion.index', [
+            'estados' => Estado::all(),
+            'usuarios' => User::select('id', 'name', 'last_name')->get(),
+        ]);
     }
 
     // inicia las fechas el desde, según el primer dia del mes actual y el hasta sera el día actual

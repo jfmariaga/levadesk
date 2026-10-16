@@ -7,7 +7,7 @@
     </a>
 
     <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
-        @if (count($aprobaciones) > 0 || count($cambios) > 0 || count($tareas) > 0)
+        @if (count($aprobaciones) > 0 || count($cambios) > 0 || count($tareas) > 0 || count($tareasCount) > 0 || count($porFinalizar) > 0)
             @if (count($aprobaciones) > 0)
                 <span class="dropdown-item dropdown-header">
                     Accesos pendientes por aprobar:

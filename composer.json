@@ -11,10 +11,12 @@
         "jeroennoten/laravel-adminlte": "^3.11",
         "laravel/framework": "^8.75",
         "laravel/sanctum": "^2.11",
+        "laravel/socialite": "^5",
         "laravel/tinker": "^2.5",
         "laravel/ui": "^3.4",
         "laraveles/spanish": "^1.5",
         "livewire/livewire": "2.6.0",
+        "socialiteproviders/microsoft-azure": "^5.2",
         "spatie/laravel-permission": "^6.9",
         "symfony/css-selector": "6.3"
     },

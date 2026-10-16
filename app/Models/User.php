@@ -29,6 +29,9 @@ class User extends Authenticatable implements MustVerifyEmail
         'aprobador_ti',
         'area',
         'last_name',
+        'azure_oid',
+        'sso_tenant',
+        'last_login_at',
     ];
 
     /**

@@ -554,6 +554,15 @@
                                         <span
                                             class="solicitud-badge font-weight-bold">{{ $ticket->nomenclatura }}</span>
 
+                                        @can('investigacion-sap')
+                                            @if (stripos(($ticket->categoria->nombre ?? '') . ' ' . ($ticket->subcategoria->nombre ?? '') . ' ' . ($ticket->aplicacion->nombre ?? ''), 'SAP') !== false)
+                                                <a href="{{ route('sapia.ir', $ticket->id) }}" target="_blank" rel="noopener"
+                                                    class="btn btn-sm btn-primary ml-1">
+                                                    <i class="fas fa-search"></i> Investigar con SAP-IA
+                                                </a>
+                                            @endif
+                                        @endcan
+
                                         <button wire:click="recordatorios" class="ml-1 icono-notificacion">
                                             <i class="fas fa-bell"></i>
                                         </button>

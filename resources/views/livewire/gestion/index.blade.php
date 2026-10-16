@@ -165,7 +165,7 @@
             <div class="col-lg-3 col-md-6 col-sm-12 mb-2 mt-2">
                 <div class="card card-horas-soporte" wire:click="filtrarSolucionados">
                     <div class="inner">
-                        <h3>{{ $ticketsSolucionados->count() }}</h3>
+                        <h3>{{ $ticketsSolucionados }}</h3>
                         <p>Total de Tickets Solucionados</p>
                     </div>
                     <div class="icon">
