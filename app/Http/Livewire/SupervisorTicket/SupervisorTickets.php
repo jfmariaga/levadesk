@@ -14,8 +14,9 @@ class SupervisorTickets extends Component
     public $fecha_desde, $fecha_hasta;
     public $estados, $SelectedEstado;
     public $asignados, $SelectedAsignado;
-    public $tickets;
-    public $asignacionesSupervisor;
+    // protected: no viajan en cada peticion de Livewire (el WAF del ALB bloquea cuerpos > 8 KB con 403)
+    protected $tickets;
+    protected $asignacionesSupervisor;
 
     protected $listeners = ['cargarDatosSupervisor'];
     protected $queryString = ['fecha_desde', 'fecha_hasta', 'SelectedAsignado', 'SelectedEstado'];
@@ -43,26 +44,39 @@ class SupervisorTickets extends Component
         $this->asignados = User::whereIn('id', $asignadosIds)->get(); // Obtener los usuarios asignados
     }
 
+    /** Asignaciones del supervisor; se consulta una vez por peticion porque la propiedad ya no se sincroniza. */
+    protected function asignaciones()
+    {
+        if ($this->asignacionesSupervisor === null) {
+            $user = Auth::user();
+
+            $this->asignacionesSupervisor = DB::table('sociedad_subcategoria_grupo')
+                ->where('supervisor_id', $user->id)
+                ->orWhere('supervisor_id_2', $user->id)
+                ->select('sociedad_id', 'categoria_id', 'subcategoria_id')
+                ->get();
+        }
+
+        return $this->asignacionesSupervisor;
+    }
+
     public function cargarDatosSupervisor()
     {
         $user = Auth::user();
 
         // Obtener las asignaciones del supervisor
-        $this->asignacionesSupervisor = DB::table('sociedad_subcategoria_grupo')
-            ->where('supervisor_id', $user->id)
-            ->orWhere('supervisor_id_2', $user->id)
-            ->select('sociedad_id', 'categoria_id', 'subcategoria_id')
-            ->get();
+        $this->asignacionesSupervisor = null;
+        $asignaciones = $this->asignaciones();
 
-        if ($this->asignacionesSupervisor->isEmpty()) {
+        if ($asignaciones->isEmpty()) {
             $this->tickets = collect();
             $this->emit('cargarSupervisorTabla', json_encode($this->tickets));
             return;
         }
 
-        $sociedadIds = $this->asignacionesSupervisor->pluck('sociedad_id')->unique();
-        $categoriaIds = $this->asignacionesSupervisor->pluck('categoria_id')->unique();
-        $subcategoriaIds = $this->asignacionesSupervisor->pluck('subcategoria_id')->unique();
+        $sociedadIds = $asignaciones->pluck('sociedad_id')->unique();
+        $categoriaIds = $asignaciones->pluck('categoria_id')->unique();
+        $subcategoriaIds = $asignaciones->pluck('subcategoria_id')->unique();
 
         // Construcción de la consulta base
         $query = Ticket::with([
@@ -122,6 +136,8 @@ class SupervisorTickets extends Component
             $this->iniciarFechas();
         }
 
-        return view('livewire.supervisor-ticket.supervisor-tickets');
+        return view('livewire.supervisor-ticket.supervisor-tickets', [
+            'asignacionesSupervisor' => $this->asignaciones(),
+        ]);
     }
 }
